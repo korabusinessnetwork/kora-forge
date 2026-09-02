@@ -76,3 +76,17 @@ Fase 1, todo projeto novo nasce pelo Forge, incluindo evoluções dele mesmo.
 Interface inteiramente em português, sem i18n na Fase 1. Motivo: usuário único.
 Extrair strings para arquivo de mensagens mesmo assim, para não pagar refatoração
 depois.
+
+### 2026-09-02, dependências do bloco 1 além do tech-stack
+`concurrently` (um só `npm run forge` sobe API e front, como o ADR-001 pede), `@fastify/static`
+(servir `dist/` na própria origem quando existir build), `jsdom`, `@testing-library/dom` e
+`@testing-library/jest-dom` (exigidos pela Testing Library que o tech-stack já lista). Motivo:
+todas pequenas, sem binário nativo, cobertas pela restrição T-03.
+
+### 2026-09-02, versão mínima do Node
+Node 20.19 ou superior, porque o Vite 8 exige. Motivo: manter o Vite atual vale mais que
+suportar 20.x antigo em uma ferramenta de uso pessoal. `INSTALACAO.md` atualizado.
+
+### 2026-09-02, token de sessão por fragmento de URL
+O token vai em `#token=`, não em query string. Motivo: fragmento não chega ao servidor, logo
+não entra em log de acesso nem em histórico de proxy. Registrado em `docs/07` e `docs/11` (C2).

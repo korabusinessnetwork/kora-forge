@@ -1,0 +1,67 @@
+/* Base global do Forge. Só tokens: nenhuma cor, fonte ou medida literal fora de tokens.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#raiz {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--forge-bg);
+  color: var(--forge-text);
+  font-family: var(--forge-font-ui);
+  font-size: var(--forge-text-md);
+  line-height: var(--forge-leading-md);
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--forge-font-mono);
+}
+
+a {
+  color: var(--forge-accent);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--forge-focus-ring);
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd {
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--forge-text-xl);
+  line-height: var(--forge-leading-xl);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: var(--forge-text-lg);
+  line-height: var(--forge-leading-lg);
+  font-weight: 600;
+}

@@ -1,0 +1,72 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+}
+
+.estado {
+  color: var(--forge-text-muted);
+}
+
+.erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface);
+}
+
+.cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--forge-space-4);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  padding: var(--forge-space-4);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+  box-shadow: var(--forge-shadow-1);
+}
+
+.cartao dt {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--forge-text-muted);
+}
+
+.cartao dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-2);
+}
+
+.vazio {
+  color: var(--forge-text-muted);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}
+
+.acao {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--forge-space-4);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-accent);
+  color: var(--forge-bg);
+  font-size: var(--forge-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}

@@ -7,7 +7,7 @@
 
 | Item | Versão | Por quê |
 |---|---|---|
-| Node.js | 20 LTS ou superior | backend local, runner, build do front |
+| Node.js | 20.19 ou superior (22 LTS recomendado) | backend local, runner, build do front. O Vite 8 exige 20.19+ |
 | npm | 10+ | gerenciador padrão |
 | Git | 2.40+ | `git init` no projeto materializado |
 | Sistema | Windows 10/11 com PowerShell 7 | ambiente primário do Matheus |
@@ -25,9 +25,10 @@ npm install
 npm run forge:init
 ```
 
-O `forge:init` cria `~/.kora-forge/`, gera o banco SQLite, gera a chave de sessão
-local e pede a senha mestre do cofre de segredos (pode ser pulada, o cofre nasce
-trancado e o Forge funciona sem ele).
+O `forge:init` cria `~/.kora-forge/` (com `presets/` e `logs/`), gera o banco SQLite e aplica
+as migrations. Pode rodar de novo sem efeito colateral. A senha mestre do cofre de segredos
+chega na Fase 3; até lá o Forge roda sem cofre. A chave de sessão é recriada a cada boot, não
+no init.
 
 ## Rodar
 
@@ -36,9 +37,14 @@ npm run forge
 ```
 
 Sobe dois processos: API local em `http://127.0.0.1:7337` e front em
-`http://127.0.0.1:5173`. O terminal imprime a URL já com o token de sessão.
+`http://127.0.0.1:5173`. O terminal imprime a URL já com o token de sessão no fragmento
+(`#token=`). Abra essa URL, e não `localhost:5173` seco: sem o token, a UI avisa que precisa do
+link do terminal.
 
 > O bind é sempre `127.0.0.1`, nunca `0.0.0.0`. Ver `docs/11_SEGURANCA/README.md`.
+
+Para rodar o front compilado sem o Vite: `npm run build` e depois `npm start`, que serve `dist/`
+na própria API em `http://127.0.0.1:7337`. O `npm run forge` ignora `dist/` de propósito.
 
 ## Estrutura em disco
 
@@ -61,7 +67,8 @@ Nenhuma é obrigatória. As reconhecidas ficam em `.env.local`:
 
 | Variável | Default | Uso |
 |---|---|---|
-| `FORGE_PORT` | `7337` | porta da API local |
+| `FORGE_PORT` | `7337` | porta da API local. O host é sempre `127.0.0.1` e não é configurável |
+| `FORGE_HOME` | `~/.kora-forge` | pasta de dados: banco, chave de sessão, presets custom e logs |
 | `FORGE_WORKSPACE` | vazio | raiz permitida para materializar projetos |
 | `FORGE_COPILOT` | `off` | liga o copiloto Claude |
 | `FORGE_COPILOT_BUDGET_USD` | `5` | teto mensal do copiloto |

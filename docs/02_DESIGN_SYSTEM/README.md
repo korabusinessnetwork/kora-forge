@@ -48,6 +48,8 @@ Nenhum componente pode ter cor fora de token.
 | `--forge-text-lg` | `20px / 28px` |
 | `--forge-text-xl` | `28px / 36px` |
 
+No CSS, tamanho e altura de linha são tokens separados: `--forge-text-*` e `--forge-leading-*`.
+
 Mono é obrigatório em: caminho de arquivo, comando, log, nome de tabela, chave de env.
 
 ### Espaçamento, raio, sombra, motion
@@ -60,6 +62,7 @@ Mono é obrigatório em: caminho de arquivo, comando, log, nome de tabela, chave
 | `--forge-shadow-2` | `0 8px 24px rgba(0,0,0,.5)` |
 | `--forge-motion-fast` | `120ms ease-out` |
 | `--forge-motion-base` | `200ms ease-out` |
+| `--forge-focus-ring` | `0 0 0 2px var(--forge-bg), 0 0 0 4px var(--forge-accent)` |
 
 Animação é funcional (mostrar de onde algo veio, indicar progresso). Nada decorativo.
 Respeitar `prefers-reduced-motion`.

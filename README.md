@@ -24,8 +24,11 @@ menu       etapas     o estado      valida e avisa      prévia      disco + com
 
 ## Estado
 
-Fase 0, fundação documentada. Nenhuma linha de código escrita ainda.
-Comece por `docs/00_VISAO/README.md` e siga a numeração.
+Fase 1 em andamento. Bloco 1 entregue: front React + Vite, API local Fastify em
+`127.0.0.1:7337` com guarda de sessão, SQLite com migrations, envelope `{ data, error, meta }`
+validado por Zod nas duas pontas, tokens `--forge-*`, atoms básicos e as telas Início e
+Configurações. Próximo: bloco 2, Registry. Spec e auditoria de cada bloco em `specs/`.
+Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeração.
 
 ## Mapa
 
@@ -37,7 +40,15 @@ Comece por `docs/00_VISAO/README.md` e siga a numeração.
 | `docs/08_DECISOES/` | ADRs, sete decisões já registradas |
 | `presets/` | Os menus, em JSON |
 | `respostas-intake.md` | As respostas que originaram esta fundação |
+| `specs/` | Specs do loop spec → build → review, uma por bloco do backlog |
+| `server/`, `src/`, `shared/` | API local, front e contrato compartilhado (schemas Zod, códigos de erro) |
 
-## Rodar (quando existir código)
+## Rodar
 
-Ver `INSTALACAO.md`.
+```powershell
+npm install
+npm run forge:init
+npm run forge
+```
+
+Abra a URL que o terminal imprime: ela carrega o token de sessão. Detalhes em `INSTALACAO.md`.

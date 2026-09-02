@@ -1,0 +1,74 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--forge-space-2);
+  min-height: 32px;
+  padding: 0 var(--forge-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--forge-radius-md);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--forge-motion-fast), border-color var(--forge-motion-fast), color var(--forge-motion-fast);
+}
+
+.botao:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.primario {
+  background: var(--forge-accent);
+  color: var(--forge-bg);
+}
+
+.primario:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.secundario {
+  background: var(--forge-surface-2);
+  color: var(--forge-text);
+  border-color: var(--forge-border);
+}
+
+.secundario:hover:not(:disabled) {
+  border-color: var(--forge-text-muted);
+}
+
+.fantasma {
+  background: transparent;
+  color: var(--forge-text);
+}
+
+.fantasma:hover:not(:disabled) {
+  background: var(--forge-surface-2);
+}
+
+.destrutivo {
+  background: var(--forge-danger);
+  color: var(--forge-text);
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: girar 800ms linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

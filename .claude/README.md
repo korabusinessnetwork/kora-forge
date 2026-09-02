@@ -7,7 +7,7 @@ Skills e configurações que o Claude Code deve carregar ao trabalhar neste proj
 | Skill | Quando |
 |---|---|
 | `fundacao-de-projeto` | já aplicada, gerou esta fundação. Consultar ao evoluir a estrutura |
-| `loop-spec-build-review` | toda feature nova entra por aqui, spec antes de código |
+| `loop-spec-build-review` | toda feature nova entra por aqui, spec antes de código. Comandos `/spec`, `/build` e `/review` já instalados em `.claude/commands/`, specs em `specs/` |
 | `oop-refactor` | revisão de arquitetura de módulos do backend local e do motor |
 | `multi-model-orchestrator` | blocos paralelos da Fase 1 (motor de regras e gerador não compartilham arquivo) |
 

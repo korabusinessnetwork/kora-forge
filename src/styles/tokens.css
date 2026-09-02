@@ -1,0 +1,59 @@
+/* Tokens do Forge (docs/02_DESIGN_SYSTEM). Namespace --forge-*, nunca misturar com --projeto-* (P-06). */
+:root {
+  color-scheme: dark;
+
+  /* Cor, tema escuro (padrão) */
+  --forge-bg: #0e0f12;
+  --forge-surface: #16181d;
+  --forge-surface-2: #1d2026;
+  --forge-border: #282c34;
+  --forge-text: #e8eaed;
+  --forge-text-muted: #9aa0a9;
+  --forge-accent: #f2a65a;
+  --forge-accent-weak: #3a2a18;
+  --forge-success: #4caf7d;
+  --forge-warning: #e0b341;
+  --forge-danger: #e0574a;
+  --forge-info: #5b9bd5;
+
+  /* Tipografia: tamanho e altura de linha como tokens separados */
+  --forge-font-ui: Inter, "Segoe UI", system-ui, sans-serif;
+  --forge-font-mono: "JetBrains Mono", "Cascadia Code", monospace;
+  --forge-text-xs: 12px;
+  --forge-leading-xs: 16px;
+  --forge-text-sm: 13px;
+  --forge-leading-sm: 20px;
+  --forge-text-md: 15px;
+  --forge-leading-md: 24px;
+  --forge-text-lg: 20px;
+  --forge-leading-lg: 28px;
+  --forge-text-xl: 28px;
+  --forge-leading-xl: 36px;
+
+  /* Espaçamento */
+  --forge-space-1: 4px;
+  --forge-space-2: 8px;
+  --forge-space-3: 12px;
+  --forge-space-4: 16px;
+  --forge-space-5: 24px;
+  --forge-space-6: 32px;
+  --forge-space-7: 48px;
+  --forge-space-8: 64px;
+
+  /* Raio, sombra, motion, foco */
+  --forge-radius-sm: 4px;
+  --forge-radius-md: 8px;
+  --forge-radius-lg: 14px;
+  --forge-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --forge-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --forge-motion-fast: 120ms ease-out;
+  --forge-motion-base: 200ms ease-out;
+  --forge-focus-ring: 0 0 0 2px var(--forge-bg), 0 0 0 4px var(--forge-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --forge-motion-fast: 0ms;
+    --forge-motion-base: 0ms;
+  }
+}

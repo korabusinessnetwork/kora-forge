@@ -1,0 +1,17 @@
+.chave {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--forge-space-2);
+  max-width: 100%;
+}
+
+.valor {
+  padding: var(--forge-space-1) var(--forge-space-2);
+  background: var(--forge-surface-2);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  overflow-wrap: anywhere;
+}

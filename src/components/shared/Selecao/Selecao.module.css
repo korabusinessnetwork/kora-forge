@@ -1,0 +1,14 @@
+.selecao {
+  min-height: 32px;
+  padding: 0 var(--forge-space-3);
+  background: var(--forge-bg);
+  color: var(--forge-text);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  font-size: var(--forge-text-sm);
+  transition: border-color var(--forge-motion-fast);
+}
+
+.selecao:focus-visible {
+  border-color: var(--forge-accent);
+}

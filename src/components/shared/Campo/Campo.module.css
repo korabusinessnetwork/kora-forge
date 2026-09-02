@@ -1,0 +1,50 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+}
+
+.rotulo {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  font-weight: 600;
+}
+
+.entrada {
+  min-height: 32px;
+  padding: 0 var(--forge-space-3);
+  background: var(--forge-bg);
+  color: var(--forge-text);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  font-size: var(--forge-text-sm);
+  transition: border-color var(--forge-motion-fast);
+}
+
+.entrada::placeholder {
+  color: var(--forge-text-muted);
+}
+
+.entrada:focus-visible {
+  border-color: var(--forge-accent);
+}
+
+.entrada[aria-invalid="true"] {
+  border-color: var(--forge-danger);
+}
+
+.mono {
+  font-family: var(--forge-font-mono);
+}
+
+.micro {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}
+
+.erro {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-danger);
+}

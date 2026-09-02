@@ -1,0 +1,29 @@
+.tela {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: var(--forge-space-5);
+}
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-4);
+  max-width: 520px;
+  padding: var(--forge-space-6);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+  box-shadow: var(--forge-shadow-2);
+}
+
+.marca {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--forge-accent);
+}
+
+.texto {
+  color: var(--forge-text-muted);
+}

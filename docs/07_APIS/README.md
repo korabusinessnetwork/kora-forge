@@ -13,10 +13,22 @@ Base: `http://127.0.0.1:7337/api`. Bind exclusivo em `127.0.0.1` (restrição S-
 
 ## Autenticação local
 
-Toda rota exige `X-Forge-Token`, gerado a cada boot em `~/.kora-forge/session.key` e
-entregue ao front pelo servidor que serve o app. O header `Origin` é checado contra a
-origem esperada. Sem token válido ou com Origin estranha: `401 FORGE_UNAUTHORIZED`.
-Isso existe para impedir que um site aberto no browser converse com o Forge (S-02).
+Toda rota sob `/api` exige `X-Forge-Token`, gerado a cada boot (32 bytes aleatórios em hex)
+em `~/.kora-forge/session.key` e entregue ao front pelo **fragmento** da URL impressa no
+terminal (`#token=…`). Fragmento nunca chega ao servidor, então o token não entra em log de
+acesso. O front guarda o token em `sessionStorage` e remove o fragmento da URL.
+
+A guarda roda antes de qualquer parser, nesta ordem:
+
+1. `Host` precisa ser `127.0.0.1:<porta>` ou `localhost:<porta>`. Fecha DNS rebinding.
+2. `X-Forge-Token` precisa ser igual ao token de sessão, comparado em tempo constante.
+3. `Origin`, quando presente, precisa estar na allowlist (`http://127.0.0.1` e `http://localhost`,
+   nas portas da API e do dev server). Em método mutante (POST, PATCH, PUT, DELETE) o header é
+   obrigatório. `Origin: null` é recusado.
+
+Qualquer falha responde `401 FORGE_UNAUTHORIZED` com a mesma mensagem, sem dizer qual
+checagem falhou. Não existe CORS: nenhuma resposta traz `Access-Control-Allow-Origin`. Isso
+existe para impedir que um site aberto no browser converse com o Forge (S-02).
 
 ## Envelope
 
@@ -33,7 +45,10 @@ Erro:
 ```
 
 Toda entrada e toda saída validadas por Zod. Dado fora do contrato é rejeitado
-explicitamente, nunca silenciosamente ajustado.
+explicitamente, nunca silenciosamente ajustado. Em `FORGE_VALIDATION`, `detalhe.issues` lista
+`{ caminho, mensagem }` por campo, e o front mostra cada mensagem junto do campo. Toda rota
+declara o schema de saída; resposta fora dele vira `500 FORGE_INTERNAL` e nunca chega ao
+cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no front.
 
 ## Rotas
 
@@ -82,6 +97,12 @@ explicitamente, nunca silenciosamente ajustado.
 | `FORGE_COPILOT_DISABLED` | copiloto desligado ou sem chave |
 | `FORGE_BUDGET_EXCEEDED` | teto de custo do copiloto atingido |
 | `FORGE_RUN_FAILED` | comando terminou com exit code diferente de zero |
+| `FORGE_NOT_FOUND` | rota inexistente sob `/api` |
+| `FORGE_INTERNAL` | erro inesperado ou saída de rota fora do contrato. O corpo nunca traz detalhe interno |
+| `FORGE_CONFIG` | configuração inválida no boot (`.env.local` ou variáveis `FORGE_*`) |
+| `FORGE_PORT_IN_USE` | porta da API local ocupada no boot |
+| `FORGE_OFFLINE` | só no cliente: a API local não respondeu |
+| `FORGE_CONTRACT` | só no cliente: resposta fora do envelope ou do schema esperado |
 
 `FORGE_PLAN_STALE` existe para garantir que o que foi aprovado no dry-run é exatamente o
 que será executado. O plano carrega um hash do blueprint, e a materialização recusa hash

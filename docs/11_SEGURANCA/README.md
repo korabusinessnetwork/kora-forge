@@ -25,10 +25,13 @@ isso como o que é: código privilegiado.
 - Porta fixa e documentada. Sem UPnP, sem túnel, sem descoberta na rede.
 
 ### C2, autenticação local
-- Token de sessão gerado a cada boot, aleatório de 32 bytes, guardado em `~/.kora-forge/session.key` com permissão restrita.
-- Todo request exige `X-Forge-Token`. Falha responde `401` sem revelar detalhe.
-- Checagem de `Origin` em toda rota mutante. Origem desconhecida é recusada, o que fecha DNS rebinding e CSRF.
-- Sem CORS permissivo. Nada de `Access-Control-Allow-Origin: *`.
+- Token de sessão gerado a cada boot, aleatório de 32 bytes em hex, guardado em `~/.kora-forge/session.key` com modo `0600`.
+- O token chega ao browser pelo fragmento da URL (`#token=`), nunca por query string, então não entra em log de acesso. O front guarda em `sessionStorage` e limpa a URL.
+- Todo request a `/api` exige `X-Forge-Token`, comparado em tempo constante. Falha responde `401` sem revelar qual checagem falhou.
+- `Host` precisa ser `127.0.0.1` ou `localhost` na porta da API. Fecha DNS rebinding.
+- `Origin`, quando presente, precisa estar na allowlist local; em rota mutante é obrigatória. Fecha CSRF a partir de site aberto no browser.
+- Sem CORS. Nenhuma resposta traz `Access-Control-Allow-Origin`.
+- O logger redige `x-forge-token`, `authorization` e `cookie`.
 
 ### C3, execução de comandos
 - Whitelist por preset. Comando fora dela: `FORGE_CMD_NOT_ALLOWED`.
