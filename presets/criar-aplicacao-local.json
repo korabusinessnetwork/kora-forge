@@ -1,0 +1,52 @@
+{
+  "id": "criar-aplicacao-local",
+  "nome": "Criar Aplicação Local",
+  "descricao": "Aplicação que roda na máquina, sem nuvem: front local, backend Node e SQLite. É o preset que o próprio Forge usaria.",
+  "versao": 1,
+  "categoria": "aplicacao",
+  "icone": "hard-drive",
+  "etapas": ["identidade", "escopo", "arquitetura", "design", "dados", "seguranca", "fundacao", "materializar"],
+  "defaults": {
+    "modelo_arquitetura": "B",
+    "stack": ["react", "vite", "fastify", "sqlite", "zod", "vitest"],
+    "multi_tenant": false,
+    "white_label": false,
+    "auth": false,
+    "deploy": "nenhum",
+    "tem_ui": true,
+    "offline_first": true
+  },
+  "arvore": [
+    "fundacao-kora",
+    "vite-react",
+    "servidor-local-fastify",
+    "sqlite-schema",
+    "camada-de-servicos",
+    "design-tokens",
+    "config-base"
+  ],
+  "regras_extras": [
+    "arq-offline-first",
+    "seg-bind-localhost",
+    "seg-token-sessao-local",
+    "seg-whitelist-comandos",
+    "ux-tem-ui-exige-design-system"
+  ],
+  "skills": ["fundacao-de-projeto", "loop-spec-build-review", "oop-refactor"],
+  "mcps": ["playwright", "chrome-devtools"],
+  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }],
+  "comandos": [
+    { "id": "git-init", "cmd": "git", "args": ["init"], "obrigatorio": true },
+    { "id": "install", "cmd": "npm", "args": ["install"], "obrigatorio": true, "timeout_ms": 600000 },
+    { "id": "migrate", "cmd": "npm", "args": ["run", "db:migrate"], "obrigatorio": true },
+    { "id": "dev", "cmd": "npm", "args": ["run", "dev"], "longa_duracao": true, "obrigatorio": false }
+  ],
+  "definition_of_done": [
+    "memory/ preenchido com conteúdo real",
+    "ADR registrando o desvio do Modelo A e o porquê",
+    "servidor ligando exclusivamente em 127.0.0.1",
+    "token de sessão local exigido em toda rota",
+    "nenhuma dependência de internet para o fluxo principal",
+    "build e testes passam"
+  ]
+}

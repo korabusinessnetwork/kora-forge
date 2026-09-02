@@ -1,0 +1,50 @@
+{
+  "id": "criar-aplicacao-web",
+  "nome": "Criar Aplicação Web",
+  "descricao": "SaaS multi-tenant no padrão Kora: React, Vite, Supabase com RLS, auth e white-label.",
+  "versao": 1,
+  "categoria": "aplicacao",
+  "icone": "layers",
+  "etapas": ["identidade", "escopo", "arquitetura", "design", "dados", "apis", "seguranca", "fundacao", "materializar"],
+  "defaults": {
+    "modelo_arquitetura": "A",
+    "stack": ["react", "vite", "react-router", "context-api", "supabase", "zod", "vitest"],
+    "multi_tenant": true,
+    "white_label": true,
+    "auth": true,
+    "deploy": "vercel",
+    "tem_ui": true
+  },
+  "arvore": [
+    "fundacao-kora",
+    "vite-react",
+    "camada-de-servicos",
+    "design-tokens",
+    "supabase-schema",
+    "config-base"
+  ],
+  "regras_extras": [
+    "arq-multitenant-obrigatorio",
+    "seg-rls-obrigatorio",
+    "seg-service-role-no-front",
+    "arq-auth-exige-rota-protegida",
+    "ux-tem-ui-exige-design-system"
+  ],
+  "skills": ["fundacao-de-projeto", "loop-spec-build-review", "oop-refactor"],
+  "mcps": ["playwright", "chrome-devtools", "supabase"],
+  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }],
+  "comandos": [
+    { "id": "git-init", "cmd": "git", "args": ["init"], "obrigatorio": true },
+    { "id": "install", "cmd": "npm", "args": ["install"], "obrigatorio": true, "timeout_ms": 600000 },
+    { "id": "build", "cmd": "npm", "args": ["run", "build"], "obrigatorio": false },
+    { "id": "dev", "cmd": "npm", "args": ["run", "dev"], "longa_duracao": true, "obrigatorio": false }
+  ],
+  "definition_of_done": [
+    "memory/ preenchido com conteúdo real, sem placeholder",
+    "ADR-001 registra a stack escolhida",
+    "tenant_id previsto em toda entidade",
+    "RLS previsto em toda tabela",
+    "nenhum serviço fora do tier gratuito",
+    "npm run build passa"
+  ]
+}

@@ -1,0 +1,83 @@
+# 03, Regras de Negócio
+
+Regras por módulo, escritas antes do código. Detalhamentos em:
+
+- `motor-de-regras.md`: como as regras determinísticas funcionam
+- `presets.md`: o contrato de um preset e as etapas do wizard
+
+## RN-01, Projeto
+
+1. Projeto tem nome, slug, preset de origem, caminho no disco e status.
+2. Slug é derivado do nome (minúsculo, sem acento, hífen) e é único no workspace.
+3. Status possíveis: `rascunho`, `pronto_para_materializar`, `materializado`, `arquivado`.
+4. Projeto só passa a `materializado` depois que o runner conclui sem erro fatal.
+5. Projeto arquivado some da lista principal mas nunca é apagado do banco. Apagar a pasta em disco é ação manual do usuário, o Forge não apaga projeto materializado.
+
+## RN-02, Blueprint
+
+1. Blueprint é o estado completo do projeto como dado, versionado a cada alteração relevante.
+2. Blueprint guarda: respostas do wizard, decisões, tokens do Studio, entidades, rotas, APIs escolhidas, id e versão do preset, e a versão de cada template usado.
+3. Materializar o mesmo blueprint duas vezes produz exatamente o mesmo conjunto de arquivos (princípio nº 2).
+4. Blueprint é exportável e importável em JSON. Import passa por validação de schema.
+5. Alterar preset de um projeto já materializado não é permitido. Cria-se um projeto novo.
+
+## RN-03, Wizard
+
+1. Nove etapas padrão. Cada preset liga, desliga e reordena etapas, mas não inventa etapa fora do catálogo sem alterar o schema.
+2. Toda etapa é pulável, exceto Identidade e Materialização.
+3. Etapa pulada usa o default do preset e é marcada como "assumida" no blueprint, aparecendo na revisão final.
+4. Sair no meio salva rascunho automaticamente. Retomar volta exatamente na etapa em que parou.
+5. Voltar uma etapa e mudar resposta reprocessa o motor de regras e pode reabrir avisos já resolvidos.
+
+## RN-04, Motor de regras
+
+1. Regra é declarativa: condição sobre o blueprint mais efeito.
+2. Severidades: `info`, `aviso`, `bloqueio`.
+3. `bloqueio` impede a materialização até ser resolvido ou explicitamente dispensado com justificativa, que fica registrada no blueprint.
+4. Regra nunca altera o blueprint sozinha. Ela propõe, o usuário aceita.
+5. Toda regra disparada vira registro em `rule_hits`, com o estado final (resolvida, dispensada, ignorada).
+
+## RN-05, Geração e materialização
+
+1. Nenhuma escrita em disco sem plano aprovado (dry-run).
+2. O plano lista, por arquivo: caminho relativo, ação (criar, sobrescrever, pular), tamanho e origem (qual template).
+3. Arquivo existente nunca é sobrescrito silenciosamente. Conflito vira decisão explícita, com diff.
+4. Ordem fixa: pastas, fundação (`CLAUDE.md`, `memory/`, `docs/`), config, código, e só então os comandos.
+5. Se um comando falha, a materialização para, o estado fica registrado e o usuário decide entre repetir, pular ou abortar. Nada é revertido automaticamente, mas o log mostra exatamente onde parou.
+6. Materialização gera sempre a fundação completa. Projeto sem `memory/` preenchido é materialização falha, não projeto simples.
+
+## RN-06, Comandos
+
+1. Só executa comando presente na whitelist do preset, com argumentos validados por schema.
+2. Comando é executado com `spawn` e array de argumentos, `shell: false`, com `cwd` dentro do workspace.
+3. Comando de longa duração (dev server) roda destacado, com log em stream e botão de parar.
+4. Timeout padrão de 10 minutos por comando, configurável por preset.
+5. Ferramenta ausente no sistema é detectada **antes** de iniciar, não no meio.
+
+## RN-07, APIs e cofre
+
+1. Chave de API só entra pelo campo de cofre e nunca volta para o front. O front vê alias e status, jamais o valor.
+2. Cada API conectada tem um teste de conexão que roda antes de ser marcada como ativa.
+3. Modelo de API define: variáveis de ambiente, template de cliente na camada de serviços, teste de conexão e documentação gerada em `docs/07_APIS/` do projeto.
+4. Projeto gerado recebe `.env.example` com os nomes das variáveis, nunca com valores.
+5. Cofre trancado bloqueia apenas a etapa de APIs. O resto do fluxo continua.
+
+## RN-08, Studio
+
+1. O Studio edita apenas o que o design system do projeto suporta. Não existe elemento livre sem equivalente em componente.
+2. Saída do Studio: tokens (`tokens.css`), lista de páginas e layout de cada página em estrutura de dados, que o gerador transforma em JSX.
+3. Layout exportado é esqueleto (regiões, componentes, hierarquia), não pixel-perfect.
+4. Alterar o design depois de materializar não reescreve o projeto. Gera um plano de diff que o usuário aplica se quiser.
+
+## RN-09, Copiloto
+
+1. Desligado por padrão. Sem chave configurada, o botão nem aparece.
+2. Toda sugestão é rotulada como gerada por IA e precisa ser aceita para entrar no blueprint.
+3. Saída sempre validada por schema. Inválida duas vezes, cai para o default determinístico.
+4. Consumo registrado por chamada. Teto mensal atingido desliga o copiloto e avisa.
+5. O copiloto nunca executa comando, nunca escreve arquivo e nunca decide arquitetura.
+
+## RN-10, Ideias
+
+1. Em qualquer etapa é possível registrar uma ideia sem sair do fluxo, com título e um próximo passo.
+2. Ideia registrada não abre projeto nem interrompe o que está em andamento. Ela vai para a lista de ideias e o usuário volta para onde estava.

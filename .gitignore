@@ -1,0 +1,30 @@
+# Dependências e build
+node_modules/
+dist/
+coverage/
+.vite/
+.cache/
+
+# Ambiente. Chave de API nunca vai para .env, vai para o cofre (ADR-006)
+.env
+.env.*
+!.env.example
+
+# Artefatos de runtime do Forge. Vivem em ~/.kora-forge/, nunca no repositório
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+vault.bin
+session.key
+logs/
+*.log
+
+# Sistema e editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Claude Code, configuração local da máquina
+.claude/settings.local.json
