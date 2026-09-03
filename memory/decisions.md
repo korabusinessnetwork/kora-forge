@@ -114,3 +114,25 @@ pasta em disco, e renomear pasta é ação do usuário, fora do Forge (E-01).
 Restaurar devolve `materializado` quando há pasta em disco e `rascunho` quando não há. Um
 projeto que estava `pronto_para_materializar` volta como rascunho e o motor de regras (bloco 5)
 recalcula a prontidão. Motivo: não guardar um "status anterior" que o motor já sabe derivar.
+
+### 2026-09-03, resposta do wizard valida forma, nunca completude
+Todo campo de resposta tem default e é opcional no schema, porque o wizard salva enquanto a
+pessoa preenche. Se um campo obrigatório está em branco, a etapa simplesmente não conta como
+concluída. Motivo: bloquear avanço por campo vazio é trabalho do motor de regras (RN-04), e
+misturar as duas coisas deixaria o schema decidindo regra de negócio.
+
+### 2026-09-03, concluída e assumida são exclusivas
+Uma etapa ou foi respondida ou aceitou o default. Estar nas duas listas é erro de contrato e
+responde 400. Motivo: a revisão da etapa Fundação lista "assumidas" e "pendentes", e uma etapa
+nos dois estados tornaria essa lista mentirosa.
+
+### 2026-09-03, o wizard só versiona quando muda
+Navegar não é editar. O front compara o payload resultante com o blueprint ativo e só chama a API
+quando há diferença. Motivo: sem isso, ir e voltar na trilha encheria o histórico de versões
+idênticas e tornaria o log inútil. Como `etapaAtual` faz parte do blueprint, trocar de etapa
+versiona, e é isso que garante a retomada exata (RN-03.4).
+
+### 2026-09-03, pergunta de sim ou não vira Selecao
+`CampoBooleano` monta uma `Selecao` de Sim e Não em vez de uma caixa de marcar. Motivo: caixa de
+marcar não mostra qual é o padrão, e o princípio nº 1 exige default visível com o selo de padrão
+Kora em primeiro.

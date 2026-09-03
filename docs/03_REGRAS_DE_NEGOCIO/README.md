@@ -29,6 +29,10 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 3. Etapa pulada usa o default do preset e é marcada como "assumida" no blueprint, aparecendo na revisão final.
 4. Sair no meio salva rascunho automaticamente. Retomar volta exatamente na etapa em que parou.
 5. Voltar uma etapa e mudar resposta reprocessa o motor de regras e pode reabrir avisos já resolvidos.
+6. Uma etapa está **concluída** quando os campos obrigatórios dela estão preenchidos, e **assumida** quando foi pulada. Os dois estados são exclusivos: entrar em um tira do outro.
+7. Campo obrigatório em branco não bloqueia o avanço. Ele só impede a etapa de contar como concluída. Bloqueio é do motor de regras (RN-04).
+8. Salvar só cria versão nova quando o blueprint resultante é diferente do ativo. Navegar sem editar não gera versão nem evento.
+9. Etapa que não existe no preset do projeto não entra no blueprint: o servidor recusa `etapaAtual`, `etapasConcluidas` ou `assumidas` fora do menu.
 
 ## RN-04, Motor de regras
 

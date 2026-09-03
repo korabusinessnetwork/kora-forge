@@ -1,0 +1,29 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+}
+
+.vazio {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  color: var(--forge-text-muted);
+}
+
+.entidade {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+  margin: 0;
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-bg);
+}
+
+.legenda {
+  padding: 0 var(--forge-space-2);
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  color: var(--forge-text-muted);
+}

@@ -7,7 +7,9 @@ import { ErroApi } from '../../services/api.js';
 import PaginaProjeto from './PaginaProjeto.jsx';
 
 vi.mock('../../services/projetos.js', () => ({ obterProjeto: vi.fn(), atualizarProjeto: vi.fn(), listarVersoesBlueprint: vi.fn() }));
+vi.mock('../../services/presets.js', () => ({ obterPreset: vi.fn() }));
 import { obterProjeto, atualizarProjeto, listarVersoesBlueprint } from '../../services/projetos.js';
+import { obterPreset } from '../../services/presets.js';
 
 const m = mensagens.projeto;
 const dados = (extra = {}) => ({
@@ -24,6 +26,8 @@ beforeEach(() => {
   atualizarProjeto.mockReset();
   listarVersoesBlueprint.mockReset();
   listarVersoesBlueprint.mockResolvedValue([{ versao: 2, ativo: true, criadoEm: '2026-09-02T00:00:00.000Z' }, { versao: 1, ativo: false, criadoEm: '2026-09-01T00:00:00.000Z' }]);
+  obterPreset.mockReset();
+  obterPreset.mockResolvedValue({ id: 'criar-site', etapas: ['identidade', 'escopo', 'design', 'seguranca', 'fundacao', 'materializar'] });
 });
 
 describe('PaginaProjeto', () => {
@@ -74,5 +78,35 @@ describe('PaginaProjeto', () => {
     renderizar();
     fireEvent.click(await screen.findByRole('button', { name: m.arquivar }));
     expect(await screen.findByRole('alert')).toHaveTextContent('A API local não respondeu.');
+  });
+});
+
+describe('entrada do wizard', () => {
+  it('sem nada respondido oferece começar, com progresso zerado', async () => {
+    const base = dados();
+    obterProjeto.mockResolvedValue({ ...base, blueprint: { ...base.blueprint, payload: { ...base.blueprint.payload, etapasConcluidas: [], assumidas: [] } } });
+    renderizar();
+    const link = await screen.findByRole('link', { name: m.comecar });
+    expect(link).toHaveAttribute('href', '/projetos/p1/wizard');
+    expect(await screen.findByText(m.progresso(0, 6))).toBeInTheDocument();
+  });
+
+  it('com etapas feitas oferece continuar e conta concluídas mais assumidas', async () => {
+    const base = dados();
+    obterProjeto.mockResolvedValue({
+      ...base,
+      blueprint: { ...base.blueprint, payload: { ...base.blueprint.payload, etapasConcluidas: ['identidade', 'escopo'], assumidas: ['design'] } },
+    });
+    renderizar();
+    expect(await screen.findByRole('link', { name: m.continuar })).toHaveAttribute('href', '/projetos/p1/wizard');
+    expect(await screen.findByText(m.progresso(3, 6))).toBeInTheDocument();
+  });
+
+  it('projeto arquivado não oferece o wizard', async () => {
+    obterProjeto.mockResolvedValue(dados({ status: 'arquivado' }));
+    renderizar();
+    await screen.findByRole('button', { name: m.restaurar });
+    expect(screen.queryByRole('link', { name: m.comecar })).toBeNull();
+    expect(screen.queryByRole('link', { name: m.continuar })).toBeNull();
   });
 });

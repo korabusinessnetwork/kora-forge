@@ -25,6 +25,17 @@ Registry
 
 Bloqueio pendente no motor de regras impede chegar na etapa 9.
 
+### Estado da implementação (Fase 1, bloco 4)
+
+O wizard já conduz as etapas que o preset liga, com trilha, navegação, pular e retomada exata.
+As etapas 4 (Design) e 6 (APIs) existem no preset e mostram uma tela de espera que só marca a
+etapa como assumida, porque Studio e API Hub chegam nas fases 2 e 3. A etapa 9 mostra o resumo e
+diz que o plano e a execução chegam nos blocos 6 e 7.
+
+Regra de versionamento: cada avanço, volta ou salto pela trilha grava uma versão nova do
+blueprint **só quando o payload muda**. Navegar sem editar não versiona. Como `etapaAtual` faz
+parte do blueprint, mudar de etapa versiona, e é isso que garante a retomada exata.
+
 ## F-02, Materialização (detalhe)
 
 ```
@@ -43,7 +54,7 @@ escritos permanecem, e a tela diz exatamente em que ponto parou.
 
 ## F-03, Retomar projeto
 
-Abrir do Registry recarrega o blueprint ativo e volta na `etapa_atual`. Se o projeto já
+Abrir do Registry recarrega o blueprint ativo e volta na `etapa_atual`. `/projetos/:id/wizard` sem etapa na URL redireciona para ela, e uma etapa que não existe no preset também. Se o projeto já
 foi materializado, o wizard entra em modo revisão: alterações geram um **plano de diff**
 contra o que existe no disco, nunca uma sobrescrita cega.
 

@@ -1,0 +1,85 @@
+.trilha {
+  min-width: 220px;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 var(--forge-space-3);
+  width: 100%;
+  min-height: 32px;
+  padding: var(--forge-space-2) var(--forge-space-3);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--forge-radius-md);
+  color: var(--forge-text-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:disabled {
+  cursor: default;
+}
+
+.numero {
+  grid-row: span 2;
+  align-self: center;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+}
+
+.nome {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}
+
+.estado {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.atual {
+  background: var(--forge-accent-weak);
+  border-color: var(--forge-accent);
+  color: var(--forge-accent);
+}
+
+.concluida {
+  color: var(--forge-success);
+}
+
+.assumida {
+  color: var(--forge-warning);
+}
+
+.visitada,
+.pendente {
+  color: var(--forge-text-muted);
+}
+
+.visitada:hover:not(:disabled),
+.concluida:hover:not(:disabled),
+.assumida:hover:not(:disabled) {
+  background: var(--forge-surface-2);
+}
+
+.pendente {
+  opacity: 0.6;
+}

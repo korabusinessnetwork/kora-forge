@@ -26,6 +26,10 @@ export async function atualizarProjeto(id, patch) {
   return validarContrato(projetoComBlueprintSchema, await alterar(`/projects/${encodeURIComponent(id)}`, patch));
 }
 
+export async function salvarBlueprint(id, payload) {
+  return validarContrato(projetoComBlueprintSchema, await enviar(`/projects/${encodeURIComponent(id)}/blueprint`, payload));
+}
+
 export async function listarVersoesBlueprint(id) {
   return validarContrato(listaVersoesBlueprintSchema, await obter(`/projects/${encodeURIComponent(id)}/blueprint/versoes`));
 }

@@ -162,3 +162,50 @@ describe('blueprint', () => {
     expect((await get(ctx, `/api/projects/${projeto.id}`)).statusCode).toBe(200);
   });
 });
+
+describe('blueprint contra as etapas do preset', () => {
+  // criar-site não tem as etapas arquitetura, dados nem apis.
+  const doSite = (extra = {}) => ({
+    preset: { id: 'criar-site', versao: 1 }, etapaAtual: 'escopo', etapasConcluidas: [], assumidas: [], respostas: {}, ...extra,
+  });
+
+  it('etapaAtual fora do preset responde 400 apontando o campo', async () => {
+    const ctx = novo();
+    const { projeto } = await criar(ctx, 'Alfa');
+    const r = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ etapaAtual: 'dados' }));
+    expect(r.statusCode).toBe(400);
+    expect(r.json().error.detalhe.issues[0].caminho).toBe('etapaAtual');
+    expect(r.json().error.mensagem).toContain('dados');
+  });
+
+  it('etapa fora do preset em concluídas ou assumidas responde 400', async () => {
+    const ctx = novo();
+    const { projeto } = await criar(ctx, 'Alfa');
+    const concluidas = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ etapasConcluidas: ['arquitetura'] }));
+    expect(concluidas.statusCode).toBe(400);
+    expect(concluidas.json().error.detalhe.issues[0].caminho).toBe('etapasConcluidas');
+    const assumidas = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ assumidas: ['apis'] }));
+    expect(assumidas.statusCode).toBe(400);
+    expect(assumidas.json().error.detalhe.issues[0].caminho).toBe('assumidas');
+  });
+
+  it('etapa repetida e etapa concluída e assumida ao mesmo tempo respondem 400', async () => {
+    const ctx = novo();
+    const { projeto } = await criar(ctx, 'Alfa');
+    expect((await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ assumidas: ['design', 'design'] }))).statusCode).toBe(400);
+    expect((await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ etapasConcluidas: ['design'], assumidas: ['design'] }))).statusCode).toBe(400);
+  });
+
+  it('etapas do preset passam, com respostas tipadas, e criam versão nova', async () => {
+    const ctx = novo();
+    const { projeto } = await criar(ctx, 'Alfa');
+    const r = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({
+      etapasConcluidas: ['identidade'], assumidas: ['design'],
+      respostas: { identidade: { nome: 'Alfa', essencia: 'e', problema: 'p', valor: 'v' }, design: {} },
+    }));
+    expect(r.statusCode).toBe(200);
+    expect(r.json().data.blueprint.versao).toBe(2);
+    expect(r.json().data.blueprint.payload.respostas.identidade.essencia).toBe('e');
+    expect(eventos(ctx, projeto.id).filter((e) => e.nome === 'blueprint.salvo')).toHaveLength(1);
+  });
+});

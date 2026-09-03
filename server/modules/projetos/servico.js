@@ -130,6 +130,15 @@ export function criarServicoProjetos({ db, presets, registrarEvento = () => true
     if (payload.preset.id !== atual.preset_id || payload.preset.versao !== atual.preset_versao) {
       throw erroCampo('preset', 'O preset do blueprint não bate com o do projeto. Trocar preset exige projeto novo.');
     }
+    // Etapa que não existe no preset não entra no blueprint: o wizard é conduzido pelo preset.
+    const etapasDoPreset = presets.obterOuFalhar(atual.preset_id).etapas;
+    if (!etapasDoPreset.includes(payload.etapaAtual)) {
+      throw erroCampo('etapaAtual', `A etapa "${payload.etapaAtual}" não existe neste menu.`);
+    }
+    for (const campo of ['etapasConcluidas', 'assumidas']) {
+      const fora = payload[campo].filter((etapa) => !etapasDoPreset.includes(etapa));
+      if (fora.length > 0) throw erroCampo(campo, `Etapa fora do menu do projeto: ${fora.join(', ')}.`);
+    }
     const versao = stmts.ultimaVersao.get(id).ultima + 1;
     const agora = new Date().toISOString();
     db.transaction(() => {

@@ -1,0 +1,58 @@
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.rotulo {
+  padding: 0;
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  font-weight: 600;
+}
+
+.micro {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}
+
+.vazio {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  color: var(--forge-text-muted);
+}
+
+.itens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item,
+.adicionar {
+  display: flex;
+  align-items: center;
+  gap: var(--forge-space-2);
+}
+
+.entrada {
+  flex: 1;
+  min-height: 32px;
+  padding: 0 var(--forge-space-3);
+  background: var(--forge-bg);
+  color: var(--forge-text);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  font-size: var(--forge-text-sm);
+}
+
+.entrada:focus-visible {
+  border-color: var(--forge-accent);
+}

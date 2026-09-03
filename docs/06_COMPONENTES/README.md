@@ -26,6 +26,8 @@ src/
 | `CampoSegredo` | mascarado, sem autocomplete, nunca ecoa valor, nunca vai para o log |
 | `Selecao` | opção "padrão Kora" sempre primeiro, com selo |
 | `Chave` | exibe `PATH`, comando ou nome de tabela em mono, com copiar |
+| `CampoBooleano` | pergunta de sim ou não. Usa `Selecao` para herdar o selo de padrão Kora e o default visível |
+| `ListaDeTextos` | lista editável de strings (personas, stack, não-objetivos). Microtexto obrigatório, vazio com próxima ação |
 | `Selo` | status: rascunho, pronto, materializado, arquivado, ativa, invalida |
 | `SeloIA` | marca conteúdo vindo do copiloto. Obrigatório em toda sugestão |
 | `Icone` | conjunto único, sem misturar bibliotecas |
@@ -42,6 +44,7 @@ src/
 | `LinhaComando` | um comando: cmd, args, estado, duração, parar |
 | `CampoConexao` | alias, status, teste de conexão. Nunca mostra o valor |
 | `CartaoIdeia` | título e próximo passo |
+| `EditorEntidades` | entidades do domínio: nome, o que é e campos, com adicionar e remover |
 | `CartaoBuild` | projeto, spec, modelo por papel, `BarraProgresso`, `Estimativa`, o que falta (Fase 6) |
 | `Estimativa` | faixa P50 a P90 rotulada "estimativa", com a base de cálculo no microtexto; "sem base ainda" quando não há histórico (Fase 6) |
 | `LinhaModelo` | modelo, papel, plano em execução, rodadas de review, achados e correções (Fase 6) |
@@ -50,7 +53,8 @@ src/
 
 | Componente | Notas |
 |---|---|
-| `PassoWizard` | casca de uma etapa: título, microtexto, campos, avisos, navegação, pular |
+| `PassoWizard` | casca de uma etapa: título, microtexto, campos, avisos, navegação, pular. Mostra "Etapa x de y" com o total real do preset |
+| `TrilhaEtapas` | etapas do preset em ordem, com estado (concluída, assumida, atual, pendente). Etapa à frente da atual não é clicável |
 | `PainelPlano` | o dry-run inteiro, agrupado por pasta, com total e conflitos no topo |
 | `PainelLog` | log ao vivo, stdout e stderr diferenciados, autoscroll com trava, parar |
 | `ListaProjetos` | Registry com filtro por status e busca |

@@ -1,0 +1,73 @@
+.passo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+  max-width: 640px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+}
+
+.contador {
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--forge-accent);
+}
+
+.microtexto {
+  color: var(--forge-text-muted);
+}
+
+.avisos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-3);
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+  padding: var(--forge-space-5);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+}
+
+.erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface);
+}
+
+.rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forge-space-4);
+  padding-top: var(--forge-space-3);
+  border-top: 1px solid var(--forge-border);
+}
+
+.esquerda {
+  display: flex;
+  align-items: center;
+  gap: var(--forge-space-2);
+}
+
+.nota {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}

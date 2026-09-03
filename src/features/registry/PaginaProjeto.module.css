@@ -111,3 +111,22 @@
   align-items: center;
   gap: var(--forge-space-2);
 }
+
+.progresso {
+  display: flex;
+  align-items: center;
+  gap: var(--forge-space-4);
+}
+
+.acaoPrimaria {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--forge-space-4);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-accent);
+  color: var(--forge-bg);
+  font-size: var(--forge-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}

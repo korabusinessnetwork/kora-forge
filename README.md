@@ -24,11 +24,12 @@ menu       etapas     o estado      valida e avisa      prévia      disco + com
 
 ## Estado
 
-Fase 1 em andamento. Blocos 1, 2 e 3 entregues: front React + Vite, API local Fastify em
+Fase 1 em andamento. Blocos 1 a 4 entregues: front React + Vite, API local Fastify em
 `127.0.0.1:7337` com guarda de sessão, SQLite com migrations, envelope `{ data, error, meta }`
 validado por Zod nas duas pontas, tokens `--forge-*`, atoms básicos, presets builtin validados
-por schema e o Registry (criar, abrir, renomear, arquivar, restaurar, blueprint versionado).
-Próximo: bloco 4, Wizard. Spec e auditoria de cada bloco em `specs/`.
+por schema, o Registry (criar, abrir, renomear, arquivar, restaurar) e o wizard que preenche o
+blueprint etapa a etapa, com trilha, pular e retomada exata.
+Próximo: bloco 5, motor de regras. Spec e auditoria de cada bloco em `specs/`.
 Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeração.
 
 ## Mapa

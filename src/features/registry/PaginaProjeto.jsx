@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { obterProjeto, atualizarProjeto, listarVersoesBlueprint } from '../../services/projetos.js';
+import { obterPreset } from '../../services/presets.js';
 import Botao from '../../components/shared/Botao/Botao.jsx';
 import Campo from '../../components/shared/Campo/Campo.jsx';
 import Chave from '../../components/shared/Chave/Chave.jsx';
@@ -18,6 +19,7 @@ export default function PaginaProjeto() {
   const clienteQuery = useQueryClient();
   const consulta = useQuery({ queryKey: ['projeto', id], queryFn: () => obterProjeto(id) });
   const versoes = useQuery({ queryKey: ['projeto', id, 'versoes'], queryFn: () => listarVersoesBlueprint(id), enabled: Boolean(consulta.data) });
+  const preset = useQuery({ queryKey: ['preset', consulta.data?.projeto.presetId], queryFn: () => obterPreset(consulta.data.projeto.presetId), enabled: Boolean(consulta.data) });
   const [editando, setEditando] = useState(false);
   const [nomeNovo, setNomeNovo] = useState('');
 
@@ -43,6 +45,7 @@ export default function PaginaProjeto() {
   }
 
   const { projeto, blueprint } = consulta.data;
+  const etapasDoPreset = preset.data?.etapas ?? [];
   const arquivado = projeto.status === 'arquivado';
   const erroNome = atualizar.isError ? (atualizar.error?.detalhe?.issues?.find((i) => i.caminho === 'nome')?.mensagem ?? null) : null;
   const erroGeral = atualizar.isError && !erroNome ? (atualizar.error?.message ?? mensagens.estados.erroGenerico) : null;
@@ -89,7 +92,14 @@ export default function PaginaProjeto() {
         <div><dt>{m.blueprintVersao}</dt><dd><span className={estilos.mono}>v{blueprint.versao}</span> · {formatarData(blueprint.criadoEm)}</dd></div>
       </dl>
 
-      <p className={estilos.estado}>{m.wizardIndisponivel}</p>
+      {!arquivado ? (
+        <p className={estilos.progresso}>
+          <Link to={`/projetos/${projeto.id}/wizard`} className={estilos.acaoPrimaria}>
+            {blueprint.payload.etapasConcluidas.length + blueprint.payload.assumidas.length > 0 ? m.continuar : m.comecar}
+          </Link>
+          <span className={estilos.estado}>{m.progresso(blueprint.payload.etapasConcluidas.length + blueprint.payload.assumidas.length, etapasDoPreset.length)}</span>
+        </p>
+      ) : null}
 
       <section aria-labelledby="titulo-versoes" className={estilos.versoes}>
         <h2 id="titulo-versoes">{m.versoes}</h2>

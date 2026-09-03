@@ -5,6 +5,7 @@ import SemSessao from './features/sessao/SemSessao.jsx';
 import PaginaRegistry from './features/registry/PaginaRegistry.jsx';
 import PaginaNovoProjeto from './features/registry/PaginaNovoProjeto.jsx';
 import PaginaProjeto from './features/registry/PaginaProjeto.jsx';
+import PaginaWizard from './features/wizard/PaginaWizard.jsx';
 import PaginaConfig from './features/config/PaginaConfig.jsx';
 import { obterToken } from './services/sessao.js';
 
@@ -25,6 +26,8 @@ export default function App() {
             <Route index element={<PaginaRegistry />} />
             <Route path="novo" element={<PaginaNovoProjeto />} />
             <Route path="projetos/:id" element={<PaginaProjeto />} />
+            <Route path="projetos/:id/wizard" element={<PaginaWizard />} />
+            <Route path="projetos/:id/wizard/:etapa" element={<PaginaWizard />} />
             <Route path="config" element={<PaginaConfig />} />
           </Route>
         </Routes>

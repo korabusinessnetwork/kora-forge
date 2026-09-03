@@ -1,0 +1,33 @@
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+}
+
+.titulo {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--forge-text-muted);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+  margin: 0;
+  padding-left: var(--forge-space-5);
+}
+
+.texto {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  color: var(--forge-text-muted);
+}
+
+.mono {
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-sm);
+}

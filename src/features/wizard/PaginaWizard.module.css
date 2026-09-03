@@ -1,0 +1,21 @@
+.casca {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--forge-space-6);
+  align-items: start;
+}
+
+.estado {
+  color: var(--forge-text-muted);
+}
+
+.erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface);
+}
