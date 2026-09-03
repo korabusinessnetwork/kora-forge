@@ -158,8 +158,14 @@ CREATE TABLE copilot_calls (
   tokens_saida   INTEGER NOT NULL DEFAULT 0,
   custo_estimado REAL NOT NULL DEFAULT 0,
   estado         TEXT NOT NULL CHECK (estado IN ('sucesso','invalido','erro','timeout')),
-  criado_em      TEXT NOT NULL
+  criado_em      TEXT NOT NULL,
+  intencao       TEXT,                 -- site | aplicacao | local | api | automacao, quando conhecida
+  tokens_cache_leitura INTEGER NOT NULL DEFAULT 0,
+  tokens_cache_escrita INTEGER NOT NULL DEFAULT 0,
+  lote           INTEGER NOT NULL DEFAULT 0,  -- 1 quando foi pelo Batch API (50% de desconto)
+  duracao_ms     INTEGER
 );
+CREATE INDEX idx_copilot_calls_periodo ON copilot_calls(criado_em, modelo);
 
 -- Append-only. Nunca UPDATE, nunca DELETE.
 CREATE TABLE events (

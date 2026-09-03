@@ -90,3 +90,23 @@ suportar 20.x antigo em uma ferramenta de uso pessoal. `INSTALACAO.md` atualizad
 ### 2026-09-02, token de sessão por fragmento de URL
 O token vai em `#token=`, não em query string. Motivo: fragmento não chega ao servidor, logo
 não entra em log de acesso nem em histórico de proxy. Registrado em `docs/07` e `docs/11` (C2).
+
+### 2026-09-03, preço de modelo é dado versionado, nunca consulta em runtime
+O catálogo de modelos e preços vive em `shared/eficiencia/catalogo-modelos.json` (versão, data,
+fonte) e os perfis de recomendação por intenção em `shared/eficiencia/perfis.json`. Motivo: o
+Forge roda offline (T-01) e a recomendação precisa reproduzir (princípio nº 2); preço buscado na
+hora muda a resposta sem ninguém decidir. Atualização é edição de JSON com `versao` nova, teste
+verde e entrada aqui.
+
+### 2026-09-03, eficiência mede sucessos por dólar, não preço por token
+O painel Eficiência ranqueia modelos por sucessos por dólar relativo ao melhor (100), com aviso
+de amostra pequena abaixo de 5 chamadas. Motivo: modelo barato que falha na validação custa a
+chamada, a escalada e o fallback; custo por tarefa concluída é o número que decide. O custo de
+cada chamada é calculado no servidor pelo catálogo, nunca aceito do cliente.
+
+### 2026-09-03, o copiloto nunca usa o Fable 5.1
+Nenhum perfil recomenda nem escala para `claude-fable-5-1`; o teste do motor bloqueia. Motivo:
+cinco vezes o preço do Sonnet 5 para enriquecer texto curto, dentro de um teto de 5 USD por mês.
+Padrão Kora é Sonnet 5; Haiku 4.5 em nomeação; Opus 5 em esforço baixo só na revisão de
+blueprint de aplicação web e API, onde o erro vai para o disco.
+

@@ -81,6 +81,10 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | GET | `/ideas` / POST `/ideas` | gaveta de ideias |
 | GET | `/events` | log de eventos, com filtro |
 | GET/PATCH | `/settings` | workspace, tema, teto do copiloto |
+| GET | `/eficiencia/catalogo` | catálogo versionado de modelos e preços (`shared/eficiencia/catalogo-modelos.json`) |
+| GET | `/eficiencia/recomendacao?intencao=&etapa=` | modelo, esforço, cache e custo típico por etapa do copiloto para a intenção (`site`, `aplicacao`, `local`, `api`, `automacao`). Sem `etapa`, todas |
+| GET | `/eficiencia/painel?intencao=&periodo=` | gasto contra o teto, ranking dos modelos por sucesso por dólar e custo por etapa (`periodo` ∈ `mes`, `30d`, `tudo`) |
+| POST | `/eficiencia/chamadas` | registra uma chamada do copiloto em `copilot_calls`. O custo é calculado no servidor pelo catálogo, nunca aceito do cliente |
 
 ## Códigos de erro estáveis
 

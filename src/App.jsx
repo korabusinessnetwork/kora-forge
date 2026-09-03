@@ -4,6 +4,7 @@ import LayoutApp from './components/layout/LayoutApp.jsx';
 import PaginaInicio from './features/inicio/PaginaInicio.jsx';
 import SemSessao from './features/inicio/SemSessao.jsx';
 import PaginaConfig from './features/config/PaginaConfig.jsx';
+import PaginaEficiencia from './features/eficiencia/PaginaEficiencia.jsx';
 import { obterToken } from './services/sessao.js';
 
 const clienteQuery = new QueryClient({
@@ -21,6 +22,7 @@ export default function App() {
         <Routes>
           <Route element={<LayoutApp />}>
             <Route index element={<PaginaInicio />} />
+            <Route path="eficiencia" element={<PaginaEficiencia />} />
             <Route path="config" element={<PaginaConfig />} />
           </Route>
         </Routes>

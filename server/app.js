@@ -8,8 +8,10 @@ import { formatarIssues } from './lib/validar.js';
 import { criarGuarda } from './lib/guarda.js';
 import { criarRegistradorDeEventos } from './modules/eventos/servico.js';
 import { criarServicoSettings } from './modules/settings/servico.js';
+import { criarServicoEficiencia } from './modules/eficiencia/servico.js';
 import rotasHealth from './modules/health/rotas.js';
 import rotasSettings from './modules/settings/rotas.js';
+import rotasEficiencia from './modules/eficiencia/rotas.js';
 
 // Nunca logar segredo (C6): o token e headers de autorização saem redigidos.
 const CAMINHOS_REDIGIDOS = ['req.headers["x-forge-token"]', 'req.headers.authorization', 'req.headers.cookie'];
@@ -60,7 +62,8 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
     },
     registrarEvento,
   });
-  app.decorate('servicos', { settings, registrarEvento });
+  const eficiencia = criarServicoEficiencia({ db, settings, registrarEvento });
+  app.decorate('servicos', { settings, registrarEvento, eficiencia });
 
   app.register(async function api(instancia) {
     instancia.addHook('onRequest', criarGuarda({ tokenSessao, porta: config.porta, portaDev: config.portaDev }));
@@ -95,6 +98,7 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
 
     instancia.register(rotasHealth, { versao, home: config.home, settings });
     instancia.register(rotasSettings, { settings });
+    instancia.register(rotasEficiencia, { eficiencia });
     for (const plugin of pluginsApi) instancia.register(plugin);
   }, { prefix: '/api' });
 
