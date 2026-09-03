@@ -48,6 +48,7 @@ async function iniciar() {
   console.log('');
 
   const encerrar = async () => {
+    // onClose do app mata os processos filhos: dev server não fica órfão.
     await app.close();
     db.close();
     process.exit(0);

@@ -43,14 +43,23 @@ parte do blueprint, mudar de etapa versiona, e é isso que garante a retomada ex
 2. checar workspace       existe, é gravável, e o slug não colide
 3. gerar plano            gerador resolve templates com o blueprint  [implementado, bloco 6]
 4. mostrar plano          arquivos (criar/sobrescrever/pular) + comandos + tamanho total  [implementado, bloco 6]
-5. aprovar                explícito, botão separado da navegação normal
-6. escrever arquivos      ordem fixa: pastas → fundação → config → código
-7. rodar comandos         um a um, na ordem, log em stream, botão parar
-8. registrar              status materializado, evento projeto.materializado, log salvo
+5. aprovar                explícito, botão separado da navegação normal  [implementado, bloco 7]
+6. escrever arquivos      ordem fixa: pastas → fundação → config → código  [implementado, bloco 7]
+7. rodar comandos         um a um, na ordem, log em stream, botão parar  [implementado, bloco 7]
+8. registrar              status materializado, evento projeto.materializado, log salvo  [implementado, bloco 7]
 ```
 
-Falha em um comando para o fluxo e oferece: repetir, pular ou abortar. Arquivos já
-escritos permanecem, e a tela diz exatamente em que ponto parou.
+Falha em um comando **obrigatório** para o fluxo e oferece: repetir, pular ou abortar. Comando
+opcional que falha fica registrado e o fluxo segue. Arquivos já escritos permanecem, e a tela diz
+exatamente em que ponto parou.
+
+O cliente aprova mandando só o hash do plano. O servidor regera o plano a partir do blueprint e
+só executa se o hash bater: assim o que roda é sempre plano do servidor, e o hash prova que é o
+mesmo que o usuário viu e aprovou.
+
+O estado da materialização vive em memória do servidor, por ser operação viva de um usuário só.
+Reiniciar no meio não corrompe nada: os arquivos escritos permanecem, e gerar o plano de novo
+marca os idênticos como `pular`, então repetir é seguro.
 
 ## F-03, Retomar projeto
 

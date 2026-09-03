@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
+import fastifyWebsocket from '@fastify/websocket';
 import { ErroForge } from './lib/erro.js';
 import { envelopar, envelopeDeErro, ehEnvelope } from './lib/envelope.js';
 import { formatarIssues } from './lib/validar.js';
@@ -12,12 +13,15 @@ import { criarServicoPresets } from './modules/presets/servico.js';
 import { criarServicoProjetos } from './modules/projetos/servico.js';
 import { criarServicoRegras } from './modules/regras/servico.js';
 import { criarServicoGerador } from './modules/gerador/servico.js';
+import { criarServicoRunner } from './modules/runner/servico.js';
+import { criarTransmissor } from './lib/transmissor.js';
 import rotasHealth from './modules/health/rotas.js';
 import rotasSettings from './modules/settings/rotas.js';
 import rotasPresets from './modules/presets/rotas.js';
 import rotasProjetos from './modules/projetos/rotas.js';
 import rotasRegras from './modules/regras/rotas.js';
 import rotasGerador from './modules/gerador/rotas.js';
+import rotasRunner from './modules/runner/rotas.js';
 
 // Nunca logar segredo (C6): o token e headers de autorização saem redigidos.
 const CAMINHOS_REDIGIDOS = ['req.headers["x-forge-token"]', 'req.headers.authorization', 'req.headers.cookie'];
@@ -72,7 +76,12 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
   const regras = criarServicoRegras({ db, registrarEvento });
   const projetos = criarServicoProjetos({ db, presets, registrarEvento });
   const gerador = criarServicoGerador({ regras });
-  app.decorate('servicos', { settings, presets, projetos, regras, gerador, registrarEvento });
+  const transmissor = criarTransmissor();
+  const runner = criarServicoRunner({ db, transmissor, registrarEvento, log: app.log });
+  app.decorate('servicos', { settings, presets, projetos, regras, gerador, runner, transmissor, registrarEvento });
+  app.addHook('onClose', async () => runner.encerrarTudo());
+
+  app.register(fastifyWebsocket);
 
   app.register(async function api(instancia) {
     instancia.addHook('onRequest', criarGuarda({ tokenSessao, porta: config.porta, portaDev: config.portaDev }));
@@ -111,6 +120,7 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
     instancia.register(rotasProjetos, { projetos, presets, regras });
     instancia.register(rotasRegras, { regras, projetos, presets });
     instancia.register(rotasGerador, { gerador, projetos, presets, settings });
+    instancia.register(rotasRunner, { runner, gerador, projetos, presets, settings, transmissor });
     for (const plugin of pluginsApi) instancia.register(plugin);
   }, { prefix: '/api' });
 

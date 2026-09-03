@@ -16,7 +16,8 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 | 4, wizard | entregue | `specs/fase1-bloco4-wizard.md` |
 | 5, motor de regras | entregue | `specs/fase1-bloco5-motor-de-regras.md` |
 | 6, gerador | entregue | `specs/fase1-bloco6-gerador.md` |
-| 7, runner | próximo | |
+| 7, runner | entregue | `specs/fase1-bloco7-runner.md` |
+| 8, telas de fechamento | próximo | |
 
 ## Critério de aceite da fase inteira
 

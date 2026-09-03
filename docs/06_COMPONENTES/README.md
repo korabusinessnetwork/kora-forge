@@ -58,6 +58,7 @@ src/
 | `TrilhaEtapas` | etapas do preset em ordem, com estado (concluída, assumida, atual, pendente). Etapa à frente da atual não é clicável |
 | `PainelPlano` | o dry-run inteiro: conflitos no topo, pendências declaradas, arquivos agrupados por pasta, comandos e o aviso de que nada foi escrito. Sem conflito e sem pendência, essas seções não são renderizadas |
 | `PainelLog` | log ao vivo, stdout e stderr diferenciados, autoscroll com trava, parar |
+| `PainelMaterializacao` | o que está acontecendo agora: arquivos escritos, fila de comandos com estado, e as três saídas quando um comando obrigatório falha |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | área de desenho com zoom, pan, régua, snap |
 | `PainelTokens` | edição dos tokens `--projeto-*` com preview ao vivo |

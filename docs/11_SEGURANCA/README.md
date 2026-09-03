@@ -40,6 +40,8 @@ isso como o que é: código privilegiado.
 - `cwd` sempre dentro do workspace, validado imediatamente antes de executar.
 - Timeout por comando. Processo de longa duração é destacado e parável.
 - Sem variável de ambiente herdada além do mínimo necessário. O cofre nunca entra no ambiente de um comando, exceto quando o preset declara explicitamente e o usuário confirma.
+- O ambiente do processo filho é montado do zero, a partir de duas listas fechadas em `server/lib/processo.js`: o mínimo do sistema (`PATH`, `HOME`, temporários, e os equivalentes no Windows) e a configuração de rede (`HTTP(S)_PROXY`, `NO_PROXY`, `NODE_EXTRA_CA_CERTS`, `SSL_CERT_*` e os `npm_config_` de proxy e registry). Sem a segunda lista, `npm install` trava em qualquer máquina atrás de proxy, e instalar dependência é o motivo de o comando existir. Proxy é configuração, não credencial; ainda assim o ambiente nunca é logado, porque uma URL de proxy pode embutir usuário e senha.
+- Qualquer outra variável do processo do Forge fica de fora, e um teste prova que uma variável `FORGE_*` não chega ao filho.
 
 ### C4, filesystem
 - Toda escrita resolve o caminho absoluto e verifica que ele começa pela raiz do workspace, depois de normalizar. Fora disso: `FORGE_PATH_FORBIDDEN`.

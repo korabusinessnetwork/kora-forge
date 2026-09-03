@@ -69,6 +69,11 @@ Toda operação que cria, altera ou apaga arquivo produz antes um plano legível
 (caminho, ação, tamanho, conflito) que o usuário aprova. O executor recebe o plano
 aprovado, nunca a intenção original. Ver **ADR-002**.
 
+Na prática, o cliente aprova mandando só o **hash** do plano. O servidor regera o plano a partir
+do blueprint e recusa se o hash não bater. Isso é possível porque a geração é determinística, e
+resolve duas coisas de uma vez: o que executa é sempre plano do servidor, e o hash prova que é o
+mesmo que a pessoa viu.
+
 ### P-03, Geração por template versionado
 Arquivo gerado sai de template com placeholders, nunca de string montada em código.
 Todo template tem versão, e o plano grava qual versão usou. Isso é o que torna a

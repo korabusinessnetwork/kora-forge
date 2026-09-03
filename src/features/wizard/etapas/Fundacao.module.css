@@ -42,3 +42,14 @@
   border-radius: var(--forge-radius-md);
   background: var(--forge-surface);
 }
+
+.aprovar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-accent);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-accent-weak);
+}

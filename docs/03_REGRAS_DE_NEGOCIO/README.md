@@ -51,7 +51,9 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 2. O plano lista, por arquivo: caminho relativo, ação (criar, sobrescrever, pular), tamanho, tamanho atual em disco, origem (qual template) e o conteúdo já resolvido. O conteúdo vai no plano porque o runner recebe o plano, nunca a intenção (**ADR-002**).
 3. Arquivo existente nunca é sobrescrito silenciosamente. Conflito vira decisão explícita, com diff. Arquivo existente com conteúdo **idêntico** vira `pular`, não conflito: regerar o plano de um projeto já materializado e sem mudanças mostra zero conflitos.
 4. Ordem fixa: pastas, fundação (`CLAUDE.md`, `memory/`, `docs/`), config, código, e só então os comandos.
-5. Se um comando falha, a materialização para, o estado fica registrado e o usuário decide entre repetir, pular ou abortar. Nada é revertido automaticamente, mas o log mostra exatamente onde parou.
+5. Se um comando **obrigatório** falha, a materialização para, o estado fica registrado e o usuário decide entre repetir, pular ou abortar. Nada é revertido automaticamente, mas o log mostra exatamente onde parou.
+5.1. Comando **opcional** que falha fica registrado e o fluxo segue. Ele foi marcado como dispensável no preset, e pedir decisão sobre algo dispensável só adicionaria carga mental (princípio nº 1).
+5.2. Comando de **longa duração** (dev server) não segura a fila: o runner o deixa vivo, segue para o próximo e a materialização se conclui. Parar esse processo é ação do usuário, a qualquer momento.
 6. Materialização gera sempre a fundação completa. Projeto sem `memory/` preenchido é materialização falha, não projeto simples.
 7. O plano carrega o hash do blueprint, do preset e das versões de template usadas. É o que permite recusar a execução de um plano velho (`FORGE_PLAN_STALE`).
 8. Template que o preset ou uma regra pede e que o catálogo ainda não tem vira **pendência declarada** no plano, com o motivo. O plano segue sem ele, em vez de falhar em silêncio.
@@ -61,7 +63,7 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 
 1. Só executa comando presente na whitelist do preset, com argumentos validados por schema.
 2. Comando é executado com `spawn` e array de argumentos, `shell: false`, com `cwd` dentro do workspace.
-3. Comando de longa duração (dev server) roda destacado, com log em stream e botão de parar.
+3. Comando de longa duração (dev server) roda destacado, com log em stream e botão de parar. O runner não espera o fim dele.
 4. Timeout padrão de 10 minutos por comando, configurável por preset.
 5. Ferramenta ausente no sistema é detectada **antes** de iniciar, não no meio.
 

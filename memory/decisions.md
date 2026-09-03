@@ -173,3 +173,29 @@ O plano carrega o conteúdo já resolvido de cada arquivo, não só o caminho. M
 que o executor recebe o plano aprovado e nunca a intenção original. Se o runner re-renderizasse os
 templates, o que foi aprovado e o que é executado poderiam divergir. O custo é um payload maior,
 aceitável em uma ferramenta local de um usuário só.
+
+### 2026-09-03, o cliente aprova mandando só o hash do plano
+`POST /materializar` recebe apenas `{ hashBlueprint }`. O servidor regera o plano e compara. Motivo:
+o corpo da requisição é a maior superfície de ataque do produto, e aceitar conteúdo de arquivo e
+lista de comandos vindos do cliente seria confiar em quem não precisa ser confiado. Como a geração
+é determinística (bloco 6), regerar sai de graça, e o hash continua provando que o que executa é o
+que a pessoa aprovou (**ADR-002**).
+
+### 2026-09-03, estado da materialização vive em memória
+Não criei tabela para a materialização em andamento. Motivo: é operação viva, de um usuário só, e
+o que precisa sobreviver a um reinício já sobrevive: os arquivos estão no disco e cada comando
+está em `command_runs`. Reiniciar no meio é seguro porque regerar o plano marca os arquivos
+idênticos como `pular`, então repetir a materialização é idempotente.
+
+### 2026-09-03, comando opcional que falha não segura a fila
+O campo `obrigatorio` do preset passou a ter efeito: obrigatório que falha para e pede decisão,
+opcional que falha fica registrado e o fluxo segue. Motivo: `npm run dev` é marcado opcional
+justamente porque é dispensável, e exigir decisão sobre algo dispensável adiciona carga mental
+contra o princípio nº 1. RN-05.5 foi corrigida para dizer isso.
+
+### 2026-09-03, o ambiente do processo filho leva a configuração de rede
+`ambienteMinimo` passou a incluir `HTTP(S)_PROXY`, `NO_PROXY`, `NODE_EXTRA_CA_CERTS`, `SSL_CERT_*`
+e os `npm_config_` de proxy e registry. Motivo: sem elas o `npm install` trava em qualquer máquina
+atrás de proxy, e instalar dependência é o motivo de o comando existir. Descoberto no smoke test do
+bloco 7, onde o comando ficou preso por mais de dois minutos. Proxy é configuração, não credencial;
+o ambiente continua nunca sendo logado, porque uma URL de proxy pode embutir usuário e senha.

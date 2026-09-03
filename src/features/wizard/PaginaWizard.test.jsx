@@ -10,10 +10,12 @@ vi.mock('../../services/projetos.js', () => ({ obterProjeto: vi.fn(), salvarBlue
 vi.mock('../../services/presets.js', () => ({ obterPreset: vi.fn() }));
 vi.mock('../../services/regras.js', () => ({ avaliarRegras: vi.fn(), decidirSobreHit: vi.fn() }));
 vi.mock('../../services/plano.js', () => ({ gerarPlano: vi.fn() }));
+vi.mock('../../services/materializacao.js', () => ({ materializar: vi.fn(), obterMaterializacao: vi.fn(), decidirMaterializacao: vi.fn(), pararRun: vi.fn() }));
 import { obterProjeto, salvarBlueprint, atualizarProjeto } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
 import { avaliarRegras, decidirSobreHit } from '../../services/regras.js';
 import { gerarPlano } from '../../services/plano.js';
+import { materializar, obterMaterializacao, decidirMaterializacao, pararRun } from '../../services/materializacao.js';
 
 const m = mensagens.wizard;
 const ETAPAS_SITE = ['identidade', 'escopo', 'design', 'seguranca', 'fundacao', 'materializar'];
@@ -66,6 +68,11 @@ beforeEach(() => {
   obterPreset.mockResolvedValue(preset);
   avaliarRegras.mockResolvedValue({ hits: [], bloqueios: 0, podeMaterializar: true });
   gerarPlano.mockReset();
+  materializar.mockReset();
+  obterMaterializacao.mockReset();
+  decidirMaterializacao.mockReset();
+  pararRun.mockReset();
+  obterMaterializacao.mockResolvedValue(null);
   gerarPlano.mockResolvedValue({
     hashBlueprint: `sha256:${'a'.repeat(64)}`,
     raiz: '/dev/kora/alfa',
@@ -373,5 +380,81 @@ describe('plano na etapa Materializar', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('A API local não respondeu.');
     fireEvent.click(screen.getByRole('button', { name: mensagens.estados.tentarDeNovo }));
     expect(await screen.findByText('/dev/kora/alfa')).toBeInTheDocument();
+  });
+});
+
+describe('aprovar e materializar', () => {
+  const mm = mensagens.materializacao;
+  const estadoDe = (extra = {}) => ({
+    projetoId: 'p1', raiz: '/dev/kora/alfa', estado: 'concluida',
+    arquivos: { criados: 32, sobrescritos: 0, pulados: 0 },
+    comandos: [{ id: 'git-init', cmd: 'git', args: ['init'], obrigatorio: true, longaDuracao: false, estado: 'sucesso', runId: 'r1', exitCode: 0, erro: null }],
+    indice: 1, iniciadaEm: '2026-09-03T00:00:00.000Z', terminadaEm: '2026-09-03T00:00:01.000Z', ...extra,
+  });
+
+  function emMaterializar() {
+    obterProjeto.mockResolvedValue({ projeto: projeto({ etapaAtual: 'materializar' }), blueprint: blueprint({ etapaAtual: 'materializar' }) });
+  }
+
+  it('o botão de aprovar é separado da navegação e manda o hash do plano', async () => {
+    emMaterializar();
+    materializar.mockResolvedValue(estadoDe());
+    renderizar('/projetos/p1/wizard/materializar');
+    const botao = await screen.findByRole('button', { name: mm.aprovar });
+    expect(screen.getByText(mm.aprovarMicro)).toBeInTheDocument();
+    expect(botao).not.toBe(screen.getByRole('button', { name: mensagens.wizard.concluir }));
+    fireEvent.click(botao);
+    await waitFor(() => expect(materializar).toHaveBeenCalledWith('p1', `sha256:${'a'.repeat(64)}`));
+    expect(await screen.findByText(mm.estado.concluida)).toBeInTheDocument();
+    // O comando aparece nos dois painéis: no plano (o que vai rodar) e na materialização (o que rodou).
+    expect(screen.getAllByText('git init')).toHaveLength(2);
+  });
+
+  it('ferramenta ausente mostra a lista do que falta, não uma mensagem genérica', async () => {
+    emMaterializar();
+    materializar.mockRejectedValue(new ErroApi('FORGE_TOOL_MISSING', 'Falta instalar: git.', {
+      ferramentas: [{ bin: 'node', min: '20', encontrada: '22.0.0', ok: true }, { bin: 'git', min: null, encontrada: null, ok: false }],
+    }, 409));
+    renderizar('/projetos/p1/wizard/materializar');
+    fireEvent.click(await screen.findByRole('button', { name: mm.aprovar }));
+    expect(await screen.findByText(mm.ferramentasAusentes)).toBeInTheDocument();
+    expect(screen.getByText(mm.ferramentaLinha('git', null, null))).toBeInTheDocument();
+    expect(screen.queryByText(mm.ferramentaLinha('node', '20', '22.0.0'))).toBeNull();
+  });
+
+  it('plano velho explica que é preciso gerar de novo', async () => {
+    emMaterializar();
+    materializar.mockRejectedValue(new ErroApi('FORGE_PLAN_STALE', 'O blueprint mudou.', {}, 409));
+    renderizar('/projetos/p1/wizard/materializar');
+    fireEvent.click(await screen.findByRole('button', { name: mm.aprovar }));
+    expect(await screen.findByText(mm.planoVelho)).toBeInTheDocument();
+  });
+
+  it('falha em um comando oferece repetir, pular e abortar', async () => {
+    emMaterializar();
+    obterMaterializacao.mockResolvedValue(estadoDe({
+      estado: 'parado_em_falha',
+      comandos: [{ id: 'install', cmd: 'npm', args: ['install'], obrigatorio: true, longaDuracao: false, estado: 'falha', runId: 'r2', exitCode: 1, erro: 'Saiu com código 1.' }],
+    }));
+    decidirMaterializacao.mockResolvedValue(estadoDe());
+    renderizar('/projetos/p1/wizard/materializar');
+    fireEvent.click(await screen.findByRole('button', { name: mm.pular }));
+    await waitFor(() => expect(decidirMaterializacao).toHaveBeenCalledWith('p1', 'pular'));
+    expect(await screen.findByText(mm.estado.concluida)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: mm.aprovar })).toBeNull();
+  });
+
+  it('comando rodando pode ser parado', async () => {
+    emMaterializar();
+    obterMaterializacao.mockResolvedValue(estadoDe({
+      estado: 'rodando',
+      comandos: [{ id: 'dev', cmd: 'npm', args: ['run', 'dev'], obrigatorio: false, longaDuracao: true, estado: 'rodando', runId: 'r3', exitCode: null, erro: null }],
+    }));
+    pararRun.mockResolvedValue({ runId: 'r3', estado: 'cancelado' });
+    renderizar('/projetos/p1/wizard/materializar');
+    fireEvent.click(await screen.findByRole('button', { name: mm.parar }));
+    // O TanStack passa um segundo argumento ao mutationFn; o que importa é o primeiro.
+    await waitFor(() => expect(pararRun).toHaveBeenCalled());
+    expect(pararRun.mock.calls[0][0]).toBe('r3');
   });
 });

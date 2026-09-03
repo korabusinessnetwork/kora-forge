@@ -24,6 +24,15 @@ export function criarAllowlists({ porta, portaDev }) {
   return { hosts, origens };
 }
 
+// O browser não permite header customizado no handshake de WebSocket. O token vem no
+// subprotocolo (`forge-token, <token>`), que não entra em query string nem em log de acesso.
+export function tokenDoSubprotocolo(cabecalho) {
+  if (typeof cabecalho !== 'string') return undefined;
+  const partes = cabecalho.split(',').map((parte) => parte.trim());
+  const marcador = partes.indexOf('forge-token');
+  return marcador === -1 ? undefined : partes[marcador + 1];
+}
+
 export function avaliarRequisicao({ metodo, host, origin, token }, { tokenSessao, hosts, origens }) {
   if (typeof host !== 'string' || !hosts.has(host.toLowerCase())) return false;
   if (!tokensIguais(token, tokenSessao)) return false;
@@ -38,7 +47,7 @@ export function criarGuarda({ tokenSessao, porta, portaDev }) {
       metodo: request.method,
       host: request.headers.host,
       origin: request.headers.origin,
-      token: request.headers['x-forge-token'],
+      token: request.headers['x-forge-token'] ?? tokenDoSubprotocolo(request.headers['sec-websocket-protocol']),
     }, listas);
     if (permitido) return undefined;
     const erro = new ErroForge('FORGE_UNAUTHORIZED');

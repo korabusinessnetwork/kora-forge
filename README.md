@@ -30,8 +30,9 @@ validado por Zod nas duas pontas, tokens `--forge-*`, atoms básicos, presets bu
 por schema, o Registry (criar, abrir, renomear, arquivar, restaurar) e o wizard que preenche o
 blueprint etapa a etapa, o motor de regras determinístico com 16 regras que avisam junto do
 campo que as causou, e o gerador, que transforma blueprint mais templates versionados em um plano
-de arquivos e comandos, sem tocar no disco.
-Próximo: bloco 7, runner. Spec e auditoria de cada bloco em `specs/`.
+de arquivos e comandos, e o runner, que aplica esse plano no disco e executa os comandos com
+`spawn` sem shell, log ao vivo e a fila parando quando algo obrigatório falha.
+Próximo: bloco 8, telas de fechamento. Spec e auditoria de cada bloco em `specs/`.
 Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeração.
 
 ## Mapa

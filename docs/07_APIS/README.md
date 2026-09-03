@@ -69,8 +69,10 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | PATCH | `/projects/:id/regras/:hitId` | `{ estado, justificativa? }`. `dispensado` exige justificativa de 10 caracteres e regra dispensável |
 | POST | `/projects/:id/design` | salva o design_document do Studio |
 | POST | `/projects/:id/plano` | **dry-run**. Devolve `{ hashBlueprint, raiz, arquivos, comandos, pendencias, totais }` e não escreve nada. Recusa com `FORGE_PLAN_BLOQUEADO` se houver bloqueio aberto, e com `FORGE_VALIDATION` em `workspace` se a pasta raiz não estiver configurada |
-| POST | `/projects/:id/materializar` | aplica um plano aprovado, devolve `runId` |
-| WS | `/ws/runs/:runId` | log ao vivo do runner |
+| POST | `/projects/:id/materializar` | recebe **só** `{ hashBlueprint }`. O servidor regera o plano e só executa se o hash bater, senão `FORGE_PLAN_STALE`. Checa requisitos antes de escrever qualquer byte, escreve os arquivos e começa a fila de comandos |
+| GET | `/projects/:id/materializar` | estado da materialização em andamento, ou `null` |
+| POST | `/projects/:id/materializar/decidir` | `{ acao }` ∈ {repetir, pular, abortar}. Só vale quando a materialização está parada em falha |
+| WS | `/ws/runs/:runId` | log ao vivo. Envia o histórico já gravado ao conectar. O browser não permite header customizado no handshake, então o token vai no subprotocolo (`forge-token, <token>`), e a mesma guarda das rotas se aplica |
 | POST | `/runs/:runId/parar` | encerra processo em execução |
 | GET | `/api-templates` | catálogo de modelos de integração |
 | GET | `/connections` | conexões, **sem segredo** |
@@ -98,7 +100,7 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | `FORGE_VALIDATION` | entrada fora do schema |
 | `FORGE_PATH_FORBIDDEN` | caminho fora do workspace ou com traversal |
 | `FORGE_CMD_NOT_ALLOWED` | comando fora da whitelist |
-| `FORGE_TOOL_MISSING` | ferramenta exigida não está instalada |
+| `FORGE_TOOL_MISSING` | ferramenta exigida não está instalada. `detalhe.ferramentas` lista cada uma com a versão encontrada |
 | `FORGE_PLAN_STALE` | o blueprint mudou depois do dry-run, refazer o plano |
 | `FORGE_CONFLICT` | arquivo existente e conflito não resolvido |
 | `FORGE_VAULT_LOCKED` | cofre trancado |
