@@ -81,3 +81,21 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 
 1. Em qualquer etapa é possível registrar uma ideia sem sair do fluxo, com título e um próximo passo.
 2. Ideia registrada não abre projeto nem interrompe o que está em andamento. Ela vai para a lista de ideias e o usuário volta para onde estava.
+
+## RN-11, Harness (Fase 6, ADR-008)
+
+1. Todo build segue o ciclo planejar → despachar → build → review → aprender. Nenhuma etapa é pulada.
+2. Build só sai de `planejado` com o plano aprovado pelo dono. O plano lista itens, dono exclusivo por arquivo e modelo por papel.
+3. Dois despachos nunca tocam o mesmo arquivo. Conflito de dono é bloqueio no plano, não erro em runtime.
+4. Modelo é escolhido por papel (planejar, construir, revisar) e o default Kora vem primeiro.
+5. Cada rodada de review registra achados e correções em `build_ciclos`. Achado que se repete em dois builds vira learning; em três, vira regra ou padrão.
+6. O Forge orquestra e observa. Quem constrói é o Claude Code. O Forge nunca edita código de feature por conta própria.
+
+## RN-12, Painel de relatórios (Fase 6, ADR-008)
+
+1. O painel mostra todos os builds em andamento, de todos os projetos, em uma tela só.
+2. Progresso é sempre "x de y" itens do plano, com barra. Barra sem número não existe.
+3. Estimativa de término é uma faixa calculada dos dados gravados, rotulada como estimativa e com a base visível. Sem histórico, mostra "sem base ainda". Nunca um número inventado, nunca vindo de LLM.
+4. "O que falta" é a lista de itens pendentes e bloqueados de cada aplicativo, com a próxima ação.
+5. Por modelo, o painel mostra o plano em execução e o ciclo de aprendizado: rodadas, achados, correções e o que virou learning.
+6. Atualização ao vivo. Estado vazio traz a próxima ação, nunca tela em branco.

@@ -54,6 +54,7 @@ geral com resultado diferente. Este arquivo é o registro leve. O pesado vive em
 | [ADR-005](../docs/08_DECISOES/adr-005-studio-editor-proprio.md) | Studio, editor visual próprio | Aceito |
 | [ADR-006](../docs/08_DECISOES/adr-006-cofre-de-segredos.md) | Cofre local de segredos | Aceito |
 | [ADR-007](../docs/08_DECISOES/adr-007-presets-declarativos.md) | Presets declarativos versionados | Aceito |
+| [ADR-008](../docs/08_DECISOES/adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto |
 
 ## Decisões leves
 
@@ -90,3 +91,12 @@ suportar 20.x antigo em uma ferramenta de uso pessoal. `INSTALACAO.md` atualizad
 ### 2026-09-02, token de sessão por fragmento de URL
 O token vai em `#token=`, não em query string. Motivo: fragmento não chega ao servidor, logo
 não entra em log de acesso nem em histórico de proxy. Registrado em `docs/07` e `docs/11` (C2).
+
+### 2026-09-02, harness como sistema de operação e painel de relatórios
+Pedido do dono: o Forge adota o harness (planejar → despachar por modelo → build → review →
+aprender) como sistema de operação de build, e ganha um painel de relatórios com tudo que está
+construindo, o que falta por aplicativo, estimativa de término, plano e ciclo de aprendizado por
+modelo, e barra de progresso. Motivo: vários projetos ao mesmo tempo sem observação central é o
+mesmo pedágio de memória que o produto existe para eliminar. Registrado como **ADR-008, Proposto**,
+porque ajusta a leitura de dois não-objetivos da identidade; vira Aceito com a palavra do dono.
+Fase 6 no backlog. Nada disso adianta a Fase 1.

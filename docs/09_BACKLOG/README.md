@@ -17,6 +17,7 @@ Detalhe da Fase 1 em `mvp.md`.
 | **3** | API Hub, cofre, modelos de integração | dá para conectar Supabase e sair com cliente e `.env.example` prontos |
 | **4** | Copiloto Claude opcional | dá para gerar visão, personas e regras a partir das respostas |
 | **5** | Presets restantes, editor de presets, tema claro | dá para criar menu novo sem tocar em código |
+| **6** | Harness executado pelo Forge e painel de relatórios (ADR-008, proposto) | dá para despachar um build por modelo, acompanhar todos ao mesmo tempo e ver o que falta, a estimativa e o ciclo de aprendizado |
 
 ## Fase 2, Studio
 
@@ -50,6 +51,21 @@ Detalhe da Fase 1 em `mvp.md`.
 - Tema claro
 - Estratégia de migração de blueprint entre versões de preset (exige ADR)
 - Reavaliar Tauri e container para o runner
+
+## Fase 6, Harness e painel de relatórios (ADR-008, proposto)
+
+Pedido do dono em 2026-09-02. Entra depois do copiloto porque depende do runner (bloco 7) e do
+binário `claude` na whitelist.
+
+- Entidades `builds`, `build_itens`, `build_ciclos` e `modelos` em `schema.sql`, quando o ADR for aceito
+- Despacho de build: escolher projeto, spec e modelo por papel; plano aprovado antes de rodar
+- Runner executa o `claude` com prompt versionado em `10_PROMPTS`; log em stream como qualquer comando
+- Registro de cada ciclo spec → build → review: rodada, achados, correções, o que virou learning
+- Painel de relatórios: todos os builds ao mesmo tempo, barra de progresso "x de y", o que falta por
+  aplicativo, estimativa de término como faixa com base declarada, plano e ciclo de aprendizado por modelo
+- Estimativa determinística: mediana da duração dos itens concluídos vezes itens restantes; sem
+  histórico mostra "sem base ainda"
+- Atualização ao vivo pelo WebSocket já existente do runner
 
 ## Ideias (sem fase)
 

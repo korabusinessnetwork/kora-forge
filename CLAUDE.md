@@ -39,6 +39,10 @@ O mesmo blueprint gera sempre o mesmo projeto, na mesma ordem, com o mesmo resul
 3. **Sintetizar e validar no fim.** Revisar cada entrega, rodar testes e build.
 4. Tarefa de peça única não ganha fan-out.
 5. Feature nova entra pelo loop `spec → build → review`, nunca direto no código.
+6. Os itens 1 a 5 são o **harness**, o sistema de operação de build que o Forge adota para si e para
+   todo projeto que gera (ADR-008). Na Fase 6 o Forge passa a executar e observar o harness por
+   software, com painel de relatórios: o que está construindo, o que falta, estimativa e ciclo de
+   aprendizado por modelo.
 
 ## Custo, priorizar o gratuito (fase bootstrap)
 

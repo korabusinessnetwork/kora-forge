@@ -79,11 +79,11 @@ gerar módulo novo dentro do padrão, não para inventar um caminho paralelo.
 ## Não-objetivos (o que o KORA FORGE nunca será)
 
 - Não é IDE nem editor de código. Depois de materializar, o trabalho segue no VS Code e no Claude Code.
-- Não é substituto do Claude Code. Ele prepara o terreno e os prompts, quem constrói feature é o Claude Code.
+- Não é substituto do Claude Code. Ele prepara o terreno e os prompts, quem constrói feature é o Claude Code. Na Fase 6 ele orquestra e observa o Claude Code pelo harness, e continua sem construir feature por conta própria (ADR-008).
 - Não é low-code nem no-code. Não gera aplicativo pronto por arrastar caixa. Gera fundação e esqueleto.
 - Não é SaaS. Não tem conta, não tem nuvem, não tem cobrança.
 - Não é clone do Figma. O Studio serve ao projeto que está nascendo, não é ferramenta de design geral.
-- Não é agente autônomo. Nada é executado sem dry-run e confirmação humana.
+- Não é agente autônomo. Nada é executado sem dry-run e confirmação humana. O harness só despacha plano aprovado pelo dono (ADR-008).
 
 ## Tom de voz (na UI)
 
@@ -104,5 +104,6 @@ Direto, de colega técnico, sem infantilizar e sem jargão desnecessário.
 | 3 | API Hub, cofre de segredos, modelos de API | |
 | 4 | Copiloto Claude opcional | |
 | 5 | Presets restantes e editor de presets | |
+| 6 | Harness como sistema de operação de build e painel de relatórios | proposta, ADR-008 |
 
 Detalhamento em `docs/09_BACKLOG/mvp.md`.

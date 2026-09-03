@@ -29,6 +29,7 @@ src/
 | `Selo` | status: rascunho, pronto, materializado, arquivado, ativa, invalida |
 | `SeloIA` | marca conteúdo vindo do copiloto. Obrigatório em toda sugestão |
 | `Icone` | conjunto único, sem misturar bibliotecas |
+| `BarraProgresso` | sempre acompanhada de "x de y". Nunca barra sem número (Fase 6) |
 
 ## Molecules
 
@@ -41,6 +42,9 @@ src/
 | `LinhaComando` | um comando: cmd, args, estado, duração, parar |
 | `CampoConexao` | alias, status, teste de conexão. Nunca mostra o valor |
 | `CartaoIdeia` | título e próximo passo |
+| `CartaoBuild` | projeto, spec, modelo por papel, `BarraProgresso`, `Estimativa`, o que falta (Fase 6) |
+| `Estimativa` | faixa P50 a P90 rotulada "estimativa", com a base de cálculo no microtexto; "sem base ainda" quando não há histórico (Fase 6) |
+| `LinhaModelo` | modelo, papel, plano em execução, rodadas de review, achados e correções (Fase 6) |
 
 ## Organisms
 
@@ -54,6 +58,7 @@ src/
 | `PainelTokens` | edição dos tokens `--projeto-*` com preview ao vivo |
 | `VisualizadorDiff` | diff de arquivo em conflito, lado a lado |
 | `GaleriaModelosApi` | catálogo de modelos de integração |
+| `PainelRelatorios` | todos os builds ao mesmo tempo, com `CartaoBuild` por projeto, filtro por estado e aba por modelo com `LinhaModelo` (Fase 6) |
 
 ## Templates
 

@@ -81,6 +81,13 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | GET | `/ideas` / POST `/ideas` | gaveta de ideias |
 | GET | `/events` | log de eventos, com filtro |
 | GET/PATCH | `/settings` | workspace, tema, teto do copiloto |
+| GET | `/modelos` | catálogo de modelos e papéis (Fase 6) |
+| GET/POST | `/builds` | builds em andamento em todos os projetos; despachar um build a partir de plano aprovado (Fase 6) |
+| GET | `/builds/:id` | build com itens, progresso, estimativa e ciclos (Fase 6) |
+| PATCH | `/builds/:id/itens/:itemId` | marcar item como feito, bloqueado ou pendente (Fase 6) |
+| GET | `/builds/:id/ciclos` | ciclo de aprendizado: rodadas de review, achados, correções (Fase 6) |
+| GET | `/relatorios/resumo` | agregado do painel: por projeto e por modelo (Fase 6) |
+| WS | `/ws/builds` | atualização ao vivo do painel (Fase 6) |
 
 ## Códigos de erro estáveis
 

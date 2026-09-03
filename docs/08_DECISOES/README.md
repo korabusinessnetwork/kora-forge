@@ -14,6 +14,7 @@ descartada e consequência de longo prazo mora aqui.
 | [005](adr-005-studio-editor-proprio.md) | Studio, editor visual próprio | Aceito | 2026-09-02 |
 | [006](adr-006-cofre-de-segredos.md) | Cofre local de segredos | Aceito | 2026-09-02 |
 | [007](adr-007-presets-declarativos.md) | Presets declarativos versionados | Aceito | 2026-09-02 |
+| [008](adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto | 2026-09-02 |
 
 ## Como escrever um ADR
 
