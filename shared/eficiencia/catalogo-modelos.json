@@ -1,0 +1,76 @@
+{
+  "versao": 1,
+  "atualizado_em": "2026-09-03",
+  "fonte": "https://www.anthropic.com/pricing",
+  "moeda": "USD",
+  "unidade": "por milhão de tokens",
+  "lote_desconto": 0.5,
+  "modelos": [
+    {
+      "id": "claude-haiku-4-5",
+      "nome": "Claude Haiku 4.5",
+      "tier": "economico",
+      "preco": { "entrada": 1.0, "saida": 5.0, "cache_escrita_5m": 1.25, "cache_escrita_1h": 2.0, "cache_leitura": 0.1 },
+      "contexto": 200000,
+      "saida_maxima": 64000,
+      "esforcos": [],
+      "forcas": ["classificacao", "nomeacao", "extracao curta", "alto volume com saida verificavel"],
+      "evitar": ["redacao longa que precisa de nuance", "revisao de coerencia de blueprint", "loops agenticos longos"]
+    },
+    {
+      "id": "claude-sonnet-5",
+      "nome": "Claude Sonnet 5",
+      "tier": "equilibrio",
+      "preco": { "entrada": 2.0, "saida": 10.0, "cache_escrita_5m": 2.5, "cache_escrita_1h": 4.0, "cache_leitura": 0.2 },
+      "contexto": 1000000,
+      "saida_maxima": 128000,
+      "esforcos": ["low", "medium", "high", "xhigh", "max"],
+      "forcas": ["redacao", "derivacao estruturada", "codigo", "melhor custo por tarefa concluida na maioria das etapas do copiloto"],
+      "evitar": ["nada em especial: e o padrao Kora"]
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "nome": "Claude Sonnet 4.6",
+      "tier": "equilibrio",
+      "preco": { "entrada": 3.0, "saida": 15.0, "cache_escrita_5m": 3.75, "cache_escrita_1h": 6.0, "cache_leitura": 0.3 },
+      "contexto": 1000000,
+      "saida_maxima": 128000,
+      "esforcos": ["low", "medium", "high", "max"],
+      "forcas": ["compatibilidade com prompts antigos"],
+      "evitar": ["uso novo: custa 50% a mais que o Sonnet 5 sem entregar mais"]
+    },
+    {
+      "id": "claude-opus-5",
+      "nome": "Claude Opus 5",
+      "tier": "frontier",
+      "preco": { "entrada": 5.0, "saida": 25.0, "cache_escrita_5m": 6.25, "cache_escrita_1h": 10.0, "cache_leitura": 0.5 },
+      "contexto": 1000000,
+      "saida_maxima": 128000,
+      "esforcos": ["low", "medium", "high", "xhigh", "max"],
+      "forcas": ["revisao de coerencia", "regras de negocio de dominio complexo", "escalada quando o Sonnet falha na validacao de schema"],
+      "evitar": ["texto curto e rotineiro", "nomeacao", "qualquer etapa em que o Sonnet passa na validacao"]
+    },
+    {
+      "id": "claude-opus-4-8",
+      "nome": "Claude Opus 4.8",
+      "tier": "frontier",
+      "preco": { "entrada": 5.0, "saida": 25.0, "cache_escrita_5m": 6.25, "cache_escrita_1h": 10.0, "cache_leitura": 0.5 },
+      "contexto": 1000000,
+      "saida_maxima": 128000,
+      "esforcos": ["low", "medium", "high", "xhigh", "max"],
+      "forcas": ["fallback de recusa do Opus 5", "mesma faixa de preco do Opus 5"],
+      "evitar": ["uso novo: prefira o Opus 5 pelo mesmo preco"]
+    },
+    {
+      "id": "claude-fable-5-1",
+      "nome": "Claude Fable 5.1",
+      "tier": "frontier",
+      "preco": { "entrada": 10.0, "saida": 50.0, "cache_escrita_5m": 12.5, "cache_escrita_1h": 20.0, "cache_leitura": 0.25 },
+      "contexto": 1000000,
+      "saida_maxima": 128000,
+      "esforcos": ["low", "medium", "high", "xhigh", "max"],
+      "forcas": ["raciocinio longo e agentico fora do Forge", "leitura de cache muito barata em prefixo enorme"],
+      "evitar": ["copiloto do Forge: 5x o preco do Sonnet 5 para enriquecer texto curto", "qualquer chamada dentro do teto de 5 USD por mes"]
+    }
+  ]
+}

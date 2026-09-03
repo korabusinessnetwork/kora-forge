@@ -1,0 +1,109 @@
+{
+  "versao": 1,
+  "atualizado_em": "2026-09-03",
+  "intencao_padrao": "aplicacao",
+  "etapas": {
+    "identidade-redigir": {
+      "classe": "redacao",
+      "descricao": "Redige visão, propósito e diferencial a partir do rascunho da etapa Identidade.",
+      "chamada_tipica": { "entrada": 2500, "saida": 1200, "fracao_cache": 0.6 }
+    },
+    "personas-derivar": {
+      "classe": "derivacao",
+      "descricao": "Deriva 1 a 3 personas com dor real a partir do público-alvo e do aha moment.",
+      "chamada_tipica": { "entrada": 2500, "saida": 1000, "fracao_cache": 0.6 }
+    },
+    "nome-sugerir": {
+      "classe": "nomeacao",
+      "descricao": "Sugere 5 nomes com slug disponível a partir da essência e da categoria.",
+      "chamada_tipica": { "entrada": 800, "saida": 200, "fracao_cache": 0.5 }
+    },
+    "entidades-derivar": {
+      "classe": "derivacao",
+      "descricao": "Deriva entidades, campos e relações a partir da descrição do domínio.",
+      "chamada_tipica": { "entrada": 3000, "saida": 1500, "fracao_cache": 0.6 }
+    },
+    "regras-redigir": {
+      "classe": "redacao",
+      "descricao": "Redige as regras de negócio por módulo a partir do blueprint.",
+      "chamada_tipica": { "entrada": 5000, "saida": 2500, "fracao_cache": 0.7 }
+    },
+    "blueprint-revisar": {
+      "classe": "revisao",
+      "descricao": "Lista incoerências do blueprint completo antes da materialização.",
+      "chamada_tipica": { "entrada": 8000, "saida": 1500, "fracao_cache": 0.7 }
+    }
+  },
+  "intencoes": {
+    "site": {
+      "nome": "Site",
+      "categoria_preset": "site",
+      "descricao": "Institucional ou landing page. Sem auth, sem banco. O texto é o produto, o domínio é raso.",
+      "sinais": ["site", "landing", "institucional", "portfolio", "blog", "seo", "vitrine", "pagina", "hotsite", "one page"],
+      "etapas": {
+        "identidade-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 2000, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Em site o texto é o produto. Sonnet 5 redige bem e custa um quinto do Opus." },
+        "personas-derivar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 1500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Persona de site é curta e o formato é fixo. Esforço baixo basta." },
+        "nome-sugerir": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 400, "cache": { "escopo": "sistema", "ttl": "5m" }, "motivo": "Lista curta com validação de slug determinística depois. Haiku resolve." },
+        "entidades-derivar": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 1200, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Site quase não tem entidade. Quando tem, é formulário de contato ou newsletter." },
+        "regras-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 2500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Regras de site são SEO, performance e acessibilidade, já cobertas pelo motor de regras." },
+        "blueprint-revisar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 2000, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Blueprint de site é pequeno. Sonnet em esforço médio acha as incoerências que importam." }
+      }
+    },
+    "aplicacao": {
+      "nome": "Aplicação web",
+      "categoria_preset": "aplicacao",
+      "descricao": "SaaS multi-tenant no padrão Kora, com auth, RLS e possivelmente pagamento. Erro de coerência custa caro.",
+      "sinais": ["saas", "app", "aplicacao", "plataforma", "dashboard", "multi-tenant", "multitenant", "login", "assinatura", "usuarios", "supabase", "painel", "sistema"],
+      "etapas": {
+        "identidade-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 2000, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Redação de posicionamento é o ponto forte do Sonnet 5 pelo preço. Escala só se falhar no schema." },
+        "personas-derivar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 1500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Formato fixo, saída validada. Esforço baixo entrega o mesmo por menos." },
+        "nome-sugerir": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 400, "cache": { "escopo": "sistema", "ttl": "5m" }, "motivo": "Nomeação é tarefa curta com checagem determinística de slug. Haiku é dez vezes mais barato que o Opus aqui." },
+        "entidades-derivar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 2500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Entidade errada vira migration errada com tenant_id e RLS. Vale esforço médio, ainda no Sonnet." },
+        "regras-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "high", "max_tokens": 4000, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Regra de negócio de SaaS tem nuance (planos, permissões, pagamento). Sonnet em esforço alto antes de pagar Opus." },
+        "blueprint-revisar": { "modelo": "claude-opus-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 2500, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "É a única etapa em que o erro custa mais que a chamada: incoerência passa para o disco. Opus 5 em esforço baixo custa perto do Sonnet em alto e revisa melhor." }
+      }
+    },
+    "local": {
+      "nome": "Aplicação local",
+      "categoria_preset": "local",
+      "descricao": "Roda na máquina, Node mais SQLite, sem nuvem. Domínio médio, segurança local pesa.",
+      "sinais": ["local", "offline", "desktop", "cli", "sqlite", "na maquina", "ferramenta interna", "localhost", "bancada"],
+      "etapas": {
+        "identidade-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 2000, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Mesma redação da aplicação web, mesmo modelo." },
+        "personas-derivar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 1500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Ferramenta local costuma ter uma persona. Esforço baixo." },
+        "nome-sugerir": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 400, "cache": { "escopo": "sistema", "ttl": "5m" }, "motivo": "Tarefa curta, validação determinística depois." },
+        "entidades-derivar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 2500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Schema SQLite sem tenant, mas com migrations. Esforço médio no Sonnet." },
+        "regras-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 3500, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Regras de app local giram em torno de disco, processo e segurança, bem cobertas pelo motor determinístico." },
+        "blueprint-revisar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "high", "max_tokens": 2500, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Blueprint médio. Sonnet em esforço alto primeiro; Opus só na segunda tentativa." }
+      }
+    },
+    "api": {
+      "nome": "API ou serviço",
+      "categoria_preset": "api",
+      "descricao": "Modelo C, sem UI, contrato-first. Pouco texto de marketing, muito contrato e entidade.",
+      "sinais": ["api", "servico", "backend", "endpoint", "webhook", "integracao", "microservico", "contrato", "rest", "graphql"],
+      "etapas": {
+        "identidade-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 1500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Identidade de API é curta e técnica. Esforço baixo." },
+        "personas-derivar": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 1000, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Persona de API é o consumidor do contrato. Formato simples, Haiku basta." },
+        "nome-sugerir": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 400, "cache": { "escopo": "sistema", "ttl": "5m" }, "motivo": "Tarefa curta, validação determinística depois." },
+        "entidades-derivar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 3000, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Entidade é o coração de uma API. Sonnet médio, escala para Opus se a validação falhar." },
+        "regras-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "high", "max_tokens": 4000, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Regras de contrato (idempotência, autenticação, limites) têm nuance. Esforço alto no Sonnet." },
+        "blueprint-revisar": { "modelo": "claude-opus-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 2500, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Contrato incoerente quebra todo consumidor. Opus 5 em esforço baixo é o seguro mais barato." }
+      }
+    },
+    "automacao": {
+      "nome": "Automação ou bot",
+      "categoria_preset": "automacao",
+      "descricao": "Worker mais agendamento. Pouca UI, fluxo de dados e integrações.",
+      "sinais": ["automacao", "bot", "worker", "agendamento", "cron", "rotina", "scraper", "fila", "job", "sincronizacao", "whatsapp"],
+      "etapas": {
+        "identidade-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 1500, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Identidade de automação é objetiva: o que roda, quando, com que dado." },
+        "personas-derivar": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 1000, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Persona de automação é quem recebe o resultado. Haiku basta." },
+        "nome-sugerir": { "modelo": "claude-haiku-4-5", "escalar_para": "claude-sonnet-5", "esforco": null, "max_tokens": 400, "cache": { "escopo": "sistema", "ttl": "5m" }, "motivo": "Tarefa curta, validação determinística depois." },
+        "entidades-derivar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "low", "max_tokens": 2000, "cache": { "escopo": "sistema_e_preset", "ttl": "1h" }, "motivo": "Entidades de automação são eventos, filas e logs. Formato conhecido, esforço baixo." },
+        "regras-redigir": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "medium", "max_tokens": 3000, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Retentativa, idempotência e horário são regras conhecidas. Sonnet médio." },
+        "blueprint-revisar": { "modelo": "claude-sonnet-5", "escalar_para": "claude-opus-5", "esforco": "high", "max_tokens": 2500, "cache": { "escopo": "sistema_e_preset_e_blueprint", "ttl": "1h" }, "motivo": "Blueprint pequeno. Sonnet em esforço alto, Opus só se falhar." }
+      }
+    }
+  }
+}

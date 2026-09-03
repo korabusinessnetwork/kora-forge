@@ -114,3 +114,22 @@ pasta em disco, e renomear pasta é ação do usuário, fora do Forge (E-01).
 Restaurar devolve `materializado` quando há pasta em disco e `rascunho` quando não há. Um
 projeto que estava `pronto_para_materializar` volta como rascunho e o motor de regras (bloco 5)
 recalcula a prontidão. Motivo: não guardar um "status anterior" que o motor já sabe derivar.
+
+### 2026-09-03, preço de modelo é dado versionado, nunca consulta em runtime
+O catálogo de modelos e preços vive em `shared/eficiencia/catalogo-modelos.json` (versão, data,
+fonte) e os perfis de recomendação por intenção em `shared/eficiencia/perfis.json`. Motivo: o
+Forge roda offline (T-01) e a recomendação precisa reproduzir (princípio nº 2); preço buscado na
+hora muda a resposta sem ninguém decidir. Atualização é edição de JSON com `versao` nova, teste
+verde e entrada aqui.
+
+### 2026-09-03, eficiência mede sucessos por dólar, não preço por token
+O painel Eficiência ranqueia modelos por sucessos por dólar relativo ao melhor (100), com aviso
+de amostra pequena abaixo de 5 chamadas. Motivo: modelo barato que falha na validação custa a
+chamada, a escalada e o fallback; custo por tarefa concluída é o número que decide. O custo de
+cada chamada é calculado no servidor pelo catálogo, nunca aceito do cliente.
+
+### 2026-09-03, o copiloto nunca usa o Fable 5.1
+Nenhum perfil recomenda nem escala para `claude-fable-5-1`; o teste do motor bloqueia. Motivo:
+cinco vezes o preço do Sonnet 5 para enriquecer texto curto, dentro de um teto de 5 USD por mês.
+Padrão Kora é Sonnet 5; Haiku 4.5 em nomeação; Opus 5 em esforço baixo só na revisão de
+blueprint de aplicação web e API, onde o erro vai para o disco.

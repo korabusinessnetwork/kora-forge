@@ -6,6 +6,7 @@ import PaginaRegistry from './features/registry/PaginaRegistry.jsx';
 import PaginaNovoProjeto from './features/registry/PaginaNovoProjeto.jsx';
 import PaginaProjeto from './features/registry/PaginaProjeto.jsx';
 import PaginaConfig from './features/config/PaginaConfig.jsx';
+import PaginaEficiencia from './features/eficiencia/PaginaEficiencia.jsx';
 import { obterToken } from './services/sessao.js';
 
 const clienteQuery = new QueryClient({
@@ -25,6 +26,7 @@ export default function App() {
             <Route index element={<PaginaRegistry />} />
             <Route path="novo" element={<PaginaNovoProjeto />} />
             <Route path="projetos/:id" element={<PaginaProjeto />} />
+            <Route path="eficiencia" element={<PaginaEficiencia />} />
             <Route path="config" element={<PaginaConfig />} />
           </Route>
         </Routes>

@@ -8,6 +8,11 @@ const TOM_POR_ESTADO = {
   arquivado: 'neutro',
   ativa: 'sucesso',
   invalida: 'perigo',
+  economico: 'sucesso',
+  equilibrio: 'acento',
+  frontier: 'neutro',
+  amostra_pequena: 'aviso',
+  recomendado: 'acento',
 };
 
 export const ESTADOS_SELO = Object.keys(TOM_POR_ESTADO);

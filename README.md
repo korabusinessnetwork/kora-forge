@@ -28,7 +28,10 @@ Fase 1 em andamento. Blocos 1, 2 e 3 entregues: front React + Vite, API local Fa
 `127.0.0.1:7337` com guarda de sessão, SQLite com migrations, envelope `{ data, error, meta }`
 validado por Zod nas duas pontas, tokens `--forge-*`, atoms básicos, presets builtin validados
 por schema e o Registry (criar, abrir, renomear, arquivar, restaurar, blueprint versionado).
-Próximo: bloco 4, Wizard. Spec e auditoria de cada bloco em `specs/`.
+Entregue também a página **Eficiência** (gasto contra o teto, ranking dos modelos por sucesso por
+dólar, recomendação por etapa e simulador) com o motor determinístico em `shared/eficiencia/` e a
+skill de projeto `low-cost-efficiency` (`/custo`). Próximo: bloco 4, Wizard. Spec e auditoria de
+cada bloco em `specs/`.
 Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeração.
 
 ## Mapa
@@ -40,6 +43,8 @@ Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeraç�
 | `docs/00` a `docs/11` | Documentação em ordem de leitura, de visão até segurança |
 | `docs/08_DECISOES/` | ADRs, sete decisões já registradas |
 | `presets/` | Os menus, em JSON |
+| `shared/eficiencia/` | Catálogo de modelos e preços, perfis por intenção e motor de custo (dado versionado) |
+| `.claude/skills/` | Skills de projeto. `low-cost-efficiency` decide modelo, esforço e cache pelo menor custo por tarefa |
 | `respostas-intake.md` | As respostas que originaram esta fundação |
 | `specs/` | Specs do loop spec → build → review, uma por bloco do backlog |
 | `server/`, `src/`, `shared/` | API local, front e contrato compartilhado (schemas Zod, códigos de erro) |
