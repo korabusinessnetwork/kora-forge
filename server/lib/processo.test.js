@@ -10,14 +10,18 @@ afterEach(() => {
   while (temporarias.length > 0) fs.rmSync(temporarias.pop(), { recursive: true, force: true });
 });
 
-// Script auxiliar em pasta temporária: o caminho passa pela allowlist de argumento, e assim dá
-// para testar processo de verdade sem afrouxar a regra que protege o runner.
+// Script auxiliar em pasta temporária. O nome vai **relativo** e a pasta vai no `cwd`, que é
+// exatamente como o runner roda de verdade: o preset declara argumento literal e o caminho mora
+// no `cwd`. Passar o caminho absoluto aqui quebraria no Windows, onde a barra invertida não
+// está na allowlist de argumento, e o teste diria que o produto está errado quando quem está
+// errado é o teste (restrição T-02, risco R-01).
+const NOME_DO_SCRIPT = 'script.js';
+
 function script(corpo) {
   const pasta = fs.mkdtempSync(path.join(os.tmpdir(), 'kora-forge-proc-'));
   temporarias.push(pasta);
-  const arquivo = path.join(pasta, 'script.js');
-  fs.writeFileSync(arquivo, corpo);
-  return { pasta, arquivo };
+  fs.writeFileSync(path.join(pasta, NOME_DO_SCRIPT), corpo);
+  return { pasta, arquivo: NOME_DO_SCRIPT };
 }
 
 describe('validarComando', () => {
@@ -83,7 +87,14 @@ describe('executar', () => {
     const { terminou } = executar({ cmd: 'node', args: [arquivo], cwd: pasta, timeoutMs: 15000, onLinha: (stream, linha) => linhas.push([stream, linha]) });
     const resultado = await terminou;
     expect(resultado).toEqual({ estado: 'sucesso', exitCode: 0, erro: null });
-    expect(linhas).toEqual([['stdout', 'linha 1'], ['stdout', 'linha 2'], ['stderr', 'erro 1']]);
+    // A ordem e conferida **por stream**. stdout e stderr sao dois canos separados e o sistema
+    // nao promete em que ordem eles chegam um em relacao ao outro; exigir uma intercalacao fixa
+    // e teste flaky, nao garantia. O que o produto promete, e o que importa para o log, e que
+    // cada stream chegue na ordem em que foi escrito, e rotulado corretamente.
+    const doStream = (nome) => linhas.filter(([stream]) => stream === nome).map(([, linha]) => linha);
+    expect(doStream('stdout')).toEqual(['linha 1', 'linha 2']);
+    expect(doStream('stderr')).toEqual(['erro 1']);
+    expect(linhas).toHaveLength(3);
   });
 
   it('exit code diferente de zero vira falha com o código', async () => {

@@ -1,10 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { prepararHome, gerarTokenDeSessao, lerVersao, SUBPASTAS_HOME } from './boot.js';
 
-const RAIZ = new URL('../', import.meta.url);
+// fileURLToPath, e não `.pathname`: no Windows o pathname de uma file URL vem como
+// `/C:/…`, e juntá-lo com path.join produziria `C:\C:\…` (restrição T-02).
+const RAIZ = fileURLToPath(new URL('../', import.meta.url));
 
 describe('prepararHome', () => {
   it('cria home, presets e logs, e é idempotente', () => {
@@ -35,6 +38,6 @@ describe('gerarTokenDeSessao', () => {
 
 describe('lerVersao', () => {
   it('lê a versão do package.json', () => {
-    expect(lerVersao(RAIZ.pathname)).toMatch(/^\d+\.\d+\.\d+/);
+    expect(lerVersao(RAIZ)).toMatch(/^\d+\.\d+\.\d+/);
   });
 });
