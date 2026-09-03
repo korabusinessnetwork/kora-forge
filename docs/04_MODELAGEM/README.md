@@ -56,6 +56,21 @@ settings (chave-valor)
 5. `events` é append-only. Nunca é atualizado nem apagado.
 6. Apagar projeto no Forge não apaga a pasta em disco. São coisas separadas de propósito.
 
+## Extensão prevista, Fase 6 (ADR-008, proposto)
+
+Entra em `schema.sql` só quando o ADR-008 for aceito. Registrada aqui para o painel de relatórios
+nascer document-first.
+
+| Entidade | Papel |
+|---|---|
+| `modelos` | Catálogo: id, provedor, nome, papel padrão (planejar, construir, revisar), custo estimado por 1k tokens |
+| `builds` | Uma execução do harness em um projeto: spec de origem, modelo por papel, estado (planejado, aprovado, rodando, em_review, aprovado_sem_ressalvas, falhou, parado), iniciado_em, terminado_em |
+| `build_itens` | Itens do plano (critérios da spec): estado (pendente, em_andamento, feito, bloqueado), dono (arquivo ou pasta), iniciado_em, terminado_em. Base do progresso e da estimativa |
+| `build_ciclos` | Cada rodada spec → build → review: número, modelo, achados, correções feitas, o que virou learning. É o ciclo de aprendizado do modelo |
+
+Invariantes previstas: progresso = itens feitos / itens totais; estimativa = mediana da duração dos
+itens feitos vezes itens restantes, como faixa; build sem plano aprovado não sai de `planejado`.
+
 ## Convenções
 
 - Tabelas e colunas em `snake_case`, plural nas tabelas.

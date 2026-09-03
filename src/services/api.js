@@ -62,5 +62,6 @@ export async function requisitar(metodo, caminho, corpo, { fetchImpl = globalThi
 }
 
 export const obter = (caminho, opcoes) => requisitar('GET', caminho, undefined, opcoes);
+export const enviar = (caminho, corpo, opcoes) => requisitar('POST', caminho, corpo, opcoes);
 export const alterar = (caminho, corpo, opcoes) => requisitar('PATCH', caminho, corpo, opcoes);
 export const criar = (caminho, corpo, opcoes) => requisitar('POST', caminho, corpo, opcoes);

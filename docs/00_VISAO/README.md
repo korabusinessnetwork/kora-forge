@@ -62,6 +62,7 @@ Matheus, e depois qualquer dev da Kora. Ferramenta interna. Ver `memory/identity
 | Roda uma vez e some | Guarda o blueprint, permite reabrir, reproduzir e evoluir |
 | Sem design | Studio embutido, que gera tokens e layout do projeto |
 | Sem integração | API Hub com modelos de integração e cofre de chaves |
+| Depois de gerar, some | Harness como sistema de operação de build e painel de relatórios: o que está construindo, o que falta, estimativa e ciclo de aprendizado por modelo (Fase 6, ADR-008) |
 
 ## Escopo da versão 1
 

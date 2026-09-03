@@ -94,6 +94,32 @@ Atalho global abre um campo com título e próximo passo, grava em `ideas` e dev
 usuário exatamente para onde estava. Não abre projeto, não muda de tela, não pergunta
 mais nada (RN-10).
 
+## F-09, Despachar um build pelo harness (Fase 6, ADR-008)
+
+```
+Projeto → "Novo build"
+        → escolher a spec (ou criar pelo loop /spec)
+        → escolher o modelo por papel  (planejar, construir, revisar; default Kora primeiro)
+        → o Forge monta o plano: itens da spec, dono exclusivo por arquivo, prompts versionados
+        → aprovação explícita do plano
+        → runner despacha o `claude` por papel, log em stream, botão parar
+        → a cada item concluído: build_itens atualizado, progresso e estimativa recalculados
+        → review contra a spec → achados → correções → novo ciclo, até aprovar sem ressalvas
+        → ciclo registrado em build_ciclos; achado recorrente vira learning ou regra
+```
+
+Nada roda sem o plano aprovado. Falha em um item para o build e mostra exatamente onde parou.
+
+## F-10, Acompanhar tudo no painel de relatórios (Fase 6, ADR-008)
+
+```
+Painel → lista de builds em andamento, todos os projetos, ordenados por atualização
+       → cada build: barra "x de y", estimativa como faixa, o que falta, bloqueios
+       → abrir build: itens do plano com estado, log ao vivo, ciclos de review
+       → aba por modelo: plano em execução e ciclo de aprendizado (rodadas, achados, correções)
+       → atualização ao vivo pelo WebSocket; sem build rodando, o vazio traz a próxima ação
+```
+
 ## F-08, Criar preset novo
 
 Duplicar um preset existente, editar o JSON no editor embutido, validar pelo schema,

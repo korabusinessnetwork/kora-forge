@@ -54,6 +54,7 @@ geral com resultado diferente. Este arquivo é o registro leve. O pesado vive em
 | [ADR-005](../docs/08_DECISOES/adr-005-studio-editor-proprio.md) | Studio, editor visual próprio | Aceito |
 | [ADR-006](../docs/08_DECISOES/adr-006-cofre-de-segredos.md) | Cofre local de segredos | Aceito |
 | [ADR-007](../docs/08_DECISOES/adr-007-presets-declarativos.md) | Presets declarativos versionados | Aceito |
+| [ADR-008](../docs/08_DECISOES/adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto |
 
 ## Decisões leves
 
@@ -91,6 +92,29 @@ suportar 20.x antigo em uma ferramenta de uso pessoal. `INSTALACAO.md` atualizad
 O token vai em `#token=`, não em query string. Motivo: fragmento não chega ao servidor, logo
 não entra em log de acesso nem em histórico de proxy. Registrado em `docs/07` e `docs/11` (C2).
 
+### 2026-09-02, harness como sistema de operação e painel de relatórios
+Pedido do dono: o Forge adota o harness (planejar → despachar por modelo → build → review →
+aprender) como sistema de operação de build, e ganha um painel de relatórios com tudo que está
+construindo, o que falta por aplicativo, estimativa de término, plano e ciclo de aprendizado por
+modelo, e barra de progresso. Motivo: vários projetos ao mesmo tempo sem observação central é o
+mesmo pedágio de memória que o produto existe para eliminar. Registrado como **ADR-008, Proposto**,
+porque ajusta a leitura de dois não-objetivos da identidade; vira Aceito com a palavra do dono.
+Fase 6 no backlog. Nada disso adianta a Fase 1.
+
+### 2026-09-02, blocos 2 e 3 construídos juntos
+Registry e presets builtin saíram em uma spec só. Motivo: `projects.preset_id` é obrigatório e o
+fluxo começa por escolher o menu; um Registry sem presets não cria projeto. O bloco 3 se resumia a
+schema Zod mais carga dos JSONs que já existiam.
+
+### 2026-09-02, slug imutável
+O slug nasce na criação e não muda ao renomear. Motivo: depois de materializado ele é o nome da
+pasta em disco, e renomear pasta é ação do usuário, fora do Forge (E-01).
+
+### 2026-09-02, restaurar projeto arquivado
+Restaurar devolve `materializado` quando há pasta em disco e `rascunho` quando não há. Um
+projeto que estava `pronto_para_materializar` volta como rascunho e o motor de regras (bloco 5)
+recalcula a prontidão. Motivo: não guardar um "status anterior" que o motor já sabe derivar.
+
 ### 2026-09-03, preço de modelo é dado versionado, nunca consulta em runtime
 O catálogo de modelos e preços vive em `shared/eficiencia/catalogo-modelos.json` (versão, data,
 fonte) e os perfis de recomendação por intenção em `shared/eficiencia/perfis.json`. Motivo: o
@@ -109,4 +133,3 @@ Nenhum perfil recomenda nem escala para `claude-fable-5-1`; o teste do motor blo
 cinco vezes o preço do Sonnet 5 para enriquecer texto curto, dentro de um teto de 5 USD por mês.
 Padrão Kora é Sonnet 5; Haiku 4.5 em nomeação; Opus 5 em esforço baixo só na revisão de
 blueprint de aplicação web e API, onde o erro vai para o disco.
-

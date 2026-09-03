@@ -4,6 +4,7 @@ import path from 'node:path';
 import { abrirBanco } from '../db/conexao.js';
 import { migrar } from '../db/migrar.js';
 import { construirApp } from '../app.js';
+import { carregarPresetsBuiltin, sincronizarPresets } from '../modules/presets/servico.js';
 
 export const TOKEN_TESTE = 'a'.repeat(64);
 
@@ -15,6 +16,7 @@ export function criarAppDeTeste({ pluginsApi = [], config: extra = {}, pastaDist
   const home = criarPastaTemporaria();
   const db = abrirBanco(':memory:');
   migrar(db);
+  sincronizarPresets(db, carregarPresetsBuiltin());
   const config = {
     host: '127.0.0.1',
     porta: 7337,

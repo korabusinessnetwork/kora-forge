@@ -1,0 +1,51 @@
+.cartao {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-2);
+  width: 100%;
+  min-height: 32px;
+  padding: var(--forge-space-4);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+  color: var(--forge-text);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--forge-motion-fast), background-color var(--forge-motion-fast);
+}
+
+.cartao:hover {
+  border-color: var(--forge-accent);
+  background: var(--forge-surface-2);
+}
+
+.categoria {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--forge-accent);
+}
+
+.nome {
+  font-size: var(--forge-text-lg);
+  line-height: var(--forge-leading-lg);
+  font-weight: 600;
+}
+
+.descricao {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  color: var(--forge-text-muted);
+}
+
+.rodape {
+  margin-top: auto;
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}

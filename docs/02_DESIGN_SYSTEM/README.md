@@ -78,6 +78,7 @@ Respeitar `prefers-reduced-motion`.
 7. **Aviso do motor de regras** aparece perto do campo que o causou, não em uma lista no fim.
 8. Alvo de clique mínimo de 32px de altura em desktop.
 9. Foco de teclado sempre visível. O wizard inteiro é navegável só com teclado.
+10. **Progresso sempre com número.** Barra de progresso vem com "x de y", e estimativa de término é rotulada como estimativa, com a base de cálculo no microtexto.
 
 ## Tokens do projeto (editados no Studio)
 
