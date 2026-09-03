@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act, within } from '@testing-library/react';
 import { Routes, Route } from 'react-router-dom';
 import { renderizarComProvedores } from '../../testes/renderizar.jsx';
 import { mensagens } from '../../mensagens.js';
@@ -11,11 +11,13 @@ vi.mock('../../services/presets.js', () => ({ obterPreset: vi.fn() }));
 vi.mock('../../services/regras.js', () => ({ avaliarRegras: vi.fn(), decidirSobreHit: vi.fn() }));
 vi.mock('../../services/plano.js', () => ({ gerarPlano: vi.fn() }));
 vi.mock('../../services/materializacao.js', () => ({ materializar: vi.fn(), obterMaterializacao: vi.fn(), decidirMaterializacao: vi.fn(), pararRun: vi.fn() }));
+vi.mock('../../services/logDeRun.js', () => ({ assinarLogDoRun: vi.fn(() => () => {}), urlDoRun: vi.fn(), MARCADOR_DE_TOKEN: 'forge-token' }));
 import { obterProjeto, salvarBlueprint, atualizarProjeto } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
 import { avaliarRegras, decidirSobreHit } from '../../services/regras.js';
 import { gerarPlano } from '../../services/plano.js';
 import { materializar, obterMaterializacao, decidirMaterializacao, pararRun } from '../../services/materializacao.js';
+import { assinarLogDoRun } from '../../services/logDeRun.js';
 
 const m = mensagens.wizard;
 const ETAPAS_SITE = ['identidade', 'escopo', 'design', 'seguranca', 'fundacao', 'materializar'];
@@ -406,8 +408,11 @@ describe('aprovar e materializar', () => {
     fireEvent.click(botao);
     await waitFor(() => expect(materializar).toHaveBeenCalledWith('p1', `sha256:${'a'.repeat(64)}`));
     expect(await screen.findByText(mm.estado.concluida)).toBeInTheDocument();
-    // O comando aparece nos dois painéis: no plano (o que vai rodar) e na materialização (o que rodou).
-    expect(screen.getAllByText('git init')).toHaveLength(2);
+    // Concluída, o plano do que **vai** acontecer sai da tela e entra a tela final: a etapa cabe
+    // em uma tela, e o que interessa agora é onde o projeto ficou (princípio nº 1).
+    expect(screen.getAllByText('git init')).toHaveLength(1);
+    expect(screen.getByRole('heading', { name: mensagens.telaFinal.titulo })).toBeInTheDocument();
+    expect(screen.queryByText(mensagens.plano.nadaEscrito)).toBeNull();
   });
 
   it('ferramenta ausente mostra a lista do que falta, não uma mensagem genérica', async () => {
@@ -456,5 +461,110 @@ describe('aprovar e materializar', () => {
     // O TanStack passa um segundo argumento ao mutationFn; o que importa é o primeiro.
     await waitFor(() => expect(pararRun).toHaveBeenCalled());
     expect(pararRun.mock.calls[0][0]).toBe('r3');
+  });
+});
+
+// Bloco 8. O log ao vivo entra ao lado da fila de comandos, não no lugar dela, e a tela final
+// fecha o fluxo dizendo onde o projeto ficou.
+describe('log ao vivo e fechamento', () => {
+  const ml = mensagens.log;
+  const mm = mensagens.materializacao;
+
+  const comando = (id, estado, runId) => ({ id, cmd: 'npm', args: [id], obrigatorio: true, longaDuracao: false, estado, runId, exitCode: null, erro: null });
+  const estadoDe = (extra = {}) => ({
+    projetoId: 'p1', raiz: 'D:\\dev\\kora\\alfa', estado: 'rodando',
+    arquivos: { criados: 32, sobrescritos: 1, pulados: 2 },
+    comandos: [comando('init', 'sucesso', 'r1'), comando('install', 'rodando', 'r2'), comando('build', 'pendente', null)],
+    indice: 1, iniciadaEm: '2026-09-03T00:00:00.000Z', terminadaEm: null, ...extra,
+  });
+
+  // Devolve o callback que o hook registrou, para o teste empurrar linhas como o servidor faria.
+  function empurrar(eventos) {
+    const chamada = assinarLogDoRun.mock.calls.at(-1);
+    chamada[1].onEstado('conectado');
+    chamada[1].onEventos(eventos, { descartados: 0 });
+  }
+
+  beforeEach(() => {
+    assinarLogDoRun.mockClear();
+    obterProjeto.mockResolvedValue({ projeto: projeto({ etapaAtual: 'materializar' }), blueprint: blueprint({ etapaAtual: 'materializar' }) });
+  });
+
+  it('a fila de comandos continua na tela, com o log ao lado', async () => {
+    obterMaterializacao.mockResolvedValue(estadoDe());
+    renderizar('/projetos/p1/wizard/materializar');
+
+    expect(await screen.findByText(mm.estado.rodando)).toBeInTheDocument();
+    expect(screen.getByText(mm.arquivos(32, 1, 2))).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: ml.titulo })).toBeInTheDocument();
+  });
+
+  // Sem clicar em nada, o log segue o comando que está rodando agora.
+  it('o log segue sozinho o comando em execução', async () => {
+    obterMaterializacao.mockResolvedValue(estadoDe());
+    renderizar('/projetos/p1/wizard/materializar');
+    await screen.findByText(mm.estado.rodando);
+
+    await waitFor(() => expect(assinarLogDoRun).toHaveBeenCalledWith('r2', expect.anything()));
+    expect(await screen.findByText(ml.de('npm install'))).toBeInTheDocument();
+  });
+
+  it('as linhas que chegam aparecem no log', async () => {
+    obterMaterializacao.mockResolvedValue(estadoDe());
+    renderizar('/projetos/p1/wizard/materializar');
+    await waitFor(() => expect(assinarLogDoRun).toHaveBeenCalled());
+
+    act(() => empurrar([
+      { tipo: 'linha', stream: 'stdout', linha: 'baixando pacotes', ts: '2026-09-03T00:00:01.000Z' },
+      { tipo: 'linha', stream: 'stderr', linha: 'aviso do npm', ts: '2026-09-03T00:00:02.000Z' },
+    ]));
+
+    expect(await screen.findByText('baixando pacotes')).toBeInTheDocument();
+    expect(screen.getByText('aviso do npm')).toBeInTheDocument();
+  });
+
+  // Comando já executado é selecionável; pendente não, porque não existe run para mostrar.
+  it('clicar em um comando já executado troca o log, e o pendente não é clicável', async () => {
+    obterMaterializacao.mockResolvedValue(estadoDe());
+    renderizar('/projetos/p1/wizard/materializar');
+    await screen.findByText(mm.estado.rodando);
+
+    fireEvent.click(screen.getByRole('button', { name: mm.verSaida('init') }));
+    await waitFor(() => expect(assinarLogDoRun).toHaveBeenCalledWith('r1', expect.anything()));
+    expect(await screen.findByText(ml.de('npm init'))).toBeInTheDocument();
+
+    expect(screen.queryByRole('button', { name: mm.verSaida('build') })).toBeNull();
+  });
+
+  it('sem nenhum comando executado ainda, o log mostra o vazio com a próxima ação', async () => {
+    obterMaterializacao.mockResolvedValue(estadoDe({
+      estado: 'escrevendo',
+      comandos: [comando('init', 'pendente', null)],
+      indice: 0,
+    }));
+    renderizar('/projetos/p1/wizard/materializar');
+
+    expect(await screen.findByText(ml.semComando)).toBeInTheDocument();
+    expect(screen.getByText(ml.semComandoTexto)).toBeInTheDocument();
+    expect(assinarLogDoRun).not.toHaveBeenCalled();
+  });
+
+  it('concluída mostra a tela final com o caminho e o atalho para o editor', async () => {
+    obterMaterializacao.mockResolvedValue(estadoDe({ estado: 'concluida', terminadaEm: '2026-09-03T00:05:00.000Z' }));
+    renderizar('/projetos/p1/wizard/materializar');
+
+    const telaFinal = (await screen.findByRole('heading', { name: mensagens.telaFinal.titulo })).closest('section');
+    expect(within(telaFinal).getByText('D:\\dev\\kora\\alfa')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: mensagens.telaFinal.abrirNoEditor })).toHaveAttribute('href', 'vscode://file/D:/dev/kora/alfa');
+    expect(screen.getByRole('link', { name: mensagens.telaFinal.verProjeto })).toBeInTheDocument();
+  });
+
+  // ADR-002: não existe rollback. Abortada não celebra.
+  it('abortada não mostra a tela de sucesso', async () => {
+    obterMaterializacao.mockResolvedValue(estadoDe({ estado: 'abortada', terminadaEm: '2026-09-03T00:05:00.000Z' }));
+    renderizar('/projetos/p1/wizard/materializar');
+
+    expect(await screen.findByRole('heading', { name: mensagens.telaFinal.abortada.titulo })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: mensagens.telaFinal.titulo })).toBeNull();
   });
 });

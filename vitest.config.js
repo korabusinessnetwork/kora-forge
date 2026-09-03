@@ -11,7 +11,9 @@ export default defineConfig({
         test: {
           name: 'server',
           environment: 'node',
-          include: ['server/**/*.test.js', 'shared/**/*.test.js'],
+          // `vite.config.test.js` guarda a configuração do dev server, que roda em Node e não no
+          // browser: o proxy de `/api` precisa encaminhar WebSocket, senão o log ao vivo cala.
+          include: ['server/**/*.test.js', 'shared/**/*.test.js', 'vite.config.test.js'],
         },
       },
       {

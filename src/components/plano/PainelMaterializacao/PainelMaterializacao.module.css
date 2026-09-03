@@ -72,3 +72,29 @@
   gap: var(--forge-space-2);
   flex-wrap: wrap;
 }
+
+/* Comando selecionável troca o log exibido. Herda a cara do `.mono` para a fila continuar
+   parecendo uma fila, e não uma barra de botões. */
+.selecionavel {
+  border: 1px solid transparent;
+  color: var(--forge-text);
+  cursor: pointer;
+  min-height: 32px;
+  text-align: left;
+  font-family: var(--forge-font-mono);
+  transition: border-color var(--forge-motion-fast);
+}
+
+.selecionavel:hover {
+  border-color: var(--forge-border);
+}
+
+.selecionavel:focus-visible {
+  outline: none;
+  box-shadow: var(--forge-focus-ring);
+}
+
+.ativo {
+  border-color: var(--forge-accent);
+  color: var(--forge-accent);
+}

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect, afterEach } from 'vitest';
 import { criarAppDeTeste, criarPastaTemporaria } from '../../testes/apoio.js';
-import { materializacaoSchema } from '../../../shared/schemas/materializacao.js';
+import { materializacaoSchema, eventoLogSchema } from '../../../shared/schemas/materializacao.js';
 
 let contexto;
 const temporarias = [];
@@ -319,6 +319,35 @@ describe('transmissor de log', () => {
     expect(recebidos[0]).toMatchObject({ stream: 'stdout', linha: 'feito' });
     expect(recebidos[1]).toMatchObject({ estado: 'sucesso', exitCode: 0 });
     cancelar();
+  });
+
+  // Contrato fechado ponta a ponta: o front valida cada evento por `eventoLogSchema` antes de
+  // pintar a tela, e descarta o que não bate. Se o servidor publicasse algo fora do schema, o log
+  // ficaria mudo sem ninguém errar em lugar nenhum. Este teste é o que impede isso.
+  it('tudo que o runner publica bate com o schema que o front consome', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner, transmissor } = ctx.app.servicos;
+
+    await runner.materializar({
+      projeto,
+      preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('um', ['ok.js']), comando('dois', ['falha.js'], { obrigatorio: false })]),
+    });
+    await esperar(() => ['concluida', 'parado_em_falha'].includes(runner.obter(projeto.id).estado));
+
+    const publicados = runner.obter(projeto.id).comandos
+      .filter((c) => c.runId)
+      .flatMap((c) => transmissor.historico(c.runId));
+
+    expect(publicados.length).toBeGreaterThan(0);
+    for (const evento of publicados) {
+      const resultado = eventoLogSchema.safeParse(evento);
+      expect(resultado.success, `evento fora do contrato: ${JSON.stringify(evento)}`).toBe(true);
+    }
+    expect(publicados.some((e) => e.tipo === 'linha')).toBe(true);
+    expect(publicados.some((e) => e.tipo === 'fim')).toBe(true);
   });
 
   it('ouvinte que quebra não derruba os outros nem a execução', () => {

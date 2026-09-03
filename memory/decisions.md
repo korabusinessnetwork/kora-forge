@@ -199,3 +199,41 @@ e os `npm_config_` de proxy e registry. Motivo: sem elas o `npm install` trava e
 atrás de proxy, e instalar dependência é o motivo de o comando existir. Descoberto no smoke test do
 bloco 7, onde o comando ficou preso por mais de dois minutos. Proxy é configuração, não credencial;
 o ambiente continua nunca sendo logado, porque uma URL de proxy pode embutir usuário e senha.
+
+### 2026-09-03, no Windows o `npm` é chamado pelo CLI, nunca por shell
+`resolverComando()` traduz `npm` e `npx` para `node <npm-cli.js>` só no Windows. Motivo: o que
+existe no PATH lá é um shim `.cmd`, e o Node recusa `.cmd` sem shell desde a correção do
+CVE-2024-27980. A alternativa óbvia seria ligar o shell, e é exatamente o que a regra S-04 proíbe,
+porque devolveria a interpretação dos argumentos ao `cmd.exe`. A tradução acontece **depois** de
+`validarComando`, então a whitelist não muda (C7). Detalhes e repro em R-08 de `bugs.md`.
+
+### 2026-09-03, teste de processo passou a rodar comando de verdade
+A suíte inteira testava o runner com `node script.js`, que funciona em qualquer sistema, e por isso
+ficou verde enquanto nenhum `npm` do produto nascia no Windows. Agora existe um teste que executa
+`npm`, `npx`, `node` e `git --version` de verdade, na plataforma que está rodando. Motivo: o teste
+tem que exercitar a mesma resolução de executável que o produto exercita, senão ele mede outra
+coisa. É o mesmo aprendizado que já vinha do bloco 7: os defeitos sérios apareceram rodando o
+produto, não a suíte.
+
+### 2026-09-03, o token do log ao vivo vai no subprotocolo do WebSocket
+`new WebSocket(url, ['forge-token', token])`. Motivo: o browser não permite header customizado no
+handshake, e query string entraria em log de acesso (C2). O servidor lê o valor depois do marcador
+`forge-token` e devolve o marcador como protocolo negociado. Continua valendo a mesma guarda das
+rotas, na mesma ordem: Host, token, `Origin`.
+
+### 2026-09-03, o proxy do Vite precisa de `ws: true`
+Sem isso o upgrade não é repassado e o log ao vivo fica mudo **só** em `npm run forge`, com todo o
+resto funcionando e nenhum teste falhando. Passou a existir `vite.config.test.js` guardando a
+configuração, porque o defeito é invisível para a suíte de componente.
+
+### 2026-09-03, sequência de escape de terminal é limpa na tela, não no banco
+O `PainelLog` remove cor e movimento de cursor ao renderizar; `command_runs` continua guardando a
+linha crua. Motivo: no terminal aquilo vira cor, na página vira `[32m[1mVITE` no meio da frase, e
+o log gravado tem que continuar fiel ao que o processo escreveu. Descoberto lendo o `npm run dev`
+do projeto gerado, no produto rodando.
+
+### 2026-09-03, `VisualizadorDiff` fica para a Fase 2
+Na Fase 1 o conflito é declarado no `PainelPlano` como ação de sobrescrever, com os dois tamanhos.
+Motivo: o critério de aceite da fase não pede diff linha a linha, e o caso comum de materialização
+é pasta nova, sem conflito nenhum. Registrado em `docs/06_COMPONENTES`.
+

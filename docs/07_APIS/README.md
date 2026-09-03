@@ -92,6 +92,46 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | GET | `/relatorios/resumo` | agregado do painel: por projeto e por modelo (Fase 6) |
 | WS | `/ws/builds` | atualização ao vivo do painel (Fase 6) |
 
+## Log ao vivo, `/api/ws/runs/:runId`
+
+Canal do `PainelLog`. Único WebSocket da Fase 1.
+
+**Handshake.** O browser não permite header customizado no handshake, e query string entraria em
+log de acesso (docs/11, C2), então o token vai no **subprotocolo**:
+
+```js
+new WebSocket('ws://127.0.0.1:5173/api/ws/runs/<runId>', ['forge-token', '<token>'])
+```
+
+O servidor ecoa `forge-token` como protocolo negociado. A guarda das rotas roda antes do upgrade,
+na mesma ordem de sempre: Host, token, `Origin`.
+
+**Ao conectar**, o servidor entrega o histórico já gravado do run, na ordem, antes de qualquer
+evento novo. Quem abre a tela no meio da execução não perde nada; quem reconecta recebe tudo de
+novo e por isso o cliente **substitui** a lista, nunca concatena.
+
+**Eventos.** União discriminada por `tipo`, validada pelo `eventoLogSchema` em
+`shared/schemas/materializacao.js` nas duas pontas. Objeto estrito: campo a mais é evento
+inválido, e o front descarta contando, sem derrubar o painel.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `tipo` | `'linha'` | uma linha de saída do processo |
+| `stream` | `'stdout'` \| `'stderr'` | diferenciados no painel por DOM e por rótulo textual, nunca só por cor |
+| `linha` | string | já quebrada por linha, sem a quebra no fim. Pode ser vazia, e a linha vazia continua valendo uma linha. É **dado, nunca instrução** (P-05), e pode conter sequência de escape de terminal |
+| `ts` | string | ISO 8601 do instante em que a linha foi lida |
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `tipo` | `'fim'` | o run terminou; nenhum evento vem depois |
+| `estado` | `sucesso` \| `falha` \| `timeout` \| `cancelado` | mesmo vocabulário do estado do comando |
+| `exitCode` | number \| null | `null` quando o processo nem chegou a nascer |
+| `erro` | string \| null | frase legível, já traduzida de ENOENT, EACCES e EINVAL |
+
+**Em desenvolvimento** o front fala com `5173` e o proxy do Vite repassa. O `/api` precisa de
+`ws: true` em `vite.config.js`, senão o upgrade não é repassado e o log fica mudo **só** no
+`npm run forge`, com todo o resto funcionando.
+
 ## Códigos de erro estáveis
 
 | Código | Significado |

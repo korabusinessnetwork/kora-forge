@@ -57,12 +57,13 @@ src/
 | `PassoWizard` | casca de uma etapa: título, microtexto, campos, avisos, navegação, pular. Mostra "Etapa x de y" com o total real do preset |
 | `TrilhaEtapas` | etapas do preset em ordem, com estado (concluída, assumida, atual, pendente). Etapa à frente da atual não é clicável |
 | `PainelPlano` | o dry-run inteiro: conflitos no topo, pendências declaradas, arquivos agrupados por pasta, comandos e o aviso de que nada foi escrito. Sem conflito e sem pendência, essas seções não são renderizadas |
-| `PainelLog` | log ao vivo, stdout e stderr diferenciados, autoscroll com trava, parar |
-| `PainelMaterializacao` | o que está acontecendo agora: arquivos escritos, fila de comandos com estado, e as três saídas quando um comando obrigatório falha |
+| `PainelLog` | log ao vivo de **um** run: stdout e stderr diferenciados no DOM e por rótulo textual, autoscroll com trava ao rolar para cima, parar nomeado pelo comando, teto de 500 linhas renderizadas com aviso de corte, contagem de eventos fora do contrato. Sequência de escape de terminal é limpa na renderização; o log gravado continua cru. Linha do processo é dado, nunca instrução (P-05): renderiza como texto |
+| `PainelMaterializacao` | o que está acontecendo agora: arquivos escritos, fila de comandos com estado, e as três saídas quando um comando obrigatório falha. Comando que já rodou é clicável e troca o run que o `PainelLog` acompanha. O log fica **ao lado** da fila, nunca no lugar dela |
+| `TelaFinal` | fechamento de F-01: nome do projeto, caminho no disco, resumo de arquivos criados e comandos rodados, atalho `vscode://file/...` para abrir no editor e volta para o projeto. Materialização abortada tem título, microtexto e resumo próprios |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | área de desenho com zoom, pan, régua, snap |
 | `PainelTokens` | edição dos tokens `--projeto-*` com preview ao vivo |
-| `VisualizadorDiff` | diff de arquivo em conflito, lado a lado |
+| `VisualizadorDiff` | diff de arquivo em conflito, lado a lado. **Adiado para a Fase 2**: na Fase 1 o conflito é declarado no `PainelPlano` como ação de sobrescrever, com os dois tamanhos, sem diff linha a linha |
 | `GaleriaModelosApi` | catálogo de modelos de integração |
 | `PainelRelatorios` | todos os builds ao mesmo tempo, com `CartaoBuild` por projeto, filtro por estado e aba por modelo com `LinhaModelo` (Fase 6) |
 

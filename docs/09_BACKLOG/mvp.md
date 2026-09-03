@@ -17,18 +17,34 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 | 5, motor de regras | entregue | `specs/fase1-bloco5-motor-de-regras.md` |
 | 6, gerador | entregue | `specs/fase1-bloco6-gerador.md` |
 | 7, runner | entregue | `specs/fase1-bloco7-runner.md` |
-| 8, telas de fechamento | próximo | |
+| 8, telas de fechamento | entregue | `specs/fase1-bloco8-telas-de-fechamento.md` |
 
 ## Critério de aceite da fase inteira
 
-- [ ] Criar um projeto de verdade do começo ao fim, sem tocar no terminal
-- [ ] O projeto gerado tem `CLAUDE.md`, `memory/` (6 arquivos preenchidos com conteúdo real) e `docs/00` a `11`
-- [ ] Zero placeholder `{{...}}` sobrando em qualquer arquivo gerado
-- [ ] ADR-001 do projeto gerado registra a stack escolhida no wizard
-- [ ] `npm run dev` do projeto gerado sobe sem erro
-- [ ] Nenhuma escrita em disco aconteceu sem dry-run aprovado
-- [ ] Tudo funciona com o copiloto desligado, porque ele nem existe ainda
-- [ ] Do clique inicial ao dev server: menos de 10 minutos
+Verificado em 2026-09-03, no produto rodando (`npm run forge`), gerando o projeto **Gama Clínica**
+em `.../Área de Testes/gama-clinica`, pasta com espaço e acento de propósito (R-01).
+
+- [x] Criar um projeto de verdade do começo ao fim, sem tocar no terminal
+- [x] O projeto gerado tem `CLAUDE.md`, `memory/` (6 arquivos preenchidos com conteúdo real) e `docs/00` a `11`
+- [x] Zero placeholder `{{...}}` sobrando em qualquer arquivo gerado
+- [x] ADR-001 do projeto gerado registra a stack escolhida no wizard
+- [x] `npm run dev` do projeto gerado sobe sem erro
+- [x] Nenhuma escrita em disco aconteceu sem dry-run aprovado
+- [x] Tudo funciona com o copiloto desligado, porque ele nem existe ainda
+- [x] Do clique inicial ao dev server: menos de 10 minutos
+
+Evidência resumida: 34 arquivos escritos, fila `git init` → `npm install` → `npm run build` →
+`npm run dev` toda em `sucesso`, `iniciadaEm 20:14:10.991` e `terminadaEm 20:14:31.937`, **21
+segundos** da aprovação ao dev server. O dev server do projeto gerado respondeu `HTTP 200` em
+`localhost:5174`. ADR-001 registrou Modelo B, `React 18 + Vite`, `Node 20 + Fastify`, `PostgreSQL`,
+multi-tenant e white-label em Sim, deploy Railway. Nenhum `{{` e nenhum `_a definir_` sobrou.
+
+**Ressalva honesta**: a validação foi conduzida contra o servidor real e o proxy do Vite, não com
+cliques num browser. As telas em si estão cobertas por teste de componente e de integração da
+`PaginaWizard`. Uma passada com o olho humano na tela continua valendo antes da Fase 2.
+
+Um defeito bloqueante apareceu **só** nessa passada e foi corrigido antes do aceite: R-08, o `npm`
+não nascia no Windows. Está em `memory/bugs.md`.
 
 ## Escopo, em ordem de construção
 

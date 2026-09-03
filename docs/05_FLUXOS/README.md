@@ -25,16 +25,24 @@ Registry
 
 Bloqueio pendente no motor de regras impede chegar na etapa 9.
 
-### Estado da implementação (Fase 1, bloco 4)
+### Estado da implementação (Fase 1, blocos 4 e 8)
 
 O wizard já conduz as etapas que o preset liga, com trilha, navegação, pular e retomada exata.
 As etapas 4 (Design) e 6 (APIs) existem no preset e mostram uma tela de espera que só marca a
-etapa como assumida, porque Studio e API Hub chegam nas fases 2 e 3. A etapa 9 mostra o resumo e
-diz que o plano e a execução chegam nos blocos 6 e 7.
+etapa como assumida, porque Studio e API Hub chegam nas fases 2 e 3. A etapa 9 mostra o plano,
+executa e fecha.
 
 Regra de versionamento: cada avanço, volta ou salto pela trilha grava uma versão nova do
 blueprint **só quando o payload muda**. Navegar sem editar não versiona. Como `etapaAtual` faz
 parte do blueprint, mudar de etapa versiona, e é isso que garante a retomada exata.
+
+Com o bloco 8 a etapa 9 fecha o fluxo inteiro. Enquanto a fila roda, o plano continua na tela, o
+`PainelMaterializacao` mostra a fila e o `PainelLog` mostra a saída do comando **ao lado** dele,
+nunca no lugar. O log segue sozinho o comando que está rodando; clicar num comando que já rodou
+troca o run em foco e a escolha manual não é atropelada pelo avanço da fila. Terminada a
+materialização, o plano sai da tela e entra a `TelaFinal`: caminho no disco, o que foi criado,
+atalho `vscode://file/...` para abrir no editor e volta para o projeto. Materialização abortada
+tem a sua própria versão dessa tela, que diz onde parou em vez de comemorar.
 
 ## F-02, Materialização (detalhe)
 
@@ -47,6 +55,7 @@ parte do blueprint, mudar de etapa versiona, e é isso que garante a retomada ex
 6. escrever arquivos      ordem fixa: pastas → fundação → config → código  [implementado, bloco 7]
 7. rodar comandos         um a um, na ordem, log em stream, botão parar  [implementado, bloco 7]
 8. registrar              status materializado, evento projeto.materializado, log salvo  [implementado, bloco 7]
+9. fechar                 tela final: caminho, resumo e atalho para o editor  [implementado, bloco 8]
 ```
 
 Falha em um comando **obrigatório** para o fluxo e oferece: repetir, pular ou abortar. Comando

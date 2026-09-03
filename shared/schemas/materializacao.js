@@ -45,6 +45,25 @@ export const materializacaoOuNadaSchema = z.strictObject({
   materializacao: materializacaoSchema.nullable(),
 });
 
+// Contrato do log ao vivo (`WS /api/ws/runs/:runId`). O transmissor publica exatamente estes
+// dois eventos, e este schema e a fonte de verdade: `docs/07` descreve o que esta aqui.
+// Linha vinda do processo e dado, nunca instrucao (P-05); quem renderiza trata como texto.
+export const eventoLinhaSchema = z.strictObject({
+  tipo: z.literal('linha'),
+  stream: z.enum(['stdout', 'stderr']),
+  linha: z.string(),
+  ts: z.string().min(1),
+});
+
+export const eventoFimSchema = z.strictObject({
+  tipo: z.literal('fim'),
+  estado: z.enum(ESTADOS_RUN),
+  exitCode: z.number().int().nullable(),
+  erro: z.string().nullable(),
+});
+
+export const eventoLogSchema = z.discriminatedUnion('tipo', [eventoLinhaSchema, eventoFimSchema]);
+
 export const ferramentaSchema = z.strictObject({
   bin: z.string().min(1),
   min: z.string().nullable(),
