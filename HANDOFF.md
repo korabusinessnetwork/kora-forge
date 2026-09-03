@@ -1,6 +1,7 @@
 # Continuar o KORA FORGE em sessão local
 
 > Prompt de handoff gerado em 2026-09-03, ao fim do bloco 7 da Fase 1.
+> Branch canônico: `main`.
 > Cole o bloco "Prompt" abaixo na primeira mensagem da sessão local do Claude Code.
 
 ---
@@ -8,9 +9,11 @@
 ## Prompt
 
 ```
-Estou retomando o KORA FORGE em sessão local. O repositório é korabusinessnetwork/kora-forge,
-e todo o trabalho está no branch claude/monta-lgwqdu (8 commits, o último é "Fase 1, bloco 7:
-runner"). Continue nesse mesmo branch.
+Estou retomando o KORA FORGE em sessão local. O repositório é korabusinessnetwork/kora-forge e
+todo o trabalho está em main. Trabalhe direto na main.
+
+  git clone https://github.com/korabusinessnetwork/kora-forge
+  cd kora-forge
 
 ANTES DE QUALQUER COISA, leia nesta ordem:
 1. CLAUDE.md — a constituição. Os dois princípios inegociáveis são intuitividade e determinismo.
@@ -109,7 +112,7 @@ Bloco 8 (telas de fechamento) e bloco 9 (gaveta de ideias). Depois, o critério 
 
 | Item | Valor |
 |---|---|
-| Commits no branch | 8 |
+| Commits em `main` | 10 |
 | Testes | 435, verdes |
 | Blocos entregues | 1 a 7 de 9 |
 | ADRs | 8, sendo o ADR-008 ainda Proposto |
