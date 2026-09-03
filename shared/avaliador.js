@@ -4,6 +4,8 @@
 export const OPERADORES_FOLHA = Object.freeze(['igual', 'diferente', 'contem', 'nao_contem', 'maior_que', 'menor_que', 'existe', 'vazio']);
 export const OPERADORES_GRUPO = Object.freeze(['e', 'ou']);
 
+import { compararTexto } from './ordenar.js';
+
 const CHAVES_PROIBIDAS = new Set(['__proto__', 'constructor', 'prototype']);
 const ORDEM_SEVERIDADE = Object.freeze({ bloqueio: 0, aviso: 1, info: 2 });
 
@@ -72,7 +74,7 @@ export function avaliarCondicao(condicao, contexto) {
 export function ordenarRegras(regras) {
   return [...regras].sort((a, b) => {
     const porSeveridade = (ORDEM_SEVERIDADE[a.severidade] ?? 9) - (ORDEM_SEVERIDADE[b.severidade] ?? 9);
-    return porSeveridade !== 0 ? porSeveridade : a.id.localeCompare(b.id);
+    return porSeveridade !== 0 ? porSeveridade : compararTexto(a.id, b.id);
   });
 }
 

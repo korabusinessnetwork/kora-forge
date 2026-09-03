@@ -1,16 +1,6 @@
-// Serialização estável (chaves ordenadas) para responder uma pergunta só: mudou alguma coisa?
-// Sem isso o wizard criaria uma versão nova de blueprint a cada navegação (RN-02, princípio nº 2).
-export function serializarEstavel(valor) {
-  if (Array.isArray(valor)) return `[${valor.map(serializarEstavel).join(',')}]`;
-  if (valor !== null && typeof valor === 'object') {
-    return `{${Object.keys(valor).sort().map((chave) => `${JSON.stringify(chave)}:${serializarEstavel(valor[chave])}`).join(',')}}`;
-  }
-  return JSON.stringify(valor ?? null);
-}
-
-export function saoIguais(a, b) {
-  return serializarEstavel(a) === serializarEstavel(b);
-}
+// Reexporta a serialização estável compartilhada: o wizard usa para saber se algo mudou, o
+// gerador usa para o hash do plano. Uma implementação só, testada em shared/serializar.test.js.
+export { serializarEstavel, saoIguais } from '@shared/serializar.js';
 
 // Item de lista em branco é descarte, não dado. Etapa fora do preset não é salva.
 export function limparRespostas(respostas, etapas) {

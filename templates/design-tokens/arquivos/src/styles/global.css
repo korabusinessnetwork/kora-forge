@@ -1,0 +1,59 @@
+/* Base global de {{PROJETO}}. Só tokens: nenhum valor literal fora de tokens.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#raiz {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte-ui);
+  font-size: var(--texto-md);
+  line-height: var(--altura-md);
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--fonte-mono);
+}
+
+a {
+  color: var(--cor-acento);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--anel-foco);
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--texto-xl);
+  line-height: var(--altura-xl);
+  font-weight: 700;
+}

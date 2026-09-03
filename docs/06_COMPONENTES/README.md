@@ -41,7 +41,7 @@ src/
 | `CartaoProjeto` | nome, preset, status, caminho, última alteração |
 | `AvisoRegra` | renderiza um `rule_hit`: severidade, explicação e a ação possível. Resolução automática não oferece ação; dispensável abre o campo de justificativa |
 | `AvisosDoCampo` | agrupa os hits ancorados em um campo, logo abaixo dele. Sem hits, não renderiza nada |
-| `LinhaPlano` | um arquivo do dry-run: caminho, ação, tamanho, conflito |
+| `LinhaPlano` | um arquivo do dry-run: caminho em mono, selo de ação, tamanho (e o tamanho de hoje quando é conflito) e o template de origem |
 | `LinhaComando` | um comando: cmd, args, estado, duração, parar |
 | `CampoConexao` | alias, status, teste de conexão. Nunca mostra o valor |
 | `CartaoIdeia` | título e próximo passo |
@@ -56,7 +56,7 @@ src/
 |---|---|
 | `PassoWizard` | casca de uma etapa: título, microtexto, campos, avisos, navegação, pular. Mostra "Etapa x de y" com o total real do preset |
 | `TrilhaEtapas` | etapas do preset em ordem, com estado (concluída, assumida, atual, pendente). Etapa à frente da atual não é clicável |
-| `PainelPlano` | o dry-run inteiro, agrupado por pasta, com total e conflitos no topo |
+| `PainelPlano` | o dry-run inteiro: conflitos no topo, pendências declaradas, arquivos agrupados por pasta, comandos e o aviso de que nada foi escrito. Sem conflito e sem pendência, essas seções não são renderizadas |
 | `PainelLog` | log ao vivo, stdout e stderr diferenciados, autoscroll com trava, parar |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | área de desenho com zoom, pan, régua, snap |

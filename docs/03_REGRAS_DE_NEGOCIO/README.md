@@ -48,11 +48,14 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 ## RN-05, Geração e materialização
 
 1. Nenhuma escrita em disco sem plano aprovado (dry-run).
-2. O plano lista, por arquivo: caminho relativo, ação (criar, sobrescrever, pular), tamanho e origem (qual template).
-3. Arquivo existente nunca é sobrescrito silenciosamente. Conflito vira decisão explícita, com diff.
+2. O plano lista, por arquivo: caminho relativo, ação (criar, sobrescrever, pular), tamanho, tamanho atual em disco, origem (qual template) e o conteúdo já resolvido. O conteúdo vai no plano porque o runner recebe o plano, nunca a intenção (**ADR-002**).
+3. Arquivo existente nunca é sobrescrito silenciosamente. Conflito vira decisão explícita, com diff. Arquivo existente com conteúdo **idêntico** vira `pular`, não conflito: regerar o plano de um projeto já materializado e sem mudanças mostra zero conflitos.
 4. Ordem fixa: pastas, fundação (`CLAUDE.md`, `memory/`, `docs/`), config, código, e só então os comandos.
 5. Se um comando falha, a materialização para, o estado fica registrado e o usuário decide entre repetir, pular ou abortar. Nada é revertido automaticamente, mas o log mostra exatamente onde parou.
 6. Materialização gera sempre a fundação completa. Projeto sem `memory/` preenchido é materialização falha, não projeto simples.
+7. O plano carrega o hash do blueprint, do preset e das versões de template usadas. É o que permite recusar a execução de um plano velho (`FORGE_PLAN_STALE`).
+8. Template que o preset ou uma regra pede e que o catálogo ainda não tem vira **pendência declarada** no plano, com o motivo. O plano segue sem ele, em vez de falhar em silêncio.
+9. Bloqueio aberto no motor de regras impede gerar o plano.
 
 ## RN-06, Comandos
 

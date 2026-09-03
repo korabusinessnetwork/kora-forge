@@ -1,0 +1,35 @@
+.linha {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-2) var(--forge-space-3);
+  border-radius: var(--forge-radius-sm);
+}
+
+.linha:nth-child(odd) {
+  background: var(--forge-surface-2);
+}
+
+.sobrescrever {
+  border-left: 3px solid var(--forge-danger);
+}
+
+.pular {
+  opacity: 0.7;
+}
+
+.caminho {
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  overflow-wrap: anywhere;
+}
+
+.tamanho,
+.template {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+  white-space: nowrap;
+}

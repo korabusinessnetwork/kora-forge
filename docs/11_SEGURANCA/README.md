@@ -43,7 +43,8 @@ isso como o que é: código privilegiado.
 
 ### C4, filesystem
 - Toda escrita resolve o caminho absoluto e verifica que ele começa pela raiz do workspace, depois de normalizar. Fora disso: `FORGE_PATH_FORBIDDEN`.
-- Symlink que aponte para fora do workspace é recusado.
+- Implementado em `server/lib/caminhos.js`: `resolverNoWorkspace` recusa caminho absoluto (POSIX e Windows), qualquer `..` e qualquer resultado fora da raiz; `garantirDentro` fecha o caso do caminho que só parece estar dentro (`/ws-outro` contra a raiz `/ws`).
+- Symlink que aponte para fora do workspace é recusado antes de qualquer leitura, comparando o caminho real com a raiz.
 - Nada de escrita fora do workspace e de `~/.kora-forge/`. O Forge nunca toca em pasta de sistema.
 
 ### C5, segredos

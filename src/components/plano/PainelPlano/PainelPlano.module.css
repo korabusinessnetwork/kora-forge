@@ -1,0 +1,106 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-2);
+}
+
+.resumo {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}
+
+.nota {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+  font-style: italic;
+}
+
+.subtitulo {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--forge-text-muted);
+  margin-bottom: var(--forge-space-2);
+}
+
+.conflitos {
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface);
+}
+
+.pendencias {
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-warning);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface);
+}
+
+.aviso {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  color: var(--forge-text-muted);
+  margin-bottom: var(--forge-space-3);
+}
+
+.lista,
+.listaSimples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listaSimples {
+  gap: var(--forge-space-2);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}
+
+.listaSimples li {
+  display: flex;
+  align-items: center;
+  gap: var(--forge-space-2);
+  flex-wrap: wrap;
+}
+
+.grupo {
+  margin-bottom: var(--forge-space-4);
+}
+
+.pasta {
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-accent);
+  margin-bottom: var(--forge-space-1);
+}
+
+.mono {
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  padding: var(--forge-space-1) var(--forge-space-2);
+  background: var(--forge-surface-2);
+  border-radius: var(--forge-radius-sm);
+}
+
+.tagComando {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

@@ -31,3 +31,14 @@
   font-family: var(--forge-font-mono);
   font-size: var(--forge-text-sm);
 }
+
+.erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface);
+}

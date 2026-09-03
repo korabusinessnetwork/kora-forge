@@ -1,0 +1,6 @@
+{
+  "id": "design-tokens",
+  "versao": 1,
+  "descricao": "Tokens de design em CSS vars mais a base global. Nenhuma cor literal fora daqui.",
+  "ordem": 35
+}

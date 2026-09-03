@@ -1,0 +1,6 @@
+{
+  "id": "camada-de-servicos",
+  "versao": 1,
+  "descricao": "A camada que isola o backend. Único ponto do front que fala com a rede.",
+  "ordem": 40
+}

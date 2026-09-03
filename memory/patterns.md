@@ -71,8 +71,13 @@ aprovado, nunca a intenção original. Ver **ADR-002**.
 
 ### P-03, Geração por template versionado
 Arquivo gerado sai de template com placeholders, nunca de string montada em código.
-Todo template tem versão, e o blueprint grava qual versão usou. Isso é o que torna a
+Todo template tem versão, e o plano grava qual versão usou. Isso é o que torna a
 geração reproduzível.
+
+O motor (`shared/template.js`) só troca `{{CHAVE}}` por valor: sem condicional, sem laço, sem
+expressão, sem `eval`. Quando um template pede condicional, a decisão vira regra no motor
+(**ADR-004**), não sintaxe nova. Chave sem valor derruba a geração, porque placeholder que sobra na
+saída é bug, não pendência (aprendizado A-04). Catálogo em `templates/`.
 
 ### P-04, O copiloto nunca está no caminho crítico
 Chamada ao LLM é sempre: opcional, assíncrona, com timeout, com fallback determinístico

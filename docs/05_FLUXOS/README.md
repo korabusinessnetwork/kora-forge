@@ -41,8 +41,8 @@ parte do blueprint, mudar de etapa versiona, e é isso que garante a retomada ex
 ```
 1. checar requisitos      node, git, e o que o preset exigir. Falta algo, para aqui
 2. checar workspace       existe, é gravável, e o slug não colide
-3. gerar plano            gerador resolve templates com o blueprint
-4. mostrar plano          arquivos (criar/sobrescrever/pular) + comandos + tamanho total
+3. gerar plano            gerador resolve templates com o blueprint  [implementado, bloco 6]
+4. mostrar plano          arquivos (criar/sobrescrever/pular) + comandos + tamanho total  [implementado, bloco 6]
 5. aprovar                explícito, botão separado da navegação normal
 6. escrever arquivos      ordem fixa: pastas → fundação → config → código
 7. rodar comandos         um a um, na ordem, log em stream, botão parar

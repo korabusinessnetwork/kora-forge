@@ -7,6 +7,7 @@ import { abrirBanco } from './db/conexao.js';
 import { migrar } from './db/migrar.js';
 import { carregarPresetsBuiltin, sincronizarPresets } from './modules/presets/servico.js';
 import { carregarRegrasBuiltin, sincronizarRegras } from './modules/regras/servico.js';
+import { carregarTemplatesBuiltin } from './modules/gerador/servico.js';
 import { construirApp } from './app.js';
 
 const RAIZ = fileURLToPath(new URL('../', import.meta.url));
@@ -20,6 +21,8 @@ async function iniciar() {
   const migradas = migrar(db);
   const presets = sincronizarPresets(db, carregarPresetsBuiltin());
   const regras = sincronizarRegras(db, carregarRegrasBuiltin());
+  // Template fora do contrato derruba o boot: melhor parar do que gerar projeto quebrado.
+  const templates = carregarTemplatesBuiltin();
   const tokenSessao = gerarTokenDeSessao(config.home);
   const versao = lerVersao(RAIZ);
   const pastaDist = MODO_DEV ? null : path.join(RAIZ, 'dist');
@@ -38,6 +41,7 @@ async function iniciar() {
   if (migradas.length > 0) console.log(`Migrations aplicadas agora: ${migradas.join(', ')}`);
   if (presets.inseridos.length + presets.atualizados.length > 0) console.log(`Presets sincronizados: ${[...presets.inseridos, ...presets.atualizados].join(', ')}`);
   if (regras.inseridas.length + regras.atualizadas.length > 0) console.log(`Regras sincronizadas: ${regras.inseridas.length + regras.atualizadas.length} de ${regras.inseridas.length + regras.atualizadas.length + regras.inalteradas.length}`);
+  console.log(`Templates carregados: ${templates.map((t) => t.id).join(', ')}`);
   if (!MODO_DEV && !servindoFront) console.log('Sem dist/: rode npm run build para servir o front daqui, ou npm run forge para desenvolver.');
   console.log('Abra no browser (o link carrega o token de sessão):');
   console.log(`  ${url}`);

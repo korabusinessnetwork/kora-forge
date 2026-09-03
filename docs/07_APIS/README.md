@@ -68,7 +68,7 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | POST | `/projects/:id/regras/avaliar` | reavalia tudo e devolve `{ hits, bloqueios, podeMaterializar }` |
 | PATCH | `/projects/:id/regras/:hitId` | `{ estado, justificativa? }`. `dispensado` exige justificativa de 10 caracteres e regra dispensável |
 | POST | `/projects/:id/design` | salva o design_document do Studio |
-| POST | `/projects/:id/plano` | **dry-run**, devolve o plano de arquivos e comandos. Não escreve nada |
+| POST | `/projects/:id/plano` | **dry-run**. Devolve `{ hashBlueprint, raiz, arquivos, comandos, pendencias, totais }` e não escreve nada. Recusa com `FORGE_PLAN_BLOQUEADO` se houver bloqueio aberto, e com `FORGE_VALIDATION` em `workspace` se a pasta raiz não estiver configurada |
 | POST | `/projects/:id/materializar` | aplica um plano aprovado, devolve `runId` |
 | WS | `/ws/runs/:runId` | log ao vivo do runner |
 | POST | `/runs/:runId/parar` | encerra processo em execução |
@@ -108,6 +108,8 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | `FORGE_NOT_FOUND` | rota inexistente sob `/api` |
 | `FORGE_INTERNAL` | erro inesperado ou saída de rota fora do contrato. O corpo nunca traz detalhe interno |
 | `FORGE_CONFIG` | configuração inválida no boot (`.env.local` ou variáveis `FORGE_*`) |
+| `FORGE_PLAN_BLOQUEADO` | há bloqueio aberto no motor de regras. `detalhe.bloqueios` lista regra e título |
+| `FORGE_TEMPLATE_INCOMPLETO` | um template usa um placeholder que o mapa de valores não conhece. É bug de catálogo, não do usuário |
 | `FORGE_PORT_IN_USE` | porta da API local ocupada no boot |
 | `FORGE_OFFLINE` | só no cliente: a API local não respondeu |
 | `FORGE_CONTRACT` | só no cliente: resposta fora do envelope ou do schema esperado |

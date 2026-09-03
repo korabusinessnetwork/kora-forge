@@ -15,6 +15,8 @@ export const CODIGOS_ERRO = Object.freeze({
   FORGE_RUN_FAILED: { status: 500, mensagem: 'Comando terminou com erro.' },
   FORGE_INTERNAL: { status: 500, mensagem: 'Erro interno do Forge.' },
   FORGE_CONFIG: { status: 500, mensagem: 'Configuração inválida.' },
+  FORGE_PLAN_BLOQUEADO: { status: 409, mensagem: 'Há bloqueios abertos no motor de regras.' },
+  FORGE_TEMPLATE_INCOMPLETO: { status: 500, mensagem: 'Template com placeholder sem valor.' },
   FORGE_PORT_IN_USE: { status: 500, mensagem: 'A porta da API local já está em uso.' },
   // Só o cliente emite os dois abaixo. O servidor nunca os devolve.
   FORGE_OFFLINE: { status: 0, mensagem: 'A API local não respondeu.' },

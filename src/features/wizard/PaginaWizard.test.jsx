@@ -9,9 +9,11 @@ import PaginaWizard from './PaginaWizard.jsx';
 vi.mock('../../services/projetos.js', () => ({ obterProjeto: vi.fn(), salvarBlueprint: vi.fn(), atualizarProjeto: vi.fn() }));
 vi.mock('../../services/presets.js', () => ({ obterPreset: vi.fn() }));
 vi.mock('../../services/regras.js', () => ({ avaliarRegras: vi.fn(), decidirSobreHit: vi.fn() }));
+vi.mock('../../services/plano.js', () => ({ gerarPlano: vi.fn() }));
 import { obterProjeto, salvarBlueprint, atualizarProjeto } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
 import { avaliarRegras, decidirSobreHit } from '../../services/regras.js';
+import { gerarPlano } from '../../services/plano.js';
 
 const m = mensagens.wizard;
 const ETAPAS_SITE = ['identidade', 'escopo', 'design', 'seguranca', 'fundacao', 'materializar'];
@@ -63,6 +65,15 @@ beforeEach(() => {
   decidirSobreHit.mockReset();
   obterPreset.mockResolvedValue(preset);
   avaliarRegras.mockResolvedValue({ hits: [], bloqueios: 0, podeMaterializar: true });
+  gerarPlano.mockReset();
+  gerarPlano.mockResolvedValue({
+    hashBlueprint: `sha256:${'a'.repeat(64)}`,
+    raiz: '/dev/kora/alfa',
+    arquivos: [{ caminho: 'CLAUDE.md', acao: 'criar', tamanho: 1024, tamanhoAtual: null, template: 'fundacao-kora', conteudo: 'x' }],
+    comandos: [{ id: 'git-init', cmd: 'git', args: ['init'], obrigatorio: true, longaDuracao: false, timeoutMs: 600000 }],
+    pendencias: [],
+    totais: { arquivos: 1, bytes: 1024, conflitos: 0, pulados: 0 },
+  });
   obterProjeto.mockResolvedValue({ projeto: projeto(), blueprint: blueprint() });
   salvarBlueprint.mockImplementation(async (_id, payload) => ({ projeto: projeto(), blueprint: { ...blueprint(payload), versao: 2 } }));
   atualizarProjeto.mockImplementation(async (_id, patch) => ({ projeto: projeto(patch), blueprint: blueprint() }));
@@ -326,5 +337,41 @@ describe('motor de regras no wizard', () => {
     expect(await screen.findByText('RLS entra em toda tabela')).toBeInTheDocument();
     expect(screen.getByText(mensagens.regras.automatico)).toBeInTheDocument();
     expect(screen.queryByText('Já resolvido')).toBeNull();
+  });
+});
+
+describe('plano na etapa Materializar', () => {
+  function emMaterializar() {
+    obterProjeto.mockResolvedValue({ projeto: projeto({ etapaAtual: 'materializar' }), blueprint: blueprint({ etapaAtual: 'materializar' }) });
+  }
+
+  it('mostra o plano com raiz, arquivos e comandos, e avisa que nada foi escrito', async () => {
+    emMaterializar();
+    renderizar('/projetos/p1/wizard/materializar');
+    expect(await screen.findByText('/dev/kora/alfa')).toBeInTheDocument();
+    expect(screen.getByText('CLAUDE.md')).toBeInTheDocument();
+    expect(screen.getByText('git init')).toBeInTheDocument();
+    expect(screen.getByText(mensagens.plano.nadaEscrito)).toBeInTheDocument();
+    expect(gerarPlano).toHaveBeenCalledWith('p1');
+  });
+
+  it('workspace faltando leva para Configurações em vez de só reclamar', async () => {
+    emMaterializar();
+    gerarPlano.mockRejectedValue(new ErroApi('FORGE_VALIDATION', 'Configure o workspace em Configurações antes de gerar o plano.', { issues: [{ caminho: 'workspace', mensagem: 'x' }] }, 400));
+    renderizar('/projetos/p1/wizard/materializar');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Configure o workspace');
+    expect(screen.getByRole('link', { name: mensagens.plano.erroWorkspace })).toHaveAttribute('href', '/config');
+  });
+
+  it('erro genérico oferece tentar de novo', async () => {
+    emMaterializar();
+    gerarPlano.mockRejectedValueOnce(new ErroApi('FORGE_OFFLINE', 'A API local não respondeu.')).mockResolvedValueOnce({
+      hashBlueprint: `sha256:${'b'.repeat(64)}`, raiz: '/dev/kora/alfa', arquivos: [], comandos: [], pendencias: [],
+      totais: { arquivos: 0, bytes: 0, conflitos: 0, pulados: 0 },
+    });
+    renderizar('/projetos/p1/wizard/materializar');
+    expect(await screen.findByRole('alert')).toHaveTextContent('A API local não respondeu.');
+    fireEvent.click(screen.getByRole('button', { name: mensagens.estados.tentarDeNovo }));
+    expect(await screen.findByText('/dev/kora/alfa')).toBeInTheDocument();
   });
 });

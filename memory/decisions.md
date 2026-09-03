@@ -154,3 +154,22 @@ avaliam de verdade.
 Índice único em `rule_hits(project_id, rule_id)`, com migration espelhando o schema documentado.
 Motivo: o motor reavalia a cada mudança de blueprint, e sem unicidade o histórico viraria ruído
 em vez de auditoria. Decisão humana (dispensado, ignorado) sobrevive à reavaliação.
+
+### 2026-09-03, quatro templates adiados viram pendência declarada
+O bloco 6 implementou cinco templates (`fundacao-kora`, `config-base`, `vite-react`,
+`design-tokens`, `camada-de-servicos`), que é o escopo do `mvp.md`. Os presets também pedem
+`supabase-schema`, `sqlite-schema`, `servidor-local-fastify` e `seo-base`, e algumas regras pedem
+templates que ainda não existem. Em vez de falhar ou sumir em silêncio, o plano lista cada um em
+`pendencias`, com o motivo. Motivo: o plano tem que dizer a verdade sobre o que sabe e o que não
+sabe gerar; esconder a lacuna seria pior que adiá-la.
+
+### 2026-09-03, ordenação por código de caractere, não por locale
+`shared/ordenar.js`. Motivo: `localeCompare` depende dos dados de ICU do sistema, e o mesmo plano
+poderia sair em ordem diferente em duas máquinas. O princípio nº 2 exige que o mesmo blueprint gere
+sempre o mesmo resultado, e isso vale para a ordem também. O avaliador de regras foi migrado junto.
+
+### 2026-09-03, o conteúdo do arquivo vai dentro do plano
+O plano carrega o conteúdo já resolvido de cada arquivo, não só o caminho. Motivo: o **ADR-002** diz
+que o executor recebe o plano aprovado e nunca a intenção original. Se o runner re-renderizasse os
+templates, o que foi aprovado e o que é executado poderiam divergir. O custo é um payload maior,
+aceitável em uma ferramenta local de um usuário só.

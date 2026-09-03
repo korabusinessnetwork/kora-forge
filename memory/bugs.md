@@ -56,3 +56,33 @@ Nenhum. Projeto ainda sem código.
 | R-04 | Preset antigo incompatível com motor novo | média | preset versionado, migração explícita, recusa com mensagem clara em vez de erro silencioso |
 | R-05 | Cofre trancado no meio do fluxo, quebrando a etapa de APIs | média | etapa detecta cofre trancado antes de começar e pede a senha uma vez só |
 | R-06 | Copiloto devolvendo JSON inválido | baixa | saída validada por schema, uma tentativa de reparo, depois fallback determinístico |
+
+## Bugs e riscos registrados
+
+### R-07, `npm install` do projeto gerado falha com npm 10.9.7
+
+**Severidade**: alta. **Status**: aberto, com workaround. **Registrado em**: 2026-09-03.
+
+`npm install` falha com `Cannot read properties of null (reading 'edgesOut')` em qualquer
+`package.json` que dependa de `vitest@4.1.11`. Repro mínimo, sem nada do Forge:
+
+```json
+{ "name": "t", "version": "1.0.0", "devDependencies": { "vitest": "4.1.11" } }
+```
+
+Atinge o **próprio Forge** do mesmo jeito: um `npm install` do zero, sem lockfile, falha. O
+repositório só instala porque o `package-lock.json` está versionado, e `npm ci` funciona.
+
+O projeto gerado ainda não tem lockfile, então herda o problema no primeiro `npm install`, que é
+justamente o comando que o runner (bloco 7) vai executar.
+
+**Workaround**: `npm install --legacy-peer-deps`. Com ele o projeto gerado instala, `npm run build`
+passa e `npm run dev` responde 200, verificado em 2026-09-03.
+
+**Causa provável**: bug do resolvedor do npm 10.9.7 com os doze peers opcionais que o vitest 4
+declara. Não é defeito do template: o `package.json` gerado é válido e a mesma falha atinge o
+Forge.
+
+**O que fazer no bloco 7**: decidir se o runner detecta a falha e tenta o fallback, ou se o preset
+passa a declarar a flag. Nenhuma das duas foi decidida, e a decisão é do dono, porque
+`--legacy-peer-deps` afrouxa a resolução de peers em todo projeto gerado.

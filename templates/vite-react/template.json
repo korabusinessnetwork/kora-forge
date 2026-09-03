@@ -1,0 +1,6 @@
+{
+  "id": "vite-react",
+  "versao": 1,
+  "descricao": "Esqueleto React 18 mais Vite: package.json, config, index.html e as duas raízes do app.",
+  "ordem": 30
+}

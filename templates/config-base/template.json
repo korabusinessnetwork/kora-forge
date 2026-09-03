@@ -1,0 +1,6 @@
+{
+  "id": "config-base",
+  "versao": 1,
+  "descricao": "Configuração da raiz: .gitignore e .env.example, com os controles de segredo ligados.",
+  "ordem": 20
+}
