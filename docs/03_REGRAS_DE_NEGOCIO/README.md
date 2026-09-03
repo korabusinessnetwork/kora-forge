@@ -8,10 +8,11 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 ## RN-01, Projeto
 
 1. Projeto tem nome, slug, preset de origem, caminho no disco e status.
-2. Slug é derivado do nome (minúsculo, sem acento, hífen) e é único no workspace.
+2. Slug é derivado do nome (minúsculo, sem acento, hífen) e é único no workspace. Nasce na criação e não muda ao renomear, porque depois de materializado ele é o nome da pasta.
 3. Status possíveis: `rascunho`, `pronto_para_materializar`, `materializado`, `arquivado`.
 4. Projeto só passa a `materializado` depois que o runner conclui sem erro fatal.
 5. Projeto arquivado some da lista principal mas nunca é apagado do banco. Apagar a pasta em disco é ação manual do usuário, o Forge não apaga projeto materializado.
+6. Restaurar um projeto arquivado devolve `materializado` quando há pasta em disco e `rascunho` quando não há. Projeto arquivado não recebe blueprint novo.
 
 ## RN-02, Blueprint
 

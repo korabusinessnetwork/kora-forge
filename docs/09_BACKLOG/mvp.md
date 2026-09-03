@@ -7,6 +7,14 @@ nascer no disco, com a fundação preenchida, e o dev server subindo.** Nada al�
 
 Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 
+## Estado
+
+| Bloco | Estado | Spec |
+|---|---|---|
+| 1, fundação do próprio Forge | entregue | `specs/fase1-bloco1-fundacao-do-forge.md` |
+| 2 e 3, presets builtin e Registry | entregue | `specs/fase1-blocos2-3-presets-e-registry.md` |
+| 4, wizard | próximo | |
+
 ## Critério de aceite da fase inteira
 
 - [ ] Criar um projeto de verdade do começo ao fim, sem tocar no terminal

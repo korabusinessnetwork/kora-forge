@@ -5,6 +5,7 @@ import { carregarConfig } from './config.js';
 import { prepararHome, gerarTokenDeSessao, lerVersao } from './boot.js';
 import { abrirBanco } from './db/conexao.js';
 import { migrar } from './db/migrar.js';
+import { carregarPresetsBuiltin, sincronizarPresets } from './modules/presets/servico.js';
 import { construirApp } from './app.js';
 
 const RAIZ = fileURLToPath(new URL('../', import.meta.url));
@@ -16,6 +17,7 @@ async function iniciar() {
   prepararHome(config.home);
   const db = abrirBanco(path.join(config.home, 'forge.db'));
   const migradas = migrar(db);
+  const presets = sincronizarPresets(db, carregarPresetsBuiltin());
   const tokenSessao = gerarTokenDeSessao(config.home);
   const versao = lerVersao(RAIZ);
   const pastaDist = MODO_DEV ? null : path.join(RAIZ, 'dist');
@@ -32,6 +34,7 @@ async function iniciar() {
   console.log(`KORA FORGE ${versao}`);
   console.log(`API local:  http://127.0.0.1:${config.porta}/api`);
   if (migradas.length > 0) console.log(`Migrations aplicadas agora: ${migradas.join(', ')}`);
+  if (presets.inseridos.length + presets.atualizados.length > 0) console.log(`Presets sincronizados: ${[...presets.inseridos, ...presets.atualizados].join(', ')}`);
   if (!MODO_DEV && !servindoFront) console.log('Sem dist/: rode npm run build para servir o front daqui, ou npm run forge para desenvolver.');
   console.log('Abra no browser (o link carrega o token de sessão):');
   console.log(`  ${url}`);

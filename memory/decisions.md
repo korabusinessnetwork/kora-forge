@@ -100,3 +100,17 @@ modelo, e barra de progresso. Motivo: vários projetos ao mesmo tempo sem observ
 mesmo pedágio de memória que o produto existe para eliminar. Registrado como **ADR-008, Proposto**,
 porque ajusta a leitura de dois não-objetivos da identidade; vira Aceito com a palavra do dono.
 Fase 6 no backlog. Nada disso adianta a Fase 1.
+
+### 2026-09-02, blocos 2 e 3 construídos juntos
+Registry e presets builtin saíram em uma spec só. Motivo: `projects.preset_id` é obrigatório e o
+fluxo começa por escolher o menu; um Registry sem presets não cria projeto. O bloco 3 se resumia a
+schema Zod mais carga dos JSONs que já existiam.
+
+### 2026-09-02, slug imutável
+O slug nasce na criação e não muda ao renomear. Motivo: depois de materializado ele é o nome da
+pasta em disco, e renomear pasta é ação do usuário, fora do Forge (E-01).
+
+### 2026-09-02, restaurar projeto arquivado
+Restaurar devolve `materializado` quando há pasta em disco e `rascunho` quando não há. Um
+projeto que estava `pronto_para_materializar` volta como rascunho e o motor de regras (bloco 5)
+recalcula a prontidão. Motivo: não guardar um "status anterior" que o motor já sabe derivar.

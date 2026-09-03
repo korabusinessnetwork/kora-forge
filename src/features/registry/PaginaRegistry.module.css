@@ -1,0 +1,88 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forge-space-4);
+}
+
+.acaoPrimaria {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--forge-space-4);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-accent);
+  color: var(--forge-bg);
+  font-size: var(--forge-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.aviso {
+  padding: var(--forge-space-3) var(--forge-space-4);
+  border: 1px solid var(--forge-warning);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface);
+  color: var(--forge-text);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}
+
+.vazio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+}
+
+.texto {
+  color: var(--forge-text-muted);
+}
+
+.menus {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--forge-space-4);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+  max-width: 560px;
+  padding: var(--forge-space-5);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+}
+
+.escolhido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forge-space-3);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  color: var(--forge-text-muted);
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--forge-space-4);
+}
+
+.erro {
+  color: var(--forge-danger);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}
+
+.voltar {
+  font-size: var(--forge-text-sm);
+}

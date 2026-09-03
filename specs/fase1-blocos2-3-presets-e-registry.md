@@ -1,7 +1,7 @@
 # Spec, Fase 1, Blocos 2 e 3: presets builtin e Registry
 
 > Origem: `docs/09_BACKLOG/mvp.md`, blocos 2 (Registry) e 3 (Presets). Loop `spec → build → review`.
-> Data: 2026-09-02. Status: **em build**.
+> Data: 2026-09-02. Status: **aprovado sem ressalvas** (review em 2026-09-03, seção 7).
 >
 > Por que juntos: `projects.preset_id` é chave estrangeira obrigatória e o fluxo F-01 começa por
 > "escolhe o menu". Um Registry sem presets carregados não cria projeto. O bloco 3 se resume a
@@ -95,3 +95,61 @@ Docs: `docs/07_APIS/README.md`, `docs/03_REGRAS_DE_NEGOCIO/README.md` (RN-01.2),
 Os 28 critérios com sim e evidência, `npm test` e `npm run build` verdes, sem `TODO`, sem
 `console.log` fora do CLI, sem `fetch` fora da camada de serviços, `docs/07` e `docs/03` batendo
 com o código.
+
+## 7. Review (2026-09-03)
+
+Auditoria do build contra os 28 critérios. Suíte: `npm test`, 26 arquivos, 159 testes, tudo
+verde. `npm run build` verde. Smoke test com o servidor real: `forge:init` sincronizou 3 presets;
+criar, duplicado, renomear, blueprint v2, versões, arquivar e lista filtrada responderam como o
+spec pede, com os eventos `projeto.criado`, `projeto.renomeado`, `blueprint.salvo` e
+`projeto.arquivado` gravados com `project_id`.
+
+| # | Sim? | Evidência |
+|---|---|---|
+| 1 | sim | `shared/schemas/preset.js`; `presets.test.js` "rejeita chave desconhecida, etapa repetida, etapa obrigatória ausente, comando fora da whitelist e id repetido" |
+| 2 | sim | `presets.test.js` "os três presets reais do repositório passam no contrato" |
+| 3 | sim | `presets.test.js` "preset inválido lança FORGE_VALIDATION citando o arquivo"; boot e `init` passam por `encerrarComErro` e `iniciar().catch` |
+| 4 | sim | `presets.test.js` "insere na primeira vez, não duplica na segunda, atualiza quando o JSON muda e ignora custom" |
+| 5 | sim | `presets.test.js` "GET /presets devolve resumos e GET /presets/:id o preset completo" (com 404) |
+| 6 | sim | `server/index.js` e `server/cli/init.js` chamam `sincronizarPresets(db, carregarPresetsBuiltin())`; smoke "Presets builtin: 3 novos" |
+| 7 | sim | `shared/slug.test.js` (8 casos mais o corte em 60) |
+| 8 | sim | `projetos.test.js` "cria projeto em rascunho com slug, preset, primeira etapa e blueprint v1 ativo" |
+| 9 | sim | `projetos.test.js` "nome vazio, só símbolo ou longo demais", "presetId inexistente", "slug já usado" |
+| 10 | sim | `projetos.test.js` "lista sem arquivados, ordenada por atualização, e filtra por status e busca" (inclui `?status=` vazio, `%` escapado e status inválido) |
+| 11 | sim | `projetoResumoSchema` como `schemaSaida` da lista; o mesmo teste valida com `listaProjetosSchema` |
+| 12 | sim | `projetos.test.js` "devolve projeto com blueprint ativo e 404 para id desconhecido" |
+| 13 | sim | `projetos.test.js` "renomear mantém o slug e emite evento; patch vazio não emite", "arquivar e restaurar" |
+| 14 | sim | `projetos.test.js` "salvar cria versão n+1 ativa", "preset diferente, projeto arquivado, chave desconhecida e etapa inválida respondem 400" |
+| 15 | sim | mesmo teste de salvar: `versoes` como `[v3 ativa, v2, v1]` |
+| 16 | sim | mesmo teste: `count(ativo = 1) = 1`; "não existe rota para apagar projeto" |
+| 17 | sim | `eventos(ctx, projeto.id)` filtra por `project_id` em todos os testes de evento |
+| 18 | sim | `src/services/api.js` `enviar`; `services/presets.js` e `services/projetos.js` com `validarContrato`; `projetos.test.js` do front |
+| 19 | sim | `PaginaRegistry.test.jsx` "carregando, depois vazio inicial", "lista os projetos", "erro mostra alerta" |
+| 20 | sim | `ListaProjetos.test.jsx` (barra, padrão Kora, sem resultado); `PaginaRegistry.test.jsx` "leva filtros para a API", "busca sem resultado" |
+| 21 | sim | `PaginaRegistry.test.jsx` "avisa quando o workspace não está configurado" |
+| 22 | sim | `PaginaNovoProjeto.test.jsx` (slug ao vivo, navegação, `?preset=`, erro no campo) |
+| 23 | sim | `PaginaProjeto.test.jsx` (dados, renomear, arquivar e restaurar, não encontrado, erro genérico) |
+| 24 | sim | `src/components/registry/{CartaoPreset,CartaoProjeto,ListaProjetos}/`; testes dos três; grep de cor literal vazio |
+| 25 | sim | `LayoutApp.jsx` com "Projetos"; `features/inicio/` removida; `features/sessao/SemSessao.jsx` |
+| 26 | sim | greps de `fetch(`, `style=`, cor literal, `console.log` e `TODO`: nenhum fora do permitido |
+| 27 | sim | 159 testes; `npm run build` verde |
+| 28 | sim | `docs/07` rotas de presets, projetos e blueprint; `docs/03` RN-01.2 e RN-01.6; `mvp.md` seção Estado; `README.md`; `memory/decisions.md` com três entradas |
+
+### Desvios do spec, todos registrados
+
+- RN-01 ganhou o item 6 (restauração e recusa de blueprint em projeto arquivado), além do ajuste
+  do item 2 previsto.
+- `formatarData` virou função pura em `src/utils/`, com teste, em vez de helper dentro do cartão.
+- O estado vazio do Registry virou o componente `VazioRegistry`, para manter um componente por arquivo.
+
+### Correções feitas durante o review
+
+- Um teste esperava achar `alfa-ren` por slug depois de renomear, mas o slug é imutável por
+  decisão. O teste passou a provar a busca por slug com `beta-si`.
+
+### Pendências que exigem decisão do Matheus
+
+Nenhuma. Observação: o wizard (bloco 4) é o próximo, e a tela do projeto já avisa que ele ainda
+não existe.
+
+✅ feito. Todos os 28 critérios de aceite cobertos, sem ressalvas.

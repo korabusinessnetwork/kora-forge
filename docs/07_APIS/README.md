@@ -55,15 +55,15 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | Método | Rota | O que faz |
 |---|---|---|
 | GET | `/health` | versão, workspace configurado, estado do cofre, copiloto ligado |
-| GET | `/presets` | lista presets builtin e custom |
+| GET | `/presets` | resumos dos presets ativos, ordenados por nome: id, nome, descrição, categoria, ícone, versão, origem, etapas |
 | GET | `/presets/:id` | preset completo |
 | POST | `/presets` | cria ou importa preset custom, validado por schema |
-| GET | `/projects` | lista, com filtro por status |
-| POST | `/projects` | cria projeto a partir de um preset |
+| GET | `/projects` | lista sem arquivados por padrão, da alteração mais recente para a mais antiga. `?status=` filtra por um status (inclusive `arquivado`), `?busca=` filtra por nome ou slug |
+| POST | `/projects` | `{ nome, presetId }`. Cria o projeto em rascunho, slug derivado do nome, e o blueprint v1 na primeira etapa do preset. Responde 201 com `{ projeto, blueprint }` |
 | GET | `/projects/:id` | projeto mais blueprint ativo |
-| PATCH | `/projects/:id` | renomear, arquivar |
-| POST | `/projects/:id/blueprint` | salva nova versão do blueprint |
-| GET | `/projects/:id/blueprint/versoes` | histórico |
+| PATCH | `/projects/:id` | `{ nome?, arquivado? }`. Renomear mantém o slug. `arquivado: false` restaura como `materializado` se há pasta em disco, senão `rascunho` |
+| POST | `/projects/:id/blueprint` | recebe o blueprint completo. O preset precisa bater com o do projeto e o projeto não pode estar arquivado. Cria a versão n+1 ativa e atualiza `etapa_atual` |
+| GET | `/projects/:id/blueprint/versoes` | `[{ versao, ativo, criadoEm }]`, da mais nova para a mais antiga |
 | POST | `/projects/:id/regras/avaliar` | roda o motor de regras, devolve os hits |
 | PATCH | `/projects/:id/regras/:hitId` | resolver, dispensar (exige justificativa) ou ignorar |
 | POST | `/projects/:id/design` | salva o design_document do Studio |
