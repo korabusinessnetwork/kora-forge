@@ -86,3 +86,56 @@ Forge.
 **O que fazer no bloco 7**: decidir se o runner detecta a falha e tenta o fallback, ou se o preset
 passa a declarar a flag. Nenhuma das duas foi decidida, e a decisão é do dono, porque
 `--legacy-peer-deps` afrouxa a resolução de peers em todo projeto gerado.
+
+### R-08, `npm` e `npx` não nascem no Windows: `spawn npm ENOENT`
+
+**Severidade**: crítica. **Status**: corrigido em 2026-09-03. **Registrado em**: 2026-09-03.
+
+Materializando um projeto de verdade com `npm run forge`, o `git init` passava e o `npm install`
+morria na largada com `spawn npm ENOENT`. Como todo preset roda `npm install`, nenhum projeto
+conseguia nascer inteiro no Windows, que é o ambiente primário (T-02).
+
+Repro, fora do Forge:
+
+```js
+spawnSync('npm', ['--version'], { shell: false });      // ENOENT
+spawnSync('npm.cmd', ['--version'], { shell: false });  // EINVAL
+```
+
+**Causa**: no Windows o que existe no PATH é o shim `npm.cmd`. O `CreateProcess` só completa nome
+com `.exe`, por isso `npm` dá ENOENT; e desde a correção do CVE-2024-27980 o Node recusa executar
+`.cmd` e `.bat` sem shell, por isso `npm.cmd` dá EINVAL. `git`, `node` e `supabase` são `.exe` e
+sempre funcionaram, o que escondeu o problema.
+
+**Correção**: `resolverComando()` em `server/lib/processo.js` traduz, só no Windows, `npm` e `npx`
+para `node <npm-cli.js>` / `node <npx-cli.js>`, usando o CLI que mora ao lado do `process.execPath`.
+Continua `spawn` com array de argumentos e `shell: false`; a whitelist de `COMANDOS_PERMITIDOS` não
+muda (C7), porque a tradução acontece depois de `validarComando`. Não encontrando o CLI, devolve o
+comando original, e a falha aparece como falha do comando, com mensagem.
+
+**Por que a suíte não pegou**: todos os testes de processo rodavam `node script.js`, que funciona em
+qualquer sistema. Agora existe `executar comandos reais da whitelist`, que roda `npm`, `npx`, `node`
+e `git --version` de verdade na plataforma que está executando o teste.
+
+**Efeito colateral bom**: `spawn npm ENOENT` chegava cru na tela. `mensagemDeFalhaAoIniciar()`
+troca ENOENT, EACCES e EINVAL por frase com próxima ação.
+
+### R-07, atualização de 2026-09-03: não reproduz com npm 11.16.0
+
+Na validação de ponta a ponta do bloco 8, com Node v24.18.0 e npm 11.16.0, o `npm install` do
+projeto gerado **passou**, sem `--legacy-peer-deps`: `added 53 packages` e `exit 0`, seguido de
+`npm run build` com sucesso. R-07 continua aberto porque é real no npm 10.9.7, mas parece ser bug
+do resolvedor daquela versão, não do template. A decisão do dono (flag no preset ou fallback no
+runner) segue pendente e agora tem uma terceira saída possível: exigir npm 11 nos requisitos do
+preset em vez de afrouxar a resolução de peers.
+
+### R-02, atualização de 2026-09-03: `npm ci` puro falha nesta máquina
+
+`npm ci` tenta `node-gyp rebuild` do `better-sqlite3` 13.0.3 e morre com
+`Could not find any Visual Studio installation`. A máquina não tem toolchain C++. O pacote não
+declara script de `install`, mas tem `binding.gyp`, e o npm roda o rebuild por conta disso, mesmo
+existindo o prebuild N-API em `prebuilds/win32-x64.node`.
+
+**Workaround verificado**: `npm ci --ignore-scripts`. O `better-sqlite3` carrega e funciona pelo
+prebuild, e o `forge:init` cria o banco normalmente.
+

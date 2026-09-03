@@ -21,9 +21,17 @@ nunca no meio da execução.
 ```powershell
 git clone <repo> kora-forge
 cd kora-forge
-npm install
+npm ci
 npm run forge:init
 ```
+
+Use `npm ci`, **não** `npm install`. Um `install` do zero falha em npm 10.9.7 com
+`Cannot read properties of null (reading 'edgesOut')`, e o repositório só instala porque o
+`package-lock.json` está versionado (R-07 em `memory/bugs.md`).
+
+Se o `npm ci` parar em `Could not find any Visual Studio installation`, ele está tentando
+compilar o `better-sqlite3` sem precisar. Rode `npm ci --ignore-scripts`: o pacote traz o binário
+pré-compilado para Windows e funciona sem toolchain C++ (R-02).
 
 O `forge:init` cria `~/.kora-forge/` (com `presets/` e `logs/`), gera o banco SQLite e aplica
 as migrations. Pode rodar de novo sem efeito colateral. A senha mestre do cofre de segredos

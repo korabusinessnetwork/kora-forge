@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 import { COMANDOS_PERMITIDOS } from '../../shared/comandos.js';
 import { ErroForge } from './erro.js';
 
@@ -27,6 +29,43 @@ export function ambienteMinimo(origem = process.env) {
   return ambiente;
 }
 
+// Windows (T-02, o ambiente primário) não executa `npm` nem `npx` direto: o que existe no PATH
+// é um shim `.cmd`, e o `spawn` sem shell não resolve `.cmd`. Chamar `npm.cmd` pelo nome exato
+// também não adianta, porque desde a correção do CVE-2024-27980 o Node recusa `.cmd` e `.bat`
+// sem shell e devolve EINVAL. Passar a executar por shell resolveria, e é exatamente o que a
+// regra S-04 proíbe, porque devolveria a interpretação dos argumentos ao cmd.exe.
+//
+// A saída não abre mão de nada: `npm` e `npx` são JavaScript, e o arquivo mora ao lado do mesmo
+// Node que já está rodando o Forge. Então rodamos `node <cli>.js <args>`, ainda com array de
+// argumentos e ainda com `shell: false`. `git`, `node` e `supabase` são `.exe` e o próprio
+// CreateProcess os encontra, por isso ficam de fora.
+const CLI_EM_JAVASCRIPT = Object.freeze({ npm: 'npm-cli.js', npx: 'npx-cli.js' });
+
+// Tradução pura, feita depois da validação e sem tocar em nada que venha do usuário: a whitelist
+// continua sendo a de `COMANDOS_PERMITIDOS` (C7). Não encontrando o CLI, devolve o comando
+// original de propósito, para a falha aparecer como falha do comando e não como exceção no meio
+// da fila.
+export function resolverComando({ cmd, args }, ambiente = {}) {
+  const plataforma = ambiente.plataforma ?? process.platform;
+  const execPath = ambiente.execPath ?? process.execPath;
+  const existe = ambiente.existe ?? fs.existsSync;
+
+  const cli = CLI_EM_JAVASCRIPT[cmd];
+  if (plataforma !== 'win32' || !cli) return { arquivo: cmd, argumentos: args };
+
+  const script = path.join(path.dirname(execPath), 'node_modules', 'npm', 'bin', cli);
+  if (!existe(script)) return { arquivo: cmd, argumentos: args };
+  return { arquivo: execPath, argumentos: [script, ...args] };
+}
+
+// Erro de spawn chega cru ("spawn npm ENOENT") e não diz a ninguém o que fazer. Aqui vira frase.
+export function mensagemDeFalhaAoIniciar(erro, cmd) {
+  if (erro?.code === 'ENOENT') return `Não encontrei o "${cmd}" nesta máquina. Instale a ferramenta e rode o comando de novo.`;
+  if (erro?.code === 'EACCES') return `Sem permissão para executar o "${cmd}" nesta máquina.`;
+  if (erro?.code === 'EINVAL') return `O "${cmd}" existe mas não pode ser executado direto nesta máquina. Verifique a instalação da ferramenta.`;
+  return erro?.message ?? `Não foi possível iniciar o "${cmd}".`;
+}
+
 export function validarComando({ cmd, args }) {
   if (!COMANDOS_PERMITIDOS.includes(cmd)) {
     throw new ErroForge('FORGE_CMD_NOT_ALLOWED', `O comando "${cmd}" não está na whitelist.`, { issues: [{ caminho: 'cmd', mensagem: cmd }] });
@@ -51,8 +90,9 @@ function criarQuebradorDeLinhas(stream, aoReceber) {
 
 export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaDuracao = false }) {
   validarComando({ cmd, args });
+  const { arquivo, argumentos } = resolverComando({ cmd, args });
 
-  const processo = spawn(cmd, args, {
+  const processo = spawn(arquivo, argumentos, {
     cwd,
     shell: false,
     env: ambienteMinimo(),
@@ -73,7 +113,7 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
       resolver(resultado);
     };
 
-    processo.on('error', (erro) => responder({ estado: 'falha', exitCode: null, erro: erro.message }));
+    processo.on('error', (erro) => responder({ estado: 'falha', exitCode: null, erro: mensagemDeFalhaAoIniciar(erro, cmd) }));
     processo.on('close', (codigo, sinal) => {
       if (processo.forgeTimeout) return responder({ estado: 'timeout', exitCode: codigo, erro: `Tempo esgotado depois de ${timeoutMs} ms.` });
       if (processo.forgeParado) return responder({ estado: 'cancelado', exitCode: codigo, erro: null });

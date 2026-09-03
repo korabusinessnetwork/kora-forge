@@ -53,9 +53,13 @@ Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeraç�
 ## Rodar
 
 ```powershell
-npm install
+npm ci
 npm run forge:init
 npm run forge
 ```
 
 Abra a URL que o terminal imprime: ela carrega o token de sessão. Detalhes em `INSTALACAO.md`.
+
+`npm ci`, não `npm install`: o `install` do zero falha em npm 10.9.7 (R-07 em `memory/bugs.md`).
+Se o `ci` parar em `node-gyp` do `better-sqlite3`, use `npm ci --ignore-scripts`, porque o pacote
+já traz binário pré-compilado e não precisa de toolchain C++ (R-02).

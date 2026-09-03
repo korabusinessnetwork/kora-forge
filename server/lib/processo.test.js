@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, afterEach } from 'vitest';
-import { executar, parar, validarComando, ambienteMinimo } from './processo.js';
+import { executar, parar, validarComando, ambienteMinimo, resolverComando, mensagemDeFalhaAoIniciar } from './processo.js';
 
 const temporarias = [];
 afterEach(() => {
@@ -151,6 +151,78 @@ describe('executar', () => {
 
   it('valida o comando antes de qualquer spawn', () => {
     expect(() => executar({ cmd: 'bash', args: ['-c', 'ls'], cwd: '/tmp', timeoutMs: 1000 })).toThrow(/whitelist/);
+  });
+});
+
+// R-08: no Windows, `npm` e `npx` são shims `.cmd` e o spawn sem shell não os executa, e todo
+// preset do Forge roda `npm install`. Este é o teste que faltava: tudo o mais na suíte rodava
+// `node script.js`, que funciona em qualquer sistema, e por isso ela ficava verde enquanto
+// nenhum comando npm do produto conseguia nascer. Aqui o comando é de verdade, na plataforma
+// de verdade.
+describe('executar comandos reais da whitelist', () => {
+  for (const cmd of ['npm', 'npx', 'node', 'git']) {
+    it(`${cmd} nasce e responde --version na plataforma que está rodando`, async () => {
+      const saida = [];
+      const { terminou } = executar({ cmd, args: ['--version'], cwd: os.tmpdir(), timeoutMs: 120000, onLinha: (_stream, linha) => saida.push(linha) });
+      const resultado = await terminou;
+      expect(resultado.erro).toBeNull();
+      expect(resultado.estado).toBe('sucesso');
+      expect(saida.join(' ')).toMatch(/\d+\.\d+/);
+    }, 130000);
+  }
+});
+
+describe('resolverComando', () => {
+  // O caminho do node é neutro de propósito: quem monta o resultado é `path` da plataforma que
+  // roda o teste, e cravar separador aqui faria o teste passar num sistema e falhar no outro.
+  const EXEC = '/opt/node/node';
+  const janela = { plataforma: 'win32', execPath: EXEC, existe: () => true };
+
+  it('no Windows, npm vira o CLI de verdade rodado pelo mesmo node', () => {
+    const { arquivo, argumentos } = resolverComando({ cmd: 'npm', args: ['install'] }, janela);
+    expect(arquivo).toBe(EXEC);
+    expect(argumentos[0].replaceAll('\\', '/')).toBe('/opt/node/node_modules/npm/bin/npm-cli.js');
+    expect(argumentos.slice(1)).toEqual(['install']);
+  });
+
+  it('no Windows, npx recebe o mesmo tratamento', () => {
+    const { arquivo, argumentos } = resolverComando({ cmd: 'npx', args: ['vite', '--version'] }, janela);
+    expect(arquivo).toBe(EXEC);
+    expect(argumentos[0]).toContain('npx-cli.js');
+    expect(argumentos.slice(1)).toEqual(['vite', '--version']);
+  });
+
+  it('git, node e supabase são executáveis de verdade e passam intactos', () => {
+    for (const cmd of ['git', 'node', 'supabase']) {
+      expect(resolverComando({ cmd, args: ['--version'] }, janela)).toEqual({ arquivo: cmd, argumentos: ['--version'] });
+    }
+  });
+
+  it('fora do Windows nada é traduzido: lá `npm` no PATH já é executável', () => {
+    expect(resolverComando({ cmd: 'npm', args: ['install'] }, { ...janela, plataforma: 'linux' })).toEqual({ arquivo: 'npm', argumentos: ['install'] });
+  });
+
+  // Sem o CLI no lugar esperado, a falha tem que aparecer como falha do comando, com mensagem,
+  // e não como exceção estourando no meio da fila.
+  it('sem o CLI no lugar esperado, devolve o comando original em vez de estourar', () => {
+    expect(resolverComando({ cmd: 'npm', args: ['install'] }, { ...janela, existe: () => false })).toEqual({ arquivo: 'npm', argumentos: ['install'] });
+  });
+
+  it('a tradução não amplia a whitelist: quem decide continua sendo validarComando', () => {
+    expect(() => validarComando({ cmd: 'npm-cli.js', args: [] })).toThrow();
+    expect(() => validarComando({ cmd: 'cmd', args: [] })).toThrow();
+  });
+});
+
+describe('mensagemDeFalhaAoIniciar', () => {
+  it('troca o erro cru do sistema por uma frase com próxima ação', () => {
+    expect(mensagemDeFalhaAoIniciar({ code: 'ENOENT', message: 'spawn npm ENOENT' }, 'npm')).toContain('Instale a ferramenta');
+    expect(mensagemDeFalhaAoIniciar({ code: 'EINVAL', message: 'spawn npm.cmd EINVAL' }, 'npm')).toContain('não pode ser executado direto');
+    expect(mensagemDeFalhaAoIniciar({ code: 'EACCES' }, 'git')).toContain('Sem permissão');
+  });
+
+  it('erro desconhecido não some: a mensagem original sobrevive', () => {
+    expect(mensagemDeFalhaAoIniciar({ code: 'EPERM', message: 'algo estranho' }, 'git')).toBe('algo estranho');
   });
 });
 
