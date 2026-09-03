@@ -1,0 +1,19 @@
+{
+  "id": "seg-runner-ferramenta-ausente",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "humana",
+  "dispensavel": false,
+  "titulo": "Ferramenta exigida não está instalada",
+  "explicacao": "Um comando do menu precisa de uma ferramenta que não existe nesta máquina. O Forge detecta isso antes de executar, e não no meio da materialização.",
+  "etapa": "materializar",
+  "quando": {
+    "campo": "ferramentasAusentes.0",
+    "operador": "existe"
+  },
+  "efeitos": [
+    {
+      "tipo": "bloquear"
+    }
+  ]
+}

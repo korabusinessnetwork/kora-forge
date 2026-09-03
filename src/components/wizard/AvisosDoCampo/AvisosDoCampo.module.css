@@ -1,0 +1,6 @@
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-3);
+  margin-top: calc(var(--forge-space-4) * -1);
+}

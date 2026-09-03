@@ -136,3 +136,21 @@ versiona, e é isso que garante a retomada exata (RN-03.4).
 `CampoBooleano` monta uma `Selecao` de Sim e Não em vez de uma caixa de marcar. Motivo: caixa de
 marcar não mostra qual é o padrão, e o princípio nº 1 exige default visível com o selo de padrão
 Kora em primeiro.
+
+### 2026-09-03, regra ganha o campo `resolucao`
+Regra cujo efeito o gerador aplica sozinho é `automatica` e nasce resolvida; regra que exige
+decisão humana nasce aberta. Motivo: sem isso, `seg-rls-obrigatorio` e `doc-fundacao-obrigatoria`
+bloqueariam a materialização para sempre, porque não existe nada que o usuário possa clicar para
+resolvê-las. A alternativa seria rebaixar a severidade delas e mentir sobre o quanto importam.
+
+### 2026-09-03, a condição da regra descreve o problema, não o assunto
+O catálogo documentado dizia coisas como "quando usa Supabase". A condição implementada diz
+"quando o problema existe", por exemplo "aplicação com modelo A e multi-tenant desligado". Motivo:
+é isso que faz o hit se resolver sozinho quando o blueprint muda, que é o ciclo de vida que a
+própria documentação descreve. A tabela do catálogo foi corrigida para dizer o que as regras
+avaliam de verdade.
+
+### 2026-09-03, um hit por regra por projeto
+Índice único em `rule_hits(project_id, rule_id)`, com migration espelhando o schema documentado.
+Motivo: o motor reavalia a cada mudança de blueprint, e sem unicidade o histórico viraria ruído
+em vez de auditoria. Decisão humana (dispensado, ignorado) sobrevive à reavaliação.

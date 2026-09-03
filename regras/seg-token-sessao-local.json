@@ -1,0 +1,35 @@
+{
+  "id": "seg-token-sessao-local",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "Toda rota local exige token de sessão e checagem de Origin",
+  "explicacao": "Sem isso, qualquer site aberto no browser conversa com o servidor local. O projeto gerado nasce com o token por boot e a allowlist de origem.",
+  "etapa": "arquitetura",
+  "quando": {
+    "operador": "e",
+    "condicoes": [
+      {
+        "campo": "preset.categoria",
+        "operador": "igual",
+        "valor": "aplicacao"
+      },
+      {
+        "campo": "arquitetura.modelo",
+        "operador": "igual",
+        "valor": "B"
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "marcar_seguranca",
+      "controle": "S-02"
+    },
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "guarda-sessao-local"
+    }
+  ]
+}

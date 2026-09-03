@@ -4,6 +4,7 @@ import { prepararHome } from '../boot.js';
 import { abrirBanco } from '../db/conexao.js';
 import { migrar } from '../db/migrar.js';
 import { carregarPresetsBuiltin, sincronizarPresets } from '../modules/presets/servico.js';
+import { carregarRegrasBuiltin, sincronizarRegras } from '../modules/regras/servico.js';
 import { RAIZ, encerrarComErro } from './apoio.js';
 
 // npm run forge:init. Idempotente: pode rodar quantas vezes quiser.
@@ -13,6 +14,7 @@ try {
   const db = abrirBanco(path.join(config.home, 'forge.db'));
   const novas = migrar(db);
   const presets = sincronizarPresets(db, carregarPresetsBuiltin());
+  const regras = sincronizarRegras(db, carregarRegrasBuiltin());
   db.close();
 
   console.log(`Home do Forge: ${config.home}`);
@@ -20,6 +22,7 @@ try {
   console.log(`Banco: ${path.join(config.home, 'forge.db')}`);
   console.log(novas.length > 0 ? `Migrations aplicadas: ${novas.join(', ')}` : 'Migrations: banco já estava em dia.');
   console.log(`Presets builtin: ${presets.inseridos.length} novos, ${presets.atualizados.length} atualizados, ${presets.inalterados.length} em dia.`);
+  console.log(`Regras builtin: ${regras.inseridas.length} novas, ${regras.atualizadas.length} atualizadas, ${regras.inalteradas.length} em dia.`);
   console.log('Cofre de segredos: chega na Fase 3. Até lá o Forge roda sem ele.');
   console.log('Próximo passo: npm run forge');
 } catch (erro) {

@@ -1,0 +1,26 @@
+{
+  "id": "arq-auth-exige-rota-protegida",
+  "versao": 1,
+  "severidade": "aviso",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "Com login, rota protegida só renderiza depois de checar a sessão",
+  "explicacao": "Renderizar antes de checar autenticação mostra dado por um instante e vaza estrutura. O plano já inclui a guarda de rota e o estado de sessão.",
+  "etapa": "arquitetura",
+  "campo": "arquitetura.auth",
+  "quando": {
+    "campo": "arquitetura.auth",
+    "operador": "igual",
+    "valor": true
+  },
+  "efeitos": [
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "src/rota-protegida"
+    },
+    {
+      "tipo": "marcar_seguranca",
+      "controle": "S-AUTH"
+    }
+  ]
+}

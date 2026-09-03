@@ -1,0 +1,35 @@
+{
+  "id": "seg-bind-localhost",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "Servidor local liga só em 127.0.0.1",
+  "explicacao": "Subir em 0.0.0.0 expõe a máquina para a rede local inteira. O servidor gerado tem o bind fixo em 127.0.0.1, sem opção de configuração.",
+  "etapa": "arquitetura",
+  "quando": {
+    "operador": "e",
+    "condicoes": [
+      {
+        "campo": "preset.categoria",
+        "operador": "igual",
+        "valor": "aplicacao"
+      },
+      {
+        "campo": "arquitetura.modelo",
+        "operador": "igual",
+        "valor": "B"
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "marcar_seguranca",
+      "controle": "S-01"
+    },
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "servidor-local-fastify"
+    }
+  ]
+}

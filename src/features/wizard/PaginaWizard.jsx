@@ -2,6 +2,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { obterProjeto } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
+import { avaliarRegras } from '../../services/regras.js';
 import Botao from '../../components/shared/Botao/Botao.jsx';
 import ConteudoWizard from './ConteudoWizard.jsx';
 import { mensagens } from '../../mensagens.js';
@@ -14,6 +15,7 @@ export default function PaginaWizard() {
   const projetoQuery = useQuery({ queryKey: ['projeto', id], queryFn: () => obterProjeto(id) });
   const presetId = projetoQuery.data?.projeto.presetId;
   const presetQuery = useQuery({ queryKey: ['preset', presetId], queryFn: () => obterPreset(presetId), enabled: Boolean(presetId) });
+  const regrasQuery = useQuery({ queryKey: ['regras', id], queryFn: () => avaliarRegras(id), enabled: Boolean(projetoQuery.data) });
 
   // Erro antes de carregando: com o projeto em erro, a consulta do preset fica desabilitada e
   // presa em "pending", e checar carregando primeiro prenderia a tela num spinner mudo.
@@ -54,5 +56,14 @@ export default function PaginaWizard() {
     return <Navigate to={`/projetos/${projeto.id}/wizard/${destino}`} replace />;
   }
 
-  return <ConteudoWizard projeto={projeto} blueprint={blueprint} preset={preset} etapa={etapa} />;
+  // Bloqueio aberto impede chegar em Materializar (F-01). URL direta volta para a etapa do
+  // primeiro bloqueio, para o usuário cair exatamente onde o problema está.
+  const avaliacao = regrasQuery.data ?? null;
+  if (etapa === 'materializar' && avaliacao && !avaliacao.podeMaterializar) {
+    const primeiro = avaliacao.hits.find((hit) => hit.severidade === 'bloqueio' && hit.estado === 'aberto');
+    const destino = primeiro?.etapa && preset.etapas.includes(primeiro.etapa) ? primeiro.etapa : blueprint.payload.etapaAtual;
+    if (destino !== 'materializar') return <Navigate to={`/projetos/${projeto.id}/wizard/${destino}`} replace />;
+  }
+
+  return <ConteudoWizard projeto={projeto} blueprint={blueprint} preset={preset} etapa={etapa} avaliacao={avaliacao} />;
 }

@@ -1,0 +1,43 @@
+{
+  "id": "seg-pagamento-exige-edge-function",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "humana",
+  "dispensavel": false,
+  "titulo": "Dinheiro não é calculado no cliente",
+  "explicacao": "Cálculo de valor e confirmação de pagamento vivem no servidor, em Edge Function. No cliente, qualquer pessoa muda o preço. O plano precisa da função e de um ADR de segurança.",
+  "etapa": "seguranca",
+  "campo": "seguranca.dadoFinanceiro",
+  "quando": {
+    "operador": "ou",
+    "condicoes": [
+      {
+        "campo": "seguranca.dadoFinanceiro",
+        "operador": "igual",
+        "valor": true
+      },
+      {
+        "campo": "integracoes",
+        "operador": "contem",
+        "valor": "pagamento"
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "bloquear"
+    },
+    {
+      "tipo": "exigir_adr",
+      "template": "adr-pagamento"
+    },
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "functions/pagamento"
+    },
+    {
+      "tipo": "adicionar_item_backlog",
+      "texto": "Testar o fluxo de pagamento em sandbox"
+    }
+  ]
+}

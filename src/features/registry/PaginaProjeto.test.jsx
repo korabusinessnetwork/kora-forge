@@ -8,8 +8,10 @@ import PaginaProjeto from './PaginaProjeto.jsx';
 
 vi.mock('../../services/projetos.js', () => ({ obterProjeto: vi.fn(), atualizarProjeto: vi.fn(), listarVersoesBlueprint: vi.fn() }));
 vi.mock('../../services/presets.js', () => ({ obterPreset: vi.fn() }));
+vi.mock('../../services/regras.js', () => ({ listarRegras: vi.fn() }));
 import { obterProjeto, atualizarProjeto, listarVersoesBlueprint } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
+import { listarRegras } from '../../services/regras.js';
 
 const m = mensagens.projeto;
 const dados = (extra = {}) => ({
@@ -27,7 +29,9 @@ beforeEach(() => {
   listarVersoesBlueprint.mockReset();
   listarVersoesBlueprint.mockResolvedValue([{ versao: 2, ativo: true, criadoEm: '2026-09-02T00:00:00.000Z' }, { versao: 1, ativo: false, criadoEm: '2026-09-01T00:00:00.000Z' }]);
   obterPreset.mockReset();
+  listarRegras.mockReset();
   obterPreset.mockResolvedValue({ id: 'criar-site', etapas: ['identidade', 'escopo', 'design', 'seguranca', 'fundacao', 'materializar'] });
+  listarRegras.mockResolvedValue({ hits: [], bloqueios: 0, podeMaterializar: true });
 });
 
 describe('PaginaProjeto', () => {
@@ -108,5 +112,18 @@ describe('entrada do wizard', () => {
     await screen.findByRole('button', { name: m.restaurar });
     expect(screen.queryByRole('link', { name: m.comecar })).toBeNull();
     expect(screen.queryByRole('link', { name: m.continuar })).toBeNull();
+  });
+});
+
+describe('bloqueios na tela do projeto', () => {
+  it('sem bloqueio diz que está livre, com bloqueio mostra a contagem', async () => {
+    obterProjeto.mockResolvedValue(dados());
+    const { unmount } = renderizar();
+    expect(await screen.findByText(mensagens.regras.semBloqueios)).toBeInTheDocument();
+    unmount();
+
+    listarRegras.mockResolvedValue({ hits: [], bloqueios: 2, podeMaterializar: false });
+    renderizar();
+    expect(await screen.findByText(mensagens.regras.bloqueiosAbertos(2))).toBeInTheDocument();
   });
 });

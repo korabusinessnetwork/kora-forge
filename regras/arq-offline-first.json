@@ -1,0 +1,35 @@
+{
+  "id": "arq-offline-first",
+  "versao": 1,
+  "severidade": "aviso",
+  "resolucao": "humana",
+  "dispensavel": true,
+  "titulo": "Aplicação local: pense no estado offline das telas",
+  "explicacao": "Rodando na máquina, a rede é opcional. Vale prever fila de sincronização e o que cada tela mostra sem internet, antes de a primeira tela existir.",
+  "etapa": "arquitetura",
+  "campo": "arquitetura.modelo",
+  "quando": {
+    "operador": "e",
+    "condicoes": [
+      {
+        "campo": "preset.categoria",
+        "operador": "igual",
+        "valor": "aplicacao"
+      },
+      {
+        "campo": "arquitetura.modelo",
+        "operador": "igual",
+        "valor": "B"
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "avisar"
+    },
+    {
+      "tipo": "adicionar_item_backlog",
+      "texto": "Definir fila de sincronização e estado offline por tela"
+    }
+  ]
+}

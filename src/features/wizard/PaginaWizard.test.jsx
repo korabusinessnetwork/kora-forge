@@ -8,8 +8,10 @@ import PaginaWizard from './PaginaWizard.jsx';
 
 vi.mock('../../services/projetos.js', () => ({ obterProjeto: vi.fn(), salvarBlueprint: vi.fn(), atualizarProjeto: vi.fn() }));
 vi.mock('../../services/presets.js', () => ({ obterPreset: vi.fn() }));
+vi.mock('../../services/regras.js', () => ({ avaliarRegras: vi.fn(), decidirSobreHit: vi.fn() }));
 import { obterProjeto, salvarBlueprint, atualizarProjeto } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
+import { avaliarRegras, decidirSobreHit } from '../../services/regras.js';
 
 const m = mensagens.wizard;
 const ETAPAS_SITE = ['identidade', 'escopo', 'design', 'seguranca', 'fundacao', 'materializar'];
@@ -57,7 +59,10 @@ beforeEach(() => {
   salvarBlueprint.mockReset();
   atualizarProjeto.mockReset();
   obterPreset.mockReset();
+  avaliarRegras.mockReset();
+  decidirSobreHit.mockReset();
   obterPreset.mockResolvedValue(preset);
+  avaliarRegras.mockResolvedValue({ hits: [], bloqueios: 0, podeMaterializar: true });
   obterProjeto.mockResolvedValue({ projeto: projeto(), blueprint: blueprint() });
   salvarBlueprint.mockImplementation(async (_id, payload) => ({ projeto: projeto(), blueprint: { ...blueprint(payload), versao: 2 } }));
   atualizarProjeto.mockImplementation(async (_id, patch) => ({ projeto: projeto(patch), blueprint: blueprint() }));
@@ -219,5 +224,107 @@ describe('erro ao salvar', () => {
     expect(screen.getByLabelText(m.passos.identidade.essencia.rotulo)).toHaveValue('uma bancada');
     fireEvent.click(screen.getByRole('button', { name: mensagens.estados.tentarDeNovo }));
     expect(await screen.findByRole('heading', { level: 1, name: m.passos.escopo.titulo })).toBeInTheDocument();
+  });
+});
+
+describe('motor de regras no wizard', () => {
+  const ETAPAS_WEB = ['identidade', 'arquitetura', 'design', 'seguranca', 'fundacao', 'materializar'];
+  const presetWeb = { ...preset, id: 'criar-aplicacao-web', nome: 'Criar Aplicação Web', categoria: 'aplicacao', etapas: ETAPAS_WEB };
+
+  const hit = (extra = {}) => ({
+    id: 'h1', regraId: 'arq-multitenant-obrigatorio', severidade: 'bloqueio', estado: 'aberto',
+    titulo: 'Aplicação web sem multi-tenant', explicacao: 'No padrão Kora, todo SaaS nasce multi-tenant.',
+    etapa: 'arquitetura', campo: 'arquitetura.multiTenant', dispensavel: false, resolucao: 'humana',
+    efeitos: [{ tipo: 'bloquear' }], justificativa: null, ...extra,
+  });
+
+  function comRegras({ hits, podeMaterializar, etapaAtual = 'arquitetura' }) {
+    obterPreset.mockResolvedValue(presetWeb);
+    obterProjeto.mockResolvedValue({
+      projeto: projeto({ presetId: 'criar-aplicacao-web', presetNome: 'Criar Aplicação Web' }),
+      blueprint: blueprint({ preset: { id: 'criar-aplicacao-web', versao: 1 }, etapaAtual }),
+    });
+    avaliarRegras.mockResolvedValue({ hits, bloqueios: hits.filter((h) => h.severidade === 'bloqueio' && h.estado === 'aberto').length, podeMaterializar });
+  }
+
+  it('hit com campo aparece na etapa, junto do campo que o causou', async () => {
+    comRegras({ hits: [hit()], podeMaterializar: false });
+    renderizar('/projetos/p1/wizard/arquitetura');
+    expect(await screen.findByText('Aplicação web sem multi-tenant')).toBeInTheDocument();
+    expect(screen.getByText(mensagens.regras.severidade.bloqueio)).toBeInTheDocument();
+    // o aviso fica depois do campo que o causou, não numa lista no fim da tela
+    const campo = screen.getByLabelText(mensagens.wizard.passos.arquitetura.multiTenant.rotulo);
+    const aviso = screen.getByText('Aplicação web sem multi-tenant');
+    expect(campo.compareDocumentPosition(aviso) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('hit sem campo aparece no topo da etapa', async () => {
+    comRegras({ hits: [hit({ campo: null, etapa: 'fundacao', titulo: 'A fundação entra inteira' })], podeMaterializar: false, etapaAtual: 'fundacao' });
+    renderizar('/projetos/p1/wizard/fundacao');
+    expect(await screen.findByRole('region', { name: mensagens.wizard.avisos })).toHaveTextContent('A fundação entra inteira');
+  });
+
+  it('sem hits nenhuma região de avisos é renderizada', async () => {
+    comRegras({ hits: [], podeMaterializar: true });
+    renderizar('/projetos/p1/wizard/arquitetura');
+    await screen.findByRole('heading', { level: 1, name: mensagens.wizard.passos.arquitetura.titulo });
+    expect(screen.queryByRole('region', { name: mensagens.wizard.avisos })).toBeNull();
+  });
+
+  it('bloqueio aberto desabilita a etapa Materializar na trilha', async () => {
+    comRegras({ hits: [hit()], podeMaterializar: false });
+    renderizar('/projetos/p1/wizard/arquitetura');
+    const trilha = await screen.findByRole('navigation', { name: mensagens.wizard.trilha });
+    const materializar = [...trilha.querySelectorAll('button')].at(-1);
+    expect(materializar).toHaveTextContent(mensagens.etapas.materializar);
+    expect(materializar).toBeDisabled();
+  });
+
+  it('avançar da etapa anterior a Materializar explica o bloqueio, salva e não navega', async () => {
+    comRegras({ hits: [hit()], podeMaterializar: false, etapaAtual: 'fundacao' });
+    renderizar('/projetos/p1/wizard/fundacao');
+    fireEvent.click(await screen.findByRole('button', { name: mensagens.wizard.avancar }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(mensagens.regras.bloqueioMaterializar);
+    await waitFor(() => expect(salvarBlueprint).toHaveBeenCalledTimes(1));
+    expect(salvarBlueprint.mock.calls[0][1].etapaAtual).toBe('fundacao');
+    expect(screen.getByRole('heading', { level: 1, name: mensagens.wizard.passos.fundacao.titulo })).toBeInTheDocument();
+  });
+
+  it('URL direta de Materializar com bloqueio cai na etapa do bloqueio', async () => {
+    comRegras({ hits: [hit()], podeMaterializar: false });
+    renderizar('/projetos/p1/wizard/materializar');
+    expect(await screen.findByRole('heading', { level: 1, name: mensagens.wizard.passos.arquitetura.titulo })).toBeInTheDocument();
+  });
+
+  it('sem bloqueio, Materializar abre normalmente', async () => {
+    comRegras({ hits: [], podeMaterializar: true, etapaAtual: 'materializar' });
+    renderizar('/projetos/p1/wizard/materializar');
+    expect(await screen.findByRole('heading', { level: 1, name: mensagens.wizard.passos.materializar.titulo })).toBeInTheDocument();
+  });
+
+  it('dispensar pelo wizard manda a justificativa e atualiza a avaliação', async () => {
+    const dispensavel = hit({ id: 'h2', regraId: 'custo-servico-pago', severidade: 'aviso', dispensavel: true, etapa: 'seguranca', campo: 'seguranca.tierGratuito', titulo: 'Serviço fora do tier gratuito' });
+    comRegras({ hits: [dispensavel], podeMaterializar: true, etapaAtual: 'seguranca' });
+    decidirSobreHit.mockResolvedValue({ hits: [{ ...dispensavel, estado: 'dispensado', justificativa: 'Cabe no plano gratuito da Vercel.' }], bloqueios: 0, podeMaterializar: true });
+    renderizar('/projetos/p1/wizard/seguranca');
+    fireEvent.click(await screen.findByRole('button', { name: mensagens.regras.dispensar }));
+    fireEvent.change(screen.getByLabelText(mensagens.regras.justificativa.rotulo), { target: { value: 'Cabe no plano gratuito da Vercel.' } });
+    fireEvent.click(screen.getByRole('button', { name: mensagens.regras.confirmarDispensa }));
+    await waitFor(() => expect(decidirSobreHit).toHaveBeenCalledWith('p1', 'h2', { estado: 'dispensado', justificativa: 'Cabe no plano gratuito da Vercel.' }));
+    expect(await screen.findByText(/Cabe no plano gratuito/)).toBeInTheDocument();
+  });
+
+  it('hit resolvido some da tela, mas o de resolução automática continua visível', async () => {
+    comRegras({
+      hits: [
+        hit({ id: 'h3', regraId: 'arq-auth-exige-rota-protegida', severidade: 'aviso', estado: 'resolvido', resolucao: 'humana', titulo: 'Já resolvido', campo: null }),
+        hit({ id: 'h4', regraId: 'seg-rls-obrigatorio', severidade: 'bloqueio', estado: 'resolvido', resolucao: 'automatica', dispensavel: false, titulo: 'RLS entra em toda tabela', campo: null }),
+      ],
+      podeMaterializar: true,
+    });
+    renderizar('/projetos/p1/wizard/arquitetura');
+    expect(await screen.findByText('RLS entra em toda tabela')).toBeInTheDocument();
+    expect(screen.getByText(mensagens.regras.automatico)).toBeInTheDocument();
+    expect(screen.queryByText('Já resolvido')).toBeNull();
   });
 });

@@ -5,6 +5,7 @@ import { abrirBanco } from '../db/conexao.js';
 import { migrar } from '../db/migrar.js';
 import { construirApp } from '../app.js';
 import { carregarPresetsBuiltin, sincronizarPresets } from '../modules/presets/servico.js';
+import { carregarRegrasBuiltin, sincronizarRegras } from '../modules/regras/servico.js';
 
 export const TOKEN_TESTE = 'a'.repeat(64);
 
@@ -17,6 +18,7 @@ export function criarAppDeTeste({ pluginsApi = [], config: extra = {}, pastaDist
   const db = abrirBanco(':memory:');
   migrar(db);
   sincronizarPresets(db, carregarPresetsBuiltin());
+  sincronizarRegras(db, carregarRegrasBuiltin());
   const config = {
     host: '127.0.0.1',
     porta: 7337,

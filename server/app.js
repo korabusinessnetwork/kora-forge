@@ -10,10 +10,12 @@ import { criarRegistradorDeEventos } from './modules/eventos/servico.js';
 import { criarServicoSettings } from './modules/settings/servico.js';
 import { criarServicoPresets } from './modules/presets/servico.js';
 import { criarServicoProjetos } from './modules/projetos/servico.js';
+import { criarServicoRegras } from './modules/regras/servico.js';
 import rotasHealth from './modules/health/rotas.js';
 import rotasSettings from './modules/settings/rotas.js';
 import rotasPresets from './modules/presets/rotas.js';
 import rotasProjetos from './modules/projetos/rotas.js';
+import rotasRegras from './modules/regras/rotas.js';
 
 // Nunca logar segredo (C6): o token e headers de autorização saem redigidos.
 const CAMINHOS_REDIGIDOS = ['req.headers["x-forge-token"]', 'req.headers.authorization', 'req.headers.cookie'];
@@ -65,8 +67,9 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
     registrarEvento,
   });
   const presets = criarServicoPresets({ db });
+  const regras = criarServicoRegras({ db, registrarEvento });
   const projetos = criarServicoProjetos({ db, presets, registrarEvento });
-  app.decorate('servicos', { settings, presets, projetos, registrarEvento });
+  app.decorate('servicos', { settings, presets, projetos, regras, registrarEvento });
 
   app.register(async function api(instancia) {
     instancia.addHook('onRequest', criarGuarda({ tokenSessao, porta: config.porta, portaDev: config.portaDev }));
@@ -102,7 +105,8 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
     instancia.register(rotasHealth, { versao, home: config.home, settings });
     instancia.register(rotasSettings, { settings });
     instancia.register(rotasPresets, { presets });
-    instancia.register(rotasProjetos, { projetos });
+    instancia.register(rotasProjetos, { projetos, presets, regras });
+    instancia.register(rotasRegras, { regras, projetos, presets });
     for (const plugin of pluginsApi) instancia.register(plugin);
   }, { prefix: '/api' });
 

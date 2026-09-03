@@ -96,4 +96,13 @@ changelog automático.
 
 ### P-08, Regra de negócio mora no motor de regras, não na tela
 Validação e recomendação vivem em regras declarativas com condição e efeito, testáveis
-isoladamente. A tela apenas renderiza o resultado. Ver `docs/03_REGRAS_DE_NEGOCIO/motor-de-regras.md`.
+isoladamente. A tela apenas renderiza o resultado. Contrato real, operadores e contexto em
+`docs/03_REGRAS_DE_NEGOCIO/motor-de-regras.md`; os arquivos em `regras/`.
+
+Duas consequências que valem para toda regra nova:
+
+- A condição descreve **o problema**, não o assunto. Assim a regra para de disparar quando o
+  problema some, e o hit se resolve sozinho, sem o usuário precisar clicar em nada.
+- Regra cujo efeito o gerador aplica sozinho é `resolucao: automatica` e nasce resolvida. Regra
+  que exige decisão humana nasce aberta. Sem essa separação, um bloqueio que ninguém pode
+  resolver travaria a materialização para sempre.

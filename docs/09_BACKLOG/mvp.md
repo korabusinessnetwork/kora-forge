@@ -14,7 +14,8 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 | 1, fundação do próprio Forge | entregue | `specs/fase1-bloco1-fundacao-do-forge.md` |
 | 2 e 3, presets builtin e Registry | entregue | `specs/fase1-blocos2-3-presets-e-registry.md` |
 | 4, wizard | entregue | `specs/fase1-bloco4-wizard.md` |
-| 5, motor de regras | próximo | |
+| 5, motor de regras | entregue | `specs/fase1-bloco5-motor-de-regras.md` |
+| 6, gerador | próximo | |
 
 ## Critério de aceite da fase inteira
 

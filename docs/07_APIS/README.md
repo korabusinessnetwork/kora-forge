@@ -64,8 +64,9 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | PATCH | `/projects/:id` | `{ nome?, arquivado? }`. Renomear mantém o slug. `arquivado: false` restaura como `materializado` se há pasta em disco, senão `rascunho` |
 | POST | `/projects/:id/blueprint` | recebe o blueprint completo. O preset precisa bater com o do projeto e o projeto não pode estar arquivado. Cria a versão n+1 ativa e atualiza `etapa_atual` |
 | GET | `/projects/:id/blueprint/versoes` | `[{ versao, ativo, criadoEm }]`, da mais nova para a mais antiga |
-| POST | `/projects/:id/regras/avaliar` | roda o motor de regras, devolve os hits |
-| PATCH | `/projects/:id/regras/:hitId` | resolver, dispensar (exige justificativa) ou ignorar |
+| GET | `/projects/:id/regras` | hits gravados, sem reavaliar |
+| POST | `/projects/:id/regras/avaliar` | reavalia tudo e devolve `{ hits, bloqueios, podeMaterializar }` |
+| PATCH | `/projects/:id/regras/:hitId` | `{ estado, justificativa? }`. `dispensado` exige justificativa de 10 caracteres e regra dispensável |
 | POST | `/projects/:id/design` | salva o design_document do Studio |
 | POST | `/projects/:id/plano` | **dry-run**, devolve o plano de arquivos e comandos. Não escreve nada |
 | POST | `/projects/:id/materializar` | aplica um plano aprovado, devolve `runId` |

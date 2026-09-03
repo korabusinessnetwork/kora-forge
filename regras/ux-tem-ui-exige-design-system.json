@@ -1,0 +1,44 @@
+{
+  "id": "ux-tem-ui-exige-design-system",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "humana",
+  "dispensavel": false,
+  "titulo": "Projeto com interface precisa passar pela etapa de Design",
+  "explicacao": "Sem design system, cada tela inventa a própria cor e espaçamento, e o projeto nasce inconsistente. Passe pela etapa de Design ou pule para aceitar o tema padrão do menu.",
+  "etapa": "design",
+  "quando": {
+    "operador": "e",
+    "condicoes": [
+      {
+        "campo": "temUi",
+        "operador": "igual",
+        "valor": true
+      },
+      {
+        "campo": "preset.etapas",
+        "operador": "contem",
+        "valor": "design"
+      },
+      {
+        "campo": "etapasConcluidas",
+        "operador": "nao_contem",
+        "valor": "design"
+      },
+      {
+        "campo": "assumidas",
+        "operador": "nao_contem",
+        "valor": "design"
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "bloquear"
+    },
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "src/styles/tokens"
+    }
+  ]
+}

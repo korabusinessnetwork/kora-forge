@@ -1,0 +1,40 @@
+{
+  "id": "arq-multitenant-obrigatorio",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "humana",
+  "dispensavel": false,
+  "titulo": "Aplicação web sem multi-tenant",
+  "explicacao": "No padrão Kora, todo SaaS nasce multi-tenant: tenant_id em toda tabela e RLS por política. Adaptar depois costuma custar mais que reescrever. Ligue multi-tenant, ou registre um ADR explicando por que este projeto é a exceção.",
+  "etapa": "arquitetura",
+  "campo": "arquitetura.multiTenant",
+  "quando": {
+    "operador": "e",
+    "condicoes": [
+      {
+        "campo": "preset.categoria",
+        "operador": "igual",
+        "valor": "aplicacao"
+      },
+      {
+        "campo": "arquitetura.modelo",
+        "operador": "igual",
+        "valor": "A"
+      },
+      {
+        "campo": "arquitetura.multiTenant",
+        "operador": "igual",
+        "valor": false
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "bloquear"
+    },
+    {
+      "tipo": "exigir_adr",
+      "template": "adr-single-tenant"
+    }
+  ]
+}

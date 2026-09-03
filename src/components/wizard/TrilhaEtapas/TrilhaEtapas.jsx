@@ -10,7 +10,7 @@ export function estadoDaEtapa(etapa, { atual, concluidas, assumidas, visitaveis 
 
 // Organism. Trilha de etapas do preset. Etapa à frente da atual não é clicável, porque o
 // wizard conduz; voltar a uma etapa já vista é livre.
-export default function TrilhaEtapas({ etapas, atual, concluidas = [], assumidas = [], onIr }) {
+export default function TrilhaEtapas({ etapas, atual, concluidas = [], assumidas = [], bloqueadas = [], onIr }) {
   const m = mensagens.wizard;
   const indiceAtual = etapas.indexOf(atual);
   const visitaveis = etapas.slice(0, Math.max(indiceAtual, 0));
@@ -19,7 +19,7 @@ export default function TrilhaEtapas({ etapas, atual, concluidas = [], assumidas
       <ol className={estilos.lista}>
         {etapas.map((etapa, indice) => {
           const estado = estadoDaEtapa(etapa, { atual, concluidas, assumidas, visitaveis });
-          const clicavel = estado !== 'pendente' && estado !== 'atual';
+          const clicavel = estado !== 'pendente' && estado !== 'atual' && !bloqueadas.includes(etapa);
           return (
             <li key={etapa}>
               <button

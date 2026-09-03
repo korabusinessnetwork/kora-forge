@@ -1,0 +1,35 @@
+{
+  "id": "seg-service-role-no-front",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "humana",
+  "dispensavel": false,
+  "titulo": "Chave service_role não pode ir para o front",
+  "explicacao": "A service_role ignora RLS e dá acesso total ao banco. No cliente ela vaza para qualquer visitante. Use a chave anon no front e deixe a service_role só no servidor.",
+  "etapa": "arquitetura",
+  "campo": "arquitetura.stack",
+  "quando": {
+    "operador": "ou",
+    "condicoes": [
+      {
+        "campo": "arquitetura.stack",
+        "operador": "contem",
+        "valor": "service_role"
+      },
+      {
+        "campo": "integracoes",
+        "operador": "contem",
+        "valor": "service_role"
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "bloquear"
+    },
+    {
+      "tipo": "marcar_seguranca",
+      "controle": "S-SERVICE-ROLE"
+    }
+  ]
+}

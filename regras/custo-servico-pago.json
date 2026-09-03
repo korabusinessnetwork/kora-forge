@@ -1,0 +1,25 @@
+{
+  "id": "custo-servico-pago",
+  "versao": 1,
+  "severidade": "aviso",
+  "resolucao": "humana",
+  "dispensavel": true,
+  "titulo": "Serviço fora do tier gratuito",
+  "explicacao": "A fase é bootstrap, e custo recorrente entra só por decisão explícita do dono. Registre o custo aproximado, a alternativa gratuita avaliada e o porquê da escolha em memory/restrictions.md.",
+  "etapa": "seguranca",
+  "campo": "seguranca.tierGratuito",
+  "quando": {
+    "campo": "seguranca.tierGratuito",
+    "operador": "igual",
+    "valor": false
+  },
+  "efeitos": [
+    {
+      "tipo": "avisar"
+    },
+    {
+      "tipo": "adicionar_item_backlog",
+      "texto": "Registrar custo, alternativa gratuita e decisão em memory/restrictions.md"
+    }
+  ]
+}

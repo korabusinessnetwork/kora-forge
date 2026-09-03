@@ -40,7 +40,10 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 2. Severidades: `info`, `aviso`, `bloqueio`.
 3. `bloqueio` impede a materialização até ser resolvido ou explicitamente dispensado com justificativa, que fica registrada no blueprint.
 4. Regra nunca altera o blueprint sozinha. Ela propõe, o usuário aceita.
-5. Toda regra disparada vira registro em `rule_hits`, com o estado final (resolvida, dispensada, ignorada).
+5. Toda regra disparada vira registro em `rule_hits`, com o estado final (resolvida, dispensada, ignorada). Um hit por regra por projeto: reavaliar atualiza, nunca duplica.
+6. Regra que parou de disparar tem o hit **resolvido sozinho**. Decisão humana sobrevive à reavaliação: dispensado continua dispensado até alguém reabrir.
+7. Regra de `resolucao: automatica` nasce resolvida, porque o gerador aplica o efeito sem pedir nada a ninguém. Ela aparece na tela como registro, e nunca bloqueia.
+8. Dispensar exige justificativa de ao menos 10 caracteres, e só vale para regra marcada como dispensável.
 
 ## RN-05, Geração e materialização
 

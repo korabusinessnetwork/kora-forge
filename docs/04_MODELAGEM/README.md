@@ -54,6 +54,7 @@ settings (chave-valor)
 3. `vault_entries` nunca é lido por rota que responda ao front. Só o módulo Cofre acessa.
 4. `command_runs.cwd` é sempre validado contra o workspace antes de gravar.
 5. `events` é append-only. Nunca é atualizado nem apagado.
+6. Um `rule_hit` por par projeto e regra, garantido por índice único. Reavaliar atualiza o registro, nunca duplica.
 6. Apagar projeto no Forge não apaga a pasta em disco. São coisas separadas de propósito.
 
 ## Extensão prevista, Fase 6 (ADR-008, proposto)

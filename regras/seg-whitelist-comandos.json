@@ -1,0 +1,35 @@
+{
+  "id": "seg-whitelist-comandos",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "Comando do sistema roda por whitelist, sem shell",
+  "explicacao": "Aplicação local que executa processo precisa de spawn com array de argumentos e shell desligado. Interpolar string transforma campo de formulário em comando.",
+  "etapa": "arquitetura",
+  "quando": {
+    "operador": "e",
+    "condicoes": [
+      {
+        "campo": "preset.categoria",
+        "operador": "igual",
+        "valor": "aplicacao"
+      },
+      {
+        "campo": "arquitetura.modelo",
+        "operador": "igual",
+        "valor": "B"
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "marcar_seguranca",
+      "controle": "S-04"
+    },
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "runner-whitelist"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "seg-dado-pessoal-lgpd",
+  "versao": 1,
+  "severidade": "aviso",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "Dado pessoal: a seção de LGPD entra no plano",
+  "explicacao": "Tratar dado pessoal exige base legal, prazo de retenção e o direito de exportar e excluir. Isso vai para docs/11_SEGURANCA do projeto gerado.",
+  "etapa": "seguranca",
+  "campo": "seguranca.dadoPessoal",
+  "quando": {
+    "campo": "seguranca.dadoPessoal",
+    "operador": "igual",
+    "valor": true
+  },
+  "efeitos": [
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "docs/11-lgpd"
+    },
+    {
+      "tipo": "marcar_seguranca",
+      "controle": "S-LGPD"
+    }
+  ]
+}

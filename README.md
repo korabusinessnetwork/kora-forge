@@ -28,8 +28,9 @@ Fase 1 em andamento. Blocos 1 a 4 entregues: front React + Vite, API local Fasti
 `127.0.0.1:7337` com guarda de sessão, SQLite com migrations, envelope `{ data, error, meta }`
 validado por Zod nas duas pontas, tokens `--forge-*`, atoms básicos, presets builtin validados
 por schema, o Registry (criar, abrir, renomear, arquivar, restaurar) e o wizard que preenche o
-blueprint etapa a etapa, com trilha, pular e retomada exata.
-Próximo: bloco 5, motor de regras. Spec e auditoria de cada bloco em `specs/`.
+blueprint etapa a etapa, e o motor de regras determinístico com 16 regras que avisam junto do
+campo que as causou e bloqueiam a materialização quando algo importante falta.
+Próximo: bloco 6, gerador. Spec e auditoria de cada bloco em `specs/`.
 Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeração.
 
 ## Mapa
@@ -41,6 +42,7 @@ Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeraç�
 | `docs/00` a `docs/11` | Documentação em ordem de leitura, de visão até segurança |
 | `docs/08_DECISOES/` | ADRs, sete decisões já registradas |
 | `presets/` | Os menus, em JSON |
+| `regras/` | O catálogo do motor determinístico, uma regra por arquivo |
 | `respostas-intake.md` | As respostas que originaram esta fundação |
 | `specs/` | Specs do loop spec → build → review, uma por bloco do backlog |
 | `server/`, `src/`, `shared/` | API local, front e contrato compartilhado (schemas Zod, códigos de erro) |

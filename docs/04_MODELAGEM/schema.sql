@@ -85,6 +85,8 @@ CREATE TABLE rule_hits (
   atualizado_em TEXT NOT NULL
 );
 CREATE INDEX idx_rule_hits_projeto ON rule_hits(project_id, estado);
+-- Um hit por regra por projeto: reavaliar atualiza, nunca duplica.
+CREATE UNIQUE INDEX idx_rule_hits_unico ON rule_hits(project_id, rule_id);
 
 CREATE TABLE api_templates (
   id           TEXT PRIMARY KEY,

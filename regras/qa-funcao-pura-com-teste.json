@@ -1,0 +1,23 @@
+{
+  "id": "qa-funcao-pura-com-teste",
+  "versao": 1,
+  "severidade": "info",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "Setup de testes entra no plano",
+  "explicacao": "Função pura nasce com teste. O projeto sai com Vitest configurado e um exemplo, para que o primeiro teste custe zero.",
+  "quando": {
+    "campo": "preset.id",
+    "operador": "existe"
+  },
+  "efeitos": [
+    {
+      "tipo": "adicionar_dependencia",
+      "pacote": "vitest"
+    },
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "testes/exemplo"
+    }
+  ]
+}

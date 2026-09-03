@@ -1,0 +1,43 @@
+{
+  "id": "seo-meta-obrigatorio",
+  "versao": 1,
+  "severidade": "aviso",
+  "resolucao": "humana",
+  "dispensavel": true,
+  "titulo": "Site sem essência ou proposta de valor não gera meta tags",
+  "explicacao": "As meta tags e o Open Graph do site saem da identidade. Sem essência ou proposta de valor, o site nasce sem título e sem descrição para buscador e para link compartilhado.",
+  "etapa": "identidade",
+  "campo": "identidade.essencia",
+  "quando": {
+    "operador": "e",
+    "condicoes": [
+      {
+        "campo": "preset.categoria",
+        "operador": "igual",
+        "valor": "site"
+      },
+      {
+        "operador": "ou",
+        "condicoes": [
+          {
+            "campo": "identidade.essencia",
+            "operador": "vazio"
+          },
+          {
+            "campo": "identidade.valor",
+            "operador": "vazio"
+          }
+        ]
+      }
+    ]
+  },
+  "efeitos": [
+    {
+      "tipo": "avisar"
+    },
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "seo-base"
+    }
+  ]
+}

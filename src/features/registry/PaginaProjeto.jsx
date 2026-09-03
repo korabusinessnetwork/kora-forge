@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { obterProjeto, atualizarProjeto, listarVersoesBlueprint } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
+import { listarRegras } from '../../services/regras.js';
 import Botao from '../../components/shared/Botao/Botao.jsx';
 import Campo from '../../components/shared/Campo/Campo.jsx';
 import Chave from '../../components/shared/Chave/Chave.jsx';
@@ -20,6 +21,7 @@ export default function PaginaProjeto() {
   const consulta = useQuery({ queryKey: ['projeto', id], queryFn: () => obterProjeto(id) });
   const versoes = useQuery({ queryKey: ['projeto', id, 'versoes'], queryFn: () => listarVersoesBlueprint(id), enabled: Boolean(consulta.data) });
   const preset = useQuery({ queryKey: ['preset', consulta.data?.projeto.presetId], queryFn: () => obterPreset(consulta.data.projeto.presetId), enabled: Boolean(consulta.data) });
+  const regras = useQuery({ queryKey: ['regras', id], queryFn: () => listarRegras(id), enabled: Boolean(consulta.data) });
   const [editando, setEditando] = useState(false);
   const [nomeNovo, setNomeNovo] = useState('');
 
@@ -98,6 +100,9 @@ export default function PaginaProjeto() {
             {blueprint.payload.etapasConcluidas.length + blueprint.payload.assumidas.length > 0 ? m.continuar : m.comecar}
           </Link>
           <span className={estilos.estado}>{m.progresso(blueprint.payload.etapasConcluidas.length + blueprint.payload.assumidas.length, etapasDoPreset.length)}</span>
+          <span className={regras.data?.bloqueios ? estilos.erroTexto : estilos.estado}>
+            {regras.data ? (regras.data.bloqueios > 0 ? mensagens.regras.bloqueiosAbertos(regras.data.bloqueios) : mensagens.regras.semBloqueios) : ''}
+          </span>
         </p>
       ) : null}
 

@@ -1,0 +1,26 @@
+{
+  "id": "seg-rls-obrigatorio",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "Supabase no stack: RLS entra em toda tabela",
+  "explicacao": "Uma tabela sem RLS é uma brecha, não um detalhe. O plano já inclui a política por tabela e o checklist em docs/11_SEGURANCA.",
+  "etapa": "arquitetura",
+  "campo": "arquitetura.stack",
+  "quando": {
+    "campo": "arquitetura.stack",
+    "operador": "contem",
+    "valor": "supabase"
+  },
+  "efeitos": [
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "supabase/policies"
+    },
+    {
+      "tipo": "marcar_seguranca",
+      "controle": "S-RLS"
+    }
+  ]
+}

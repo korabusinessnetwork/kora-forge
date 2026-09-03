@@ -1,0 +1,20 @@
+{
+  "id": "doc-fundacao-obrigatoria",
+  "versao": 1,
+  "severidade": "bloqueio",
+  "resolucao": "automatica",
+  "dispensavel": false,
+  "titulo": "A fundação governada entra inteira no plano",
+  "explicacao": "Projeto materializado sem memory/ preenchido é materialização falha, não projeto simples. CLAUDE.md, memory/ e docs/00 a 11 fazem parte da entrega, sempre.",
+  "etapa": "fundacao",
+  "quando": {
+    "campo": "preset.id",
+    "operador": "existe"
+  },
+  "efeitos": [
+    {
+      "tipo": "adicionar_arquivo",
+      "template": "fundacao-kora"
+    }
+  ]
+}

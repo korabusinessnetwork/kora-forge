@@ -39,7 +39,8 @@ src/
 |---|---|
 | `CartaoPreset` | o menu na tela inicial: nome, descrição, o que gera, quanto demora |
 | `CartaoProjeto` | nome, preset, status, caminho, última alteração |
-| `AvisoRegra` | renderiza um `rule_hit`: severidade, explicação, ação. Fica junto do campo |
+| `AvisoRegra` | renderiza um `rule_hit`: severidade, explicação e a ação possível. Resolução automática não oferece ação; dispensável abre o campo de justificativa |
+| `AvisosDoCampo` | agrupa os hits ancorados em um campo, logo abaixo dele. Sem hits, não renderiza nada |
 | `LinhaPlano` | um arquivo do dry-run: caminho, ação, tamanho, conflito |
 | `LinhaComando` | um comando: cmd, args, estado, duração, parar |
 | `CampoConexao` | alias, status, teste de conexão. Nunca mostra o valor |

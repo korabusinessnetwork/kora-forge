@@ -13,7 +13,7 @@ function limparQuery(query) {
   return limpa;
 }
 
-export default async function rotasProjetos(app, { projetos }) {
+export default async function rotasProjetos(app, { projetos, presets, regras }) {
   app.get('/projects', { config: { schemaSaida: listaProjetosSchema } }, async (request) => {
     const filtro = validar(filtroProjetosSchema, limparQuery(request.query));
     return projetos.listar(filtro);
@@ -34,7 +34,10 @@ export default async function rotasProjetos(app, { projetos }) {
 
   app.post('/projects/:id/blueprint', { config: { schemaSaida: projetoComBlueprintSchema } }, async (request) => {
     const payload = validar(blueprintSchema, request.body ?? {});
-    return projetos.salvarBlueprint(request.params.id, payload);
+    const salvo = projetos.salvarBlueprint(request.params.id, payload);
+    // Blueprint mudou, o motor reavalia tudo. É barato e síncrono (docs/03, ciclo de vida).
+    regras.avaliar({ projeto: salvo.projeto, blueprint: salvo.blueprint, preset: presets.obterOuFalhar(salvo.projeto.presetId) });
+    return salvo;
   });
 
   app.get('/projects/:id/blueprint/versoes', { config: { schemaSaida: listaVersoesBlueprintSchema } }, async (request) => projetos.listarVersoes(request.params.id));

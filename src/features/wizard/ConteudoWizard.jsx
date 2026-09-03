@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { etapaEstaCompleta, podePular, proximaEtapa, etapaAnterior } from '@shared/etapas.js';
 import { salvarBlueprint, atualizarProjeto } from '../../services/projetos.js';
+import { decidirSobreHit } from '../../services/regras.js';
 import PassoWizard from '../../components/wizard/PassoWizard/PassoWizard.jsx';
 import TrilhaEtapas from '../../components/wizard/TrilhaEtapas/TrilhaEtapas.jsx';
+import AvisosDoCampo from '../../components/wizard/AvisosDoCampo/AvisosDoCampo.jsx';
 import { respostasIniciais, defaultsDaEtapa } from './defaults.js';
 import { limparRespostas, saoIguais } from './comparar.js';
 import Identidade from './etapas/Identidade.jsx';
@@ -22,13 +24,14 @@ const COMPONENTE_POR_ETAPA = { identidade: Identidade, escopo: Escopo, arquitetu
 
 const semDuplicar = (lista, etapa) => lista.filter((item) => item !== etapa);
 
-export default function ConteudoWizard({ projeto, blueprint, preset, etapa }) {
+export default function ConteudoWizard({ projeto, blueprint, preset, etapa, avaliacao = null }) {
   const navegar = useNavigate();
   const clienteQuery = useQueryClient();
   const [respostas, setRespostas] = useState(() => respostasIniciais(blueprint.payload, preset, projeto));
   const [concluidas, setConcluidas] = useState(blueprint.payload.etapasConcluidas);
   const [assumidas, setAssumidas] = useState(blueprint.payload.assumidas);
   const [erroNome, setErroNome] = useState(null);
+  const [erroBloqueio, setErroBloqueio] = useState(null);
 
   const etapas = preset.etapas;
   const indice = etapas.indexOf(etapa);
@@ -45,6 +48,7 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa }) {
       if (dados) clienteQuery.setQueryData(['projeto', projeto.id], dados);
       clienteQuery.invalidateQueries({ queryKey: ['projeto', projeto.id] });
       clienteQuery.invalidateQueries({ queryKey: ['projetos'] });
+      clienteQuery.invalidateQueries({ queryKey: ['regras', projeto.id] });
       navegar(variaveis.destino);
     },
   });
@@ -78,12 +82,37 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa }) {
     salvar.mutate({ payload: blueprintMudou ? payload : null, nome: nomeMudou ? nome.trim() : undefined, destino });
   }
 
+  const decidir = useMutation({
+    mutationFn: ({ hit, patch }) => decidirSobreHit(projeto.id, hit.id, patch),
+    onSuccess: (dados) => clienteQuery.setQueryData(['regras', projeto.id], dados),
+  });
+
+  const hits = avaliacao?.hits ?? [];
+  const visiveis = hits.filter((hit) => hit.estado !== 'resolvido' || hit.resolucao === 'automatica');
+  const daEtapa = visiveis.filter((hit) => hit.etapa === etapa);
+  const avisosDoCampo = (campo) => daEtapa.filter((hit) => hit.campo === campo);
+  const avisosDoTopo = daEtapa.filter((hit) => !hit.campo);
+  const bloqueado = Boolean(avaliacao) && !avaliacao.podeMaterializar;
+
+  function decidirSobre(hit, patch) {
+    decidir.mutate({ hit, patch });
+  }
+
   function avancar() {
     if (etapa === 'identidade' && (respostas.identidade?.nome ?? '').trim() === '') {
       setErroNome(m.passos.identidade.nomeVazio);
       return;
     }
     setErroNome(null);
+    const seguinteEtapa = proximaEtapa(etapas, etapa);
+    // Bloqueio aberto impede chegar em Materializar. Salva o que foi digitado e fica na etapa,
+    // em vez de descartar o trabalho junto com a navegação.
+    if (seguinteEtapa === 'materializar' && bloqueado) {
+      setErroBloqueio(mensagens.regras.bloqueioMaterializar);
+      comitar({ etapaDestino: etapa, rota: `/projetos/${projeto.id}/wizard/${etapa}` });
+      return;
+    }
+    setErroBloqueio(null);
     const completa = etapaEstaCompleta(etapa, respostas);
     const novasConcluidas = completa ? [...semDuplicar(concluidas, etapa), etapa] : semDuplicar(concluidas, etapa);
     const seguinte = proximaEtapa(etapas, etapa);
@@ -117,7 +146,7 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa }) {
 
   return (
     <div className={estilos.casca}>
-      <TrilhaEtapas etapas={etapas} atual={etapa} concluidas={concluidas} assumidas={assumidas} onIr={irPara} />
+      <TrilhaEtapas etapas={etapas} atual={etapa} concluidas={concluidas} assumidas={assumidas} bloqueadas={bloqueado ? ['materializar'] : []} onIr={irPara} />
       <PassoWizard
         titulo={textos.titulo}
         microtexto={textos.micro}
@@ -125,7 +154,10 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa }) {
         total={etapas.length}
         podePular={podePular(etapa)}
         salvando={salvar.isPending}
-        erro={salvar.isError ? (salvar.error?.message ?? m.erroSalvar) : null}
+        avisos={avisosDoTopo.map((hit) => (
+          <AvisosDoCampo key={hit.id} avisos={[hit]} onDecidir={decidirSobre} salvando={decidir.isPending} erro={decidir.isError ? decidir.error?.detalhe?.issues?.[0]?.mensagem : null} />
+        ))}
+        erro={erroBloqueio ?? (salvar.isError ? (salvar.error?.message ?? m.erroSalvar) : null)}
         onTentarDeNovo={avancar}
         onVoltar={anterior ? () => irPara(anterior) : null}
         onAvancar={avancar}
@@ -142,6 +174,10 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa }) {
             concluidas={concluidas}
             assumidas={assumidas}
             erros={erroNome ? { nome: erroNome } : {}}
+            avisosDoCampo={avisosDoCampo}
+            onDecidirAviso={decidirSobre}
+            decidindo={decidir.isPending}
+            erroAviso={decidir.isError ? (decidir.error?.detalhe?.issues?.[0]?.mensagem ?? decidir.error?.message) : null}
           />
         ) : <EtapaFutura etapa={etapa} />}
       </PassoWizard>
