@@ -83,10 +83,49 @@ Respeitar `prefers-reduced-motion`.
 ## Tokens do projeto (editados no Studio)
 
 O Studio edita um conjunto paralelo, que **não** afeta a UI do Forge e que é exportado
-para o projeto gerado como `src/styles/tokens.css`:
+para o projeto gerado como `src/styles/tokens.css`.
 
-`--projeto-bg`, `--projeto-surface`, `--projeto-text`, `--projeto-accent`,
-`--projeto-font-ui`, `--projeto-radius-md`, escala de espaçamento e breakpoints.
+**O nome canônico é o do arquivo gerado** (ADR-009): `--cor-fundo`, `--cor-acento`,
+`--fonte-ui`, `--espaco-1`, `--raio-md`, e assim por diante. São os mesmos nomes que os
+cinco templates já consomem, e o documento de design grava `tokens.cor.fundo`,
+`tokens.espaco[0]`, `tokens.fonte.ui`.
+
+**Dentro do Forge, o preview usa um alias**, para não disputar espaço com `--forge-*`
+(P-06). A regra é mecânica, e não uma segunda lista de nomes:
+
+```
+--cor-fundo   →   --projeto-cor-fundo
+--espaco-1    →   --projeto-espaco-1
+```
+
+`aliasDePreview()` em `shared/schemas/design.js` é a regra, e `listarTokens()` devolve
+`caminho`, `variavel` e `alias` de cada token. Segunda tabela de nomes seria uma segunda
+coisa para sair de sincronia, e o preview passaria a mentir sem ninguém perceber.
+
+Os grupos, todos editáveis no `PainelTokens`:
+
+| Grupo | Tokens |
+|---|---|
+| Cor | `fundo`, `superficie`, `borda`, `texto`, `texto-secundario`, `acento`, `sucesso`, `aviso`, `perigo` |
+| Cor no tema escuro | os cinco que o bloco `prefers-color-scheme: dark` sobrescreve |
+| Fonte | `ui`, `mono` |
+| Texto e altura | `xs` a `xl`, tamanho e entrelinha separados |
+| Espaço | `--espaco-1` a `--espaco-8` |
+| Raio | `sm`, `md`, `lg` |
+| Sombra | `--sombra-1`, `--sombra-2` |
+| Motion | `rapido`, `base` |
+
+`--anel-foco` fica **fora** do painel: é composto de `--cor-fundo` e `--cor-acento`, e
+editá-lo direto deixaria o arquivo gerado internamente incoerente.
 
 Regra herdada do padrão Kora: no projeto gerado, esses tokens vêm do tenant em tempo de
 execução, nunca hardcodados. O Studio produz o **default** do tenant, não uma marca fixa.
+
+### Como o preview fica isolado
+
+O preview roda em um container próprio que declara fundo, cor e fonte a partir dos tokens
+do projeto, em vez de herdar os da ferramenta. Os valores entram como custom properties no
+próprio elemento, porque são dado em tempo de execução e não têm como sair de arquivo
+estático; é a **única** exceção à regra de nada de estilo inline, ela vive em um ponto só,
+e a guarda `src/components/studio/namespaces.test.js` varre os dois sentidos: nada de
+`--forge-*` dentro do preview, nada de `--projeto-*` fora dele.

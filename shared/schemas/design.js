@@ -96,19 +96,25 @@ export const tokensSchema = z.strictObject({
 
 export const TOKENS_PADRAO = Object.freeze(tokensSchema.parse({}));
 
+// Alias do preview dentro do Forge. A regra é mecânica, e de propósito: prefixar `--projeto` no
+// nome que o arquivo gerado usa. Uma segunda tabela de nomes seria uma segunda coisa para sair de
+// sincronia, e o preview passaria a mentir sem ninguém perceber (P-06 e ADR-009).
+export const aliasDePreview = (variavel) => `--projeto${variavel.slice(1)}`;
+
 // Tabela explícita de tradução para as variáveis CSS do arquivo gerado. Explícita porque a
 // ADR-009 exige que ela seja testada: token novo entra aqui e no template, ou o preview mente.
 export function listarTokens(tokens = TOKENS_PADRAO) {
   const entradas = [];
+  const registrar = (entrada) => entradas.push({ ...entrada, alias: aliasDePreview(entrada.variavel) });
   const simples = (grupo, prefixo) => {
     for (const [chave, valor] of Object.entries(tokens[grupo] ?? {})) {
       const sufixo = chave.replace(/[A-Z]/g, (letra) => `-${letra.toLowerCase()}`);
-      entradas.push({ caminho: `${grupo}.${chave}`, variavel: `${prefixo}-${sufixo}`, valor });
+      registrar({ caminho: `${grupo}.${chave}`, variavel: `${prefixo}-${sufixo}`, valor });
     }
   };
   const lista = (grupo, prefixo) => {
     (tokens[grupo] ?? []).forEach((valor, indice) => {
-      entradas.push({ caminho: `${grupo}[${indice}]`, variavel: `${prefixo}-${indice + 1}`, valor });
+      registrar({ caminho: `${grupo}[${indice}]`, variavel: `${prefixo}-${indice + 1}`, valor });
     });
   };
 
@@ -123,7 +129,7 @@ export function listarTokens(tokens = TOKENS_PADRAO) {
   // O tema escuro reusa os mesmos nomes, dentro do bloco de media query.
   for (const [chave, valor] of Object.entries(tokens.corEscuro ?? {})) {
     const sufixo = chave.replace(/[A-Z]/g, (letra) => `-${letra.toLowerCase()}`);
-    entradas.push({ caminho: `corEscuro.${chave}`, variavel: `--cor-${sufixo}`, valor, escuro: true });
+    registrar({ caminho: `corEscuro.${chave}`, variavel: `--cor-${sufixo}`, valor, escuro: true });
   }
   return entradas;
 }

@@ -283,3 +283,32 @@ desde o schema inicial, e um estado a menos (`ativo`) é um estado a menos para 
 (`paginas.0.regioes.0.x`) e mensagem em português. Motivo: o Zod devolve o caminho do objeto e o
 nome do campo só dentro de uma mensagem em inglês, e erro que não diz qual campo é obriga a
 adivinhar. Vale para toda rota da API local, não só para as de design.
+
+### 2026-09-05, o alias de preview é regra mecânica, não segunda tabela
+`--cor-fundo` vira `--projeto-cor-fundo`: prefixar `--projeto` no nome que o arquivo gerado usa,
+sempre, sem exceção. `listarTokens()` devolve `alias` junto de `variavel`. Motivo: uma segunda
+tabela de nomes seria uma segunda fonte de verdade esperando dessincronizar, e o `docs/02` já
+tinha nomes (`--projeto-bg`) que não existiam em lugar nenhum do código, justamente por isso.
+
+### 2026-09-05, a moldura do preview fica na página, não no componente do preview
+`PreviewProjeto` renderiza só o palco isolado; o cartão em volta é da `PaginaStudio`. Motivo: com a
+moldura dentro, o componente precisaria de `--forge-*` e a guarda P-06 quebraria por construção.
+Assim a regra "nenhum token da ferramenta dentro do preview" é verdadeira por desenho, e o teste
+`src/components/studio/namespaces.test.js` só confirma, varrendo nos dois sentidos.
+
+### 2026-09-05, os campos do painel são derivados do schema, nunca escritos à mão
+`src/features/studio/campos.js` monta os descritores a partir de `listarTokens()`, e um teste
+compara as duas listas. Motivo: token novo no schema tem que aparecer no painel sozinho; a
+alternativa é um token que ninguém consegue editar e ninguém percebe que existe.
+
+### 2026-09-05, dois tokens que geram a mesma variável precisam de rótulo e microtexto distintos
+`cor.fundo` e `corEscuro.fundo` viram os dois `--cor-fundo`, em blocos diferentes do arquivo. O
+rótulo do escuro é "Fundo no escuro" e o microtexto diz que cai no bloco de tema escuro. Motivo:
+com o mesmo nome, o leitor de tela anuncia dois controles idênticos e a tela mostra dois campos
+que ninguém sabe distinguir. Um teste varre a página inteira e recusa nome acessível repetido,
+porque a colisão volta a cada token novo.
+
+### 2026-09-05, o Studio não salva sozinho
+O preview é ao vivo, o disco não. Enquanto há mudança, a página diz isso e oferece descartar.
+Motivo: desfazer só chega no bloco 4, e salvar sozinho sem ter como desfazer é a combinação que
+perde trabalho. Salvar igual não versiona, e o serviço do bloco 1 já garante isso.

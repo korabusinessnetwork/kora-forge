@@ -62,7 +62,8 @@ src/
 | `TelaFinal` | fechamento de F-01: nome do projeto, caminho no disco, resumo de arquivos criados e comandos rodados, atalho `vscode://file/...` para abrir no editor e volta para o projeto. Materialização abortada tem título, microtexto e resumo próprios |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | área de desenho com zoom, pan, régua, snap |
-| `PainelTokens` | edição dos tokens `--projeto-*` com preview ao vivo |
+| `PainelTokens` | edita os tokens do documento de design, agrupados, cada campo com microtexto e default visível. Cor tem seletor e campo de texto ligados ao mesmo token, para escolher ou colar o hex exato. "Usar o padrão Kora" no topo e por grupo. Os campos são derivados de `listarTokens()`, então token novo no schema aparece no painel |
+| `PreviewProjeto` | container isolado que mostra os tokens em uso: título, texto secundário, botão, cartão, campo e um trecho em mono. Recebe os tokens como dado e os aplica como custom properties no próprio elemento, com o alias `--projeto-*`. Não lê `--forge-*`, não escreve em `:root`, `html` nem `body` |
 | `VisualizadorDiff` | diff de arquivo em conflito, lado a lado. **Adiado para a Fase 2**: na Fase 1 o conflito é declarado no `PainelPlano` como ação de sobrescrever, com os dois tamanhos, sem diff linha a linha |
 | `GaleriaModelosApi` | catálogo de modelos de integração |
 | `PainelRelatorios` | todos os builds ao mesmo tempo, com `CartaoBuild` por projeto, filtro por estado e aba por modelo com `LinhaModelo` (Fase 6) |
@@ -74,12 +75,17 @@ src/
 | `LayoutApp` | casca: barra lateral com menus, topo com projeto ativo, área de conteúdo |
 | `LayoutWizard` | trilha de etapas à esquerda, etapa atual ao centro, avisos à direita |
 | `LayoutStudio` | camadas à esquerda, canvas ao centro, tokens e propriedades à direita |
+| `PaginaStudio` | a casca do Studio hoje: preview ao centro, `PainelTokens` à direita. O bloco 4 troca o centro pelo canvas e acrescenta a coluna de camadas |
 
 ## Regras
 
-1. Componente não chama API. Ele recebe dado e callbacks. Quem chama é a feature, pela camada de serviços.
+1. Componente não chama API. Ele recebe dado e callbacks. Quem chama é a feature, pela camada de
+   serviços. Provado por `src/arquitetura.test.js`: fora de `src/services/`, nenhum arquivo do
+   front toca em `fetch`, `WebSocket`, `XMLHttpRequest` ou `EventSource`.
 2. Todo componente que carrega dado implementa os quatro estados (carregando, vazio, erro, sucesso).
 3. Estado vazio nunca é tela em branco. Sempre traz a próxima ação.
 4. Nada de cor, espaçamento, raio ou fonte fora de token.
 5. Componente novo só entra depois de existir em `02_DESIGN_SYSTEM`.
 6. Preview do Studio roda isolado, com tokens `--projeto-*`, sem vazar estilo para o Forge.
+   Provado por `src/components/studio/namespaces.test.js`, que varre nos dois sentidos: nenhum
+   `--forge-*` dentro do preview, nenhum `--projeto-*` fora dele. Regra, não intenção.

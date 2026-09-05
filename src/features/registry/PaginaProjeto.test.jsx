@@ -115,6 +115,16 @@ describe('entrada do wizard', () => {
   });
 });
 
+describe('caminho até o Studio', () => {
+  it('a página do projeto leva ao Studio, com microtexto dizendo o que se faz lá', async () => {
+    obterProjeto.mockResolvedValue(dados());
+    renderizar();
+    const link = await screen.findByRole('link', { name: mensagens.studio.abrir });
+    expect(link).toHaveAttribute('href', '/projetos/p1/studio');
+    expect(screen.getByText(mensagens.studio.micro)).toBeInTheDocument();
+  });
+});
+
 describe('bloqueios na tela do projeto', () => {
   it('sem bloqueio diz que está livre, com bloqueio mostra a contagem', async () => {
     obterProjeto.mockResolvedValue(dados());

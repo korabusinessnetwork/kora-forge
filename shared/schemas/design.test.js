@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import {
-  documentoDesignSchema, tokensSchema, noSchema, paginaSchema, listarTokens,
+  documentoDesignSchema, tokensSchema, noSchema, paginaSchema, listarTokens, aliasDePreview,
   TOKENS_PADRAO, TOKENS_DERIVADOS, PROFUNDIDADE_MAXIMA,
 } from './design.js';
 
@@ -180,6 +180,19 @@ describe('vocabulário dos tokens', () => {
     for (const { variavel, valor } of listarTokens().filter((t) => t.escuro)) {
       expect(escuro, variavel).toContain(`${variavel}: ${valor};`);
     }
+  });
+
+  it('o alias de preview é mecânico: prefixa --projeto no nome do arquivo gerado', () => {
+    expect(aliasDePreview('--cor-fundo')).toBe('--projeto-cor-fundo');
+    expect(aliasDePreview('--espaco-1')).toBe('--projeto-espaco-1');
+    for (const { variavel, alias } of listarTokens()) {
+      expect(alias, variavel).toBe(`--projeto${variavel.slice(1)}`);
+      expect(alias.startsWith('--projeto-'), variavel).toBe(true);
+    }
+  });
+
+  it('nenhum alias de preview colide com o namespace da ferramenta (P-06)', () => {
+    for (const { alias } of listarTokens()) expect(alias.startsWith('--forge-')).toBe(false);
   });
 
   it('escala é lista de tamanho fixo: não dá para deixar buraco na escala', () => {

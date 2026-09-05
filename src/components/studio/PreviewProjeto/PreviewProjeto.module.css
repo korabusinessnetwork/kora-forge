@@ -1,0 +1,130 @@
+/* Palco do preview. Só tokens do projeto (--projeto-*), nunca --forge-* (P-06).
+   Fundo, cor e fonte são declarados, não herdados: herdar mostraria o projeto com a cara da
+   ferramenta. Nada de :root, html ou body aqui, que é por onde o vazamento aconteceria. */
+
+.palco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--projeto-espaco-5);
+  padding: var(--projeto-espaco-6);
+  background: var(--projeto-cor-fundo);
+  color: var(--projeto-cor-texto);
+  font-family: var(--projeto-fonte-ui);
+  font-size: var(--projeto-texto-md);
+  line-height: var(--projeto-altura-md);
+  border-radius: var(--projeto-raio-lg);
+  min-height: 100%;
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--projeto-texto-xl);
+  line-height: var(--projeto-altura-xl);
+  font-weight: 600;
+}
+
+.secundario {
+  margin: 0;
+  color: var(--projeto-cor-texto-secundario);
+  font-size: var(--projeto-texto-sm);
+  line-height: var(--projeto-altura-sm);
+}
+
+.botoes {
+  display: flex;
+  gap: var(--projeto-espaco-3);
+  flex-wrap: wrap;
+}
+
+.botao,
+.botaoSecundario {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--projeto-espaco-2) var(--projeto-espaco-4);
+  border-radius: var(--projeto-raio-md);
+  font-size: var(--projeto-texto-sm);
+  line-height: var(--projeto-altura-sm);
+  transition: opacity var(--projeto-motion-rapido);
+}
+
+.botao {
+  background: var(--projeto-cor-acento);
+  color: var(--projeto-cor-fundo);
+  font-weight: 600;
+}
+
+.botaoSecundario {
+  background: var(--projeto-cor-superficie);
+  color: var(--projeto-cor-texto);
+  border: 1px solid var(--projeto-cor-borda);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--projeto-espaco-2);
+  padding: var(--projeto-espaco-4);
+  background: var(--projeto-cor-superficie);
+  border: 1px solid var(--projeto-cor-borda);
+  border-radius: var(--projeto-raio-md);
+  box-shadow: var(--projeto-sombra-2);
+}
+
+.cartaoTitulo {
+  margin: 0;
+  font-size: var(--projeto-texto-lg);
+  line-height: var(--projeto-altura-lg);
+  font-weight: 600;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--projeto-espaco-1);
+}
+
+.campoRotulo {
+  font-size: var(--projeto-texto-xs);
+  line-height: var(--projeto-altura-xs);
+  color: var(--projeto-cor-texto-secundario);
+}
+
+.campoEntrada {
+  padding: var(--projeto-espaco-2) var(--projeto-espaco-3);
+  background: var(--projeto-cor-fundo);
+  color: var(--projeto-cor-texto-secundario);
+  border: 1px solid var(--projeto-cor-borda);
+  border-radius: var(--projeto-raio-sm);
+  box-shadow: var(--projeto-sombra-1);
+  font-size: var(--projeto-texto-sm);
+  line-height: var(--projeto-altura-sm);
+}
+
+.mono {
+  margin: 0;
+  font-family: var(--projeto-fonte-mono);
+  font-size: var(--projeto-texto-xs);
+  line-height: var(--projeto-altura-xs);
+  color: var(--projeto-cor-texto-secundario);
+}
+
+.estados {
+  display: flex;
+  gap: var(--projeto-espaco-3);
+  flex-wrap: wrap;
+  font-size: var(--projeto-texto-xs);
+  line-height: var(--projeto-altura-xs);
+  transition: color var(--projeto-motion-base);
+}
+
+.sucesso {
+  color: var(--projeto-cor-sucesso);
+}
+
+.aviso {
+  color: var(--projeto-cor-aviso);
+}
+
+.perigo {
+  color: var(--projeto-cor-perigo);
+}

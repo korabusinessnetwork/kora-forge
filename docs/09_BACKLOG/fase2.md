@@ -15,8 +15,8 @@ não desenha.
 | Bloco | Estado | Spec |
 |---|---|---|
 | 1, documento de design e contrato | **entregue** | [`fase2-bloco1-documento-de-design.md`](../../specs/fase2-bloco1-documento-de-design.md) |
-| 2, painel de tokens com preview | próximo | |
-| 3, catálogo de regiões e componentes | a fazer | |
+| 2, painel de tokens com preview | **entregue** | [`fase2-bloco2-painel-de-tokens.md`](../../specs/fase2-bloco2-painel-de-tokens.md) |
+| 3, catálogo de regiões e componentes | próximo | |
 | 4, canvas | a fazer | |
 | 5, etapa Design no wizard | a fazer | |
 | 6, exportação para o gerador | a fazer | |
@@ -28,7 +28,7 @@ não desenha.
 - [ ] O `tokens.css` do projeto gerado tem os valores escolhidos no Studio, não os do template
 - [ ] Cada página desenhada vira rota e arquivo de esqueleto no projeto gerado
 - [ ] Zero elemento no canvas sem componente equivalente no catálogo
-- [ ] O preview do Studio não vaza nenhum estilo para a UI do Forge, e nem o contrário (P-06)
+- [x] O preview do Studio não vaza nenhum estilo para a UI do Forge, e nem o contrário (P-06)
 - [ ] Redesenhar um projeto já materializado gera plano de diff, e nada é escrito sem aprovação
 - [ ] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje
 - [ ] Tudo funciona com o copiloto desligado
