@@ -1,6 +1,6 @@
 # 09, Backlog
 
-Detalhe da Fase 1 em `mvp.md`.
+Detalhe da Fase 1 em `mvp.md`, entregue. Detalhe da Fase 2 em `fase2.md`, em andamento.
 
 ## Regras
 
@@ -20,6 +20,8 @@ Detalhe da Fase 1 em `mvp.md`.
 | **6** | Harness executado pelo Forge e painel de relatórios (ADR-008, proposto) | dá para despachar um build por modelo, acompanhar todos ao mesmo tempo e ver o que falta, a estimativa e o ciclo de aprendizado |
 
 ## Fase 2, Studio
+
+Quebrada em sete blocos em `fase2.md`, com critério de aceite da fase e ordem de construção.
 
 - Canvas com zoom, pan e snap
 - Painel de tokens com preview ao vivo
