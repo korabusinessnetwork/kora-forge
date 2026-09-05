@@ -312,3 +312,37 @@ porque a colisão volta a cada token novo.
 O preview é ao vivo, o disco não. Enquanto há mudança, a página diz isso e oferece descartar.
 Motivo: desfazer só chega no bloco 4, e salvar sozinho sem ter como desfazer é a combinação que
 perde trabalho. Salvar igual não versiona, e o serviço do bloco 1 já garante isso.
+
+### 2026-09-05, o catálogo mora em disco, não no banco
+O plano da Fase 2 dizia "sincronizado no banco no forge:init", pelo paralelo com presets e regras.
+O paralelo certo é `templates/`, que não tem tabela. Motivo: preset está no banco porque existe
+preset custom e o projeto fixa id mais versão; regra está no banco porque `rule_hits` a referencia.
+O catálogo v1 é builtin, ninguém escreve nele e nada o referencia por chave estrangeira, então
+cópia no SQLite seria uma segunda versão para ficar velha, mais uma migration, sem ganho.
+
+### 2026-09-05, cada item do catálogo traz o fragmento que gera o código dele
+`catalogo/<id>/item.json` mais `catalogo/<id>/fragmento.jsx`, e o boot confere a coerência nos dois
+sentidos: toda `{{CHAVE}}` do fragmento é prop declarada ou `{{FILHOS}}`, e toda prop declarada
+aparece no fragmento. Motivo: era o risco nomeado na abertura da fase, catálogo e template saindo
+de sincronia, com item que desenha e não gera. Com a conferência no boot, a incoerência nunca
+chega à tela.
+
+### 2026-09-05, recusa na escrita, pendência na leitura
+Documento com tipo, prop ou aninhamento fora do catálogo é recusado no POST, com caminho no nó.
+O mesmo caso na leitura devolve o desenho inteiro mais `pendencias` nomeando o que falta, sem
+reescrever nem apagar nada. Motivo: são situações diferentes. Escrever algo que o gerador não sabe
+escrever é erro de agora; abrir um documento salvo quando o item ainda existia é história, e
+apagar a história de alguém para caber no catálogo de hoje seria perder trabalho em silêncio
+(ADR-009, decisão 4, mesma lição do R-04).
+
+### 2026-09-05, valor de prop é dado e é escapado antes de virar JSX
+`escaparValorJsx()` em `shared/jsx.js` neutraliza `<`, `>`, `{`, `}` e aspas. Motivo: o motor de
+template só troca chave por valor e não avalia nada, o que protege o Forge, mas não protegeria o
+arquivo gerado: um título com `</h1><script>` fecharia a tag e injetaria código no projeto do
+usuário. Neutralizar em vez de recusar, porque "R$ 10 > R$ 5" é texto legítimo e recusar caractere
+comum transformaria a proteção em obstáculo diário.
+
+### 2026-09-05, o fragmento não é servido ao front
+`GET /catalog` devolve nome, microtexto, props e `aceita`, e para por aí. Motivo: a paleta do
+canvas precisa disso; o código de geração é assunto do servidor, e mandá-lo ao browser seria
+superfície a mais sem uso nenhum.

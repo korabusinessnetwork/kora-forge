@@ -1,0 +1,19 @@
+{
+  "id": "texto",
+  "versao": 1,
+  "papel": "componente",
+  "nome": "Texto",
+  "descricao": "Um parágrafo de conteúdo.",
+  "microtexto": "Vira um <p> com o conteúdo que você escrever.",
+  "props": [
+    {
+      "id": "conteudo",
+      "tipo": "texto",
+      "rotulo": "Conteúdo",
+      "padrao": "Escreva aqui o que esta seção explica.",
+      "obrigatoria": true,
+      "microtexto": "O texto do parágrafo."
+    }
+  ],
+  "aceita": []
+}

@@ -77,7 +77,7 @@ Regras por módulo, escritas antes do código. Detalhamentos em:
 
 ## RN-08, Studio
 
-1. O Studio edita apenas o que o design system do projeto suporta. Não existe elemento livre sem equivalente em componente.
+1. O Studio edita apenas o que o design system do projeto suporta. Não existe elemento livre sem equivalente em componente. O vocabulário é o catálogo, contrato em [`catalogo.md`](./catalogo.md).
 2. Saída do Studio: tokens (`tokens.css`), lista de páginas e layout de cada página em estrutura de dados, que o gerador transforma em JSX.
 3. Layout exportado é esqueleto (regiões, componentes, hierarquia), não pixel-perfect.
 4. Alterar o design depois de materializar não reescreve o projeto. Gera um plano de diff que o usuário aplica se quiser.

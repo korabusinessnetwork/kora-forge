@@ -1,0 +1,31 @@
+{
+  "id": "botao",
+  "versao": 1,
+  "papel": "componente",
+  "nome": "Botão",
+  "descricao": "A ação de uma região. Nasce sem comportamento: ligar o clique é trabalho de código.",
+  "microtexto": "Vira um <button> com o texto e a variante escolhidos.",
+  "props": [
+    {
+      "id": "texto",
+      "tipo": "texto",
+      "rotulo": "Texto",
+      "padrao": "Ação principal",
+      "obrigatoria": true,
+      "microtexto": "O que o botão diz."
+    },
+    {
+      "id": "variante",
+      "tipo": "opcao",
+      "rotulo": "Variante",
+      "padrao": "primario",
+      "opcoes": [
+        "primario",
+        "secundario",
+        "fantasma"
+      ],
+      "microtexto": "O peso visual. Uma região tem no máximo um primário."
+    }
+  ],
+  "aceita": []
+}

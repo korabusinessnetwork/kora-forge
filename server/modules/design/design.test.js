@@ -32,7 +32,19 @@ const criar = async (ctx, nome = 'Site da Kora') => {
 const documento = (extra = {}) => ({
   catalogo: { versao: 1 },
   tokens: documentoDesignSchema.parse({}).tokens,
-  paginas: [{ id: 'inicio', nome: 'Início', rota: '/', regioes: [{ id: 'topo', tipo: 'secao', props: { titulo: 'Kora' }, filhos: [] }] }],
+  paginas: [{
+    id: 'inicio',
+    nome: 'Início',
+    rota: '/',
+    // Desde o bloco 3 o tipo e as props precisam existir no catálogo. Antes disso qualquer slug
+    // passava, e este fixture usava `props: { titulo }` numa seção, que hoje é recusa correta.
+    regioes: [{
+      id: 'topo',
+      tipo: 'secao',
+      props: { espacamento: 'normal' },
+      filhos: [{ id: 'titulo-topo', tipo: 'titulo', props: { texto: 'Kora' }, filhos: [] }],
+    }],
+  }],
   ...extra,
 });
 
@@ -270,5 +282,142 @@ describe('o design entra no hash do plano', () => {
     expect(r.statusCode).toBe(409);
     expect(r.json().error.codigo).toBe('FORGE_PLAN_STALE');
     expect(fs.existsSync(plano.raiz)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bloco 3: o documento passa a ser conferido contra o catálogo.
+// ---------------------------------------------------------------------------
+
+const salvarDesign = (ctx, id, payload) => post(ctx, `/api/projects/${id}/design`, payload);
+const paginaCom = (regioes) => ({ id: 'inicio', nome: 'Início', rota: '/', regioes });
+const noDe = (tipo, extra = {}) => ({ id: `n-${tipo}`, tipo, props: {}, filhos: [], ...extra });
+
+describe('o desenho é conferido contra o catálogo antes de gravar', () => {
+  it('desenho válido grava, com região, componente aninhado e props do catálogo', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const r = await salvarDesign(ctx, projeto.id, documento({
+      paginas: [paginaCom([noDe('secao', {
+        props: { espacamento: 'amplo' },
+        filhos: [
+          noDe('titulo', { props: { texto: 'Bem-vindo', nivel: '1' } }),
+          noDe('cartao', { filhos: [noDe('texto', { props: { conteudo: 'Um parágrafo.' } })] }),
+        ],
+      })])],
+    }));
+    expect(r.statusCode).toBe(200);
+    expect(r.json().data.design.payload.paginas[0].regioes[0].filhos).toHaveLength(2);
+  });
+
+  it('tipo que não existe no catálogo é recusado, com o caminho do nó', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const r = await salvarDesign(ctx, projeto.id, documento({ paginas: [paginaCom([noDe('carrossel')])] }));
+    expect(r.statusCode).toBe(400);
+    expect(r.json().error.codigo).toBe('FORGE_VALIDATION');
+    expect(r.json().error.detalhe.issues[0]).toMatchObject({ caminho: 'paginas.0.regioes.0.tipo' });
+    expect(r.json().error.detalhe.issues[0].mensagem).toContain('carrossel');
+  });
+
+  it('componente no topo da página e região no meio da árvore são recusados pelo papel', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const topo = await salvarDesign(ctx, projeto.id, documento({ paginas: [paginaCom([noDe('titulo', { props: { texto: 'x' } })])] }));
+    expect(topo.statusCode).toBe(400);
+    expect(topo.json().error.detalhe.issues[0].mensagem).toContain('só entra dentro de uma região');
+
+    const dentro = await salvarDesign(ctx, projeto.id, documento({ paginas: [paginaCom([noDe('secao', { props: {}, filhos: [noDe('rodape')] })])] }));
+    expect(dentro.statusCode).toBe(400);
+    expect(dentro.json().error.detalhe.issues[0].mensagem).toContain('só entra no topo da página');
+  });
+
+  it('filho que o pai não aceita é recusado, dizendo o que o pai aceita', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const r = await salvarDesign(ctx, projeto.id, documento({
+      paginas: [paginaCom([noDe('rodape', { filhos: [noDe('campo', { props: { rotulo: 'Nome', microtexto: 'seu nome' } })] })])],
+    }));
+    expect(r.statusCode).toBe(400);
+    expect(r.json().error.detalhe.issues[0].mensagem).toContain('não aceita');
+  });
+
+  it('prop não declarada, valor fora do tipo e obrigatória ausente são recusados, cada um com seu caminho', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const r = await salvarDesign(ctx, projeto.id, documento({
+      paginas: [paginaCom([noDe('secao', {
+        props: { cor: 'azul' },
+        filhos: [noDe('titulo'), noDe('botao', { props: { texto: 'ok', variante: 'neon' } })],
+      })])],
+    }));
+    expect(r.statusCode).toBe(400);
+    const caminhos = r.json().error.detalhe.issues.map((issue) => issue.caminho);
+    expect(caminhos).toContain('paginas.0.regioes.0.props.cor');
+    expect(caminhos).toContain('paginas.0.regioes.0.filhos.0.props.texto');
+    expect(caminhos).toContain('paginas.0.regioes.0.filhos.1.props.variante');
+  });
+
+  it('prop opcional ausente não é erro: vale o padrão do catálogo', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const r = await salvarDesign(ctx, projeto.id, documento({
+      paginas: [paginaCom([noDe('secao', { filhos: [noDe('titulo', { props: { texto: 'Sem nível' } })] })])],
+    }));
+    expect(r.statusCode).toBe(200);
+  });
+
+  it('documento sem página nenhuma continua válido: é o que o painel de tokens salva', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const r = await salvarDesign(ctx, projeto.id, documento({ paginas: [] }));
+    expect(r.statusCode).toBe(200);
+    expect(r.json().data.design.payload.paginas).toEqual([]);
+  });
+});
+
+describe('item que saiu do catálogo vira pendência, nunca documento corrompido', () => {
+  // Grava direto na tabela para simular o que só acontece com o tempo: o documento foi salvo por
+  // um Forge que tinha o item, e este Forge não tem mais. Pela rota isso seria recusado, que é
+  // justamente a assimetria da decisão 4 do ADR-009: recusa na escrita, pendência na leitura.
+  const gravarDireto = (ctx, projectId, payload) => ctx.db.prepare(`
+    INSERT INTO design_documents (id, project_id, versao, tokens_json, paginas_json, criado_em)
+    VALUES (?, ?, 1, ?, ?, ?)
+  `).run('doc-antigo', projectId, JSON.stringify(payload.tokens), JSON.stringify({ catalogo: payload.catalogo, paginas: payload.paginas }), new Date().toISOString());
+
+  it('o desenho volta inteiro, com o item ausente nomeado ao lado', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    gravarDireto(ctx, projeto.id, documento({
+      paginas: [paginaCom([noDe('secao', { filhos: [noDe('carrossel', { id: 'antigo-1' })] })])],
+    }));
+
+    const { design } = (await get(ctx, `/api/projects/${projeto.id}/design`)).json().data;
+    expect(design.payload.paginas[0].regioes[0].filhos[0].tipo).toBe('carrossel');
+    expect(design.pendencias).toEqual([{
+      no: 'antigo-1', tipo: 'carrossel', pagina: 'inicio',
+      catalogoDoDocumento: 1, catalogoDoForge: CATALOGO_VERSAO_ATUAL,
+    }]);
+  });
+
+  it('ler não reescreve nem apaga nada: o documento continua igual na tabela', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    gravarDireto(ctx, projeto.id, documento({ paginas: [paginaCom([noDe('secao', { filhos: [noDe('carrossel', { id: 'antigo-1' })] })])] }));
+    const antes = ctx.db.prepare('SELECT paginas_json FROM design_documents WHERE project_id = ?').get(projeto.id).paginas_json;
+
+    await get(ctx, `/api/projects/${projeto.id}/design`);
+    const depois = ctx.db.prepare('SELECT paginas_json, COUNT(*) AS total FROM design_documents WHERE project_id = ?').get(projeto.id);
+    expect(depois.paginas_json).toBe(antes);
+    expect(depois.total).toBe(1);
+  });
+
+  it('sem pendência a lista vem vazia, nunca null nem ausente', async () => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    await salvarDesign(ctx, projeto.id, documento());
+    const { design } = (await get(ctx, `/api/projects/${projeto.id}/design`)).json().data;
+    expect(design.pendencias).toEqual([]);
+    expect(designOuNadaSchema.safeParse({ design }).success).toBe(true);
   });
 });

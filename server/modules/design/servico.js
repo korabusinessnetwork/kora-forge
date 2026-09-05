@@ -13,7 +13,7 @@ function erroCampo(caminho, mensagem) {
 //
 // A coluna `paginas_json` guarda a parte estrutural inteira, `{ catalogo, paginas }`, e não só o
 // array de páginas. É o que evita migration para gravar a versão do catálogo.
-export function criarServicoDesign({ db, projetos, registrarEvento = () => true }) {
+export function criarServicoDesign({ db, projetos, catalogo, registrarEvento = () => true }) {
   const stmts = {
     ativo: db.prepare(`
       SELECT versao, tokens_json, paginas_json, criado_em FROM design_documents
@@ -29,15 +29,17 @@ export function criarServicoDesign({ db, projetos, registrarEvento = () => true 
 
   function paraRegistro(linha) {
     const estrutura = JSON.parse(linha.paginas_json);
+    const payload = {
+      catalogo: estrutura.catalogo,
+      tokens: JSON.parse(linha.tokens_json),
+      paginas: estrutura.paginas,
+    };
     return {
       versao: linha.versao,
       ativo: true,
       criadoEm: linha.criado_em,
-      payload: {
-        catalogo: estrutura.catalogo,
-        tokens: JSON.parse(linha.tokens_json),
-        paginas: estrutura.paginas,
-      },
+      payload,
+      pendencias: catalogo.pendenciasDe(payload),
     };
   }
 
@@ -54,6 +56,11 @@ export function criarServicoDesign({ db, projetos, registrarEvento = () => true 
     if (payload.catalogo.versao > CATALOGO_VERSAO_ATUAL) {
       throw erroCampo('catalogo.versao', `Este documento foi feito num Forge mais novo (catálogo versão ${payload.catalogo.versao}, aqui é ${CATALOGO_VERSAO_ATUAL}). Atualize o Forge para abrir.`);
     }
+
+    // O desenho tem que caber no catálogo deste Forge, senão o gerador não saberia escrevê-lo.
+    // Recusa na escrita, com o caminho do nó; na leitura o mesmo caso vira pendência, e nunca
+    // reescrita do documento de quem já tinha salvado.
+    catalogo.validarDocumento(payload);
 
     // Salvar sem mudar nada não versiona: o Studio salva sozinho enquanto a pessoa desenha, e o
     // histórico ficaria cheio de versão idêntica. Mesma regra do blueprint.

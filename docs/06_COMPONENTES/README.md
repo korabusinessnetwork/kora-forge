@@ -80,8 +80,8 @@ src/
 ## Regras
 
 1. Componente não chama API. Ele recebe dado e callbacks. Quem chama é a feature, pela camada de
-   serviços. Provado por `src/arquitetura.test.js`: fora de `src/services/`, nenhum arquivo do
-   front toca em `fetch`, `WebSocket`, `XMLHttpRequest` ou `EventSource`.
+   serviços. Provado por `src/services/camadaDeServicos.test.js`: fora de `src/services/`,
+   nenhum arquivo do front toca em `fetch`, `WebSocket`, `XMLHttpRequest` ou `EventSource`.
 2. Todo componente que carrega dado implementa os quatro estados (carregando, vazio, erro, sucesso).
 3. Estado vazio nunca é tela em branco. Sempre traz a próxima ação.
 4. Nada de cor, espaçamento, raio ou fonte fora de token.

@@ -114,7 +114,9 @@ Contrato do Studio (**ADR-009**). Dado declarativo versionado, nunca código.
 | `paginas[]` | lista | `{ id, nome, rota, regioes }` |
 | `paginas[].regioes[]` | árvore | nó `{ id, tipo, props, filhos }`, e `filhos` são nós iguais |
 
-**Resposta**: `{ design }`, com `{ versao, ativo, criadoEm, payload }`, ou `design: null`.
+**Resposta**: `{ design }`, com `{ versao, ativo, criadoEm, payload, pendencias }`, ou
+`design: null`. `pendencias` nomeia o que o catálogo deste Forge não conhece mais, e é sempre
+lista, nunca `null`. Detalhe na seção do catálogo, abaixo.
 
 **O que o contrato recusa, e por quê**
 
@@ -125,6 +127,7 @@ Contrato do Studio (**ADR-009**). Dado declarativo versionado, nunca código.
 - **`id` repetido** em qualquer lugar do documento, e **rota repetida** entre páginas.
 - **Rota fora do formato.** `/`, `/painel` e `/painel/config` valem; `painel`, `/Painel` e `/painel/` não.
 - **Valor de token em branco**, que sairia como CSS quebrado no projeto gerado.
+- **Tipo, prop ou aninhamento fora do catálogo**, com o caminho do nó. Ver `GET /api/catalog`.
 
 **Todo campo tem default**, então `POST` com `{}` é válido e devolve o padrão Kora inteiro: o
 Studio salva enquanto a pessoa desenha, e documento pela metade não pode ser erro.
@@ -132,6 +135,40 @@ Studio salva enquanto a pessoa desenha, e documento pela metade não pode ser er
 **O documento entra no hash do plano.** Redesenhar invalida plano já aprovado, e materializar com
 o hash velho responde `FORGE_PLAN_STALE` sem escrever byte nenhum. Projeto **sem** documento gera
 exatamente o mesmo hash de antes da Fase 2: a chave só entra no insumo quando existe documento.
+
+## Catálogo de regiões e componentes, `GET /api/catalog`
+
+O vocabulário do Studio. Leitura pura, sem parâmetro: é o mesmo catálogo para todo projeto, e quem
+guarda a versão usada é o documento de design. Contrato em
+`docs/03_REGRAS_DE_NEGOCIO/catalogo.md`.
+
+**Resposta**: `{ versao, itens }`.
+
+| Campo do item | Tipo | O que é |
+|---|---|---|
+| `id` | slug | igual ao nome da pasta em `catalogo/` |
+| `versao` | inteiro ≥ 1 | versão do item |
+| `papel` | `regiao` ou `componente` | região só entra no topo da página, componente nunca |
+| `nome` | texto | como aparece na paleta |
+| `descricao` | texto | o que o item é |
+| `microtexto` | texto | o que ele afeta no resultado |
+| `props[]` | lista | `{ id, tipo, rotulo, microtexto, padrao, obrigatoria, opcoes? }` |
+| `aceita[]` | lista de slugs | ids que podem ser filhos. Vazia é folha |
+
+**O fragmento não sai por aqui.** O JSX que gera o código de cada item fica no servidor: a paleta
+precisa de nome, microtexto, props e o que o item aceita, e mandar o código para o front seria
+superfície a mais sem uso nenhum.
+
+**O documento de design é conferido contra este catálogo.** No `POST /projects/:id/design`, tipo
+inexistente, prop não declarada, valor fora do tipo, obrigatória ausente e aninhamento não aceito
+viram `FORGE_VALIDATION` com `caminho` no nó
+(`paginas.0.regioes.1.filhos.0.props.variante`), nunca no documento inteiro. Prop opcional ausente
+não é erro: vale o padrão do catálogo.
+
+**Item que saiu do catálogo não corrompe documento antigo.** No `GET /projects/:id/design` o
+desenho volta inteiro e o que falta vem em `pendencias`, cada uma com `{ no, tipo, pagina,
+catalogoDoDocumento, catalogoDoForge }`. Sempre lista, nunca `null`. Nada é reescrito nem apagado:
+recusa na escrita, pendência na leitura (**ADR-009**, decisão 4).
 
 ## Log ao vivo, `/api/ws/runs/:runId`
 

@@ -1,0 +1,15 @@
+{
+  "id": "cabecalho",
+  "versao": 1,
+  "papel": "regiao",
+  "nome": "Cabeçalho",
+  "descricao": "A faixa do topo da página, com o nome do produto e a ação principal.",
+  "microtexto": "Vira o <header> da página no projeto gerado.",
+  "props": [],
+  "aceita": [
+    "titulo",
+    "texto",
+    "botao",
+    "imagem"
+  ]
+}

@@ -201,7 +201,7 @@ conferir com `curl` que o documento gravado tem os valores escolhidos.
 
 | # | Sim | Evidência |
 |---|---|---|
-| 15 | sim | `PaginaStudio.jsx` só fala com `obterDesign` e `salvarDesign` de `src/services/design.js`. **A guarda que a spec dava como existente não existia**: foi construída agora, em `src/arquitetura.test.js`, teste `nenhum componente, página ou hook fala com a rede por conta própria`, que varre `src/` fora de `src/services/` atrás de `fetch`, `WebSocket`, `XMLHttpRequest` e `EventSource`. Desvio da tabela de arquivos da seção 3, assumido: sem ele o critério não teria como ser marcado sim |
+| 15 | sim | `PaginaStudio.jsx` só fala com `obterDesign` e `salvarDesign` de `src/services/design.js`, e a guarda `src/services/camadaDeServicos.test.js` continua verde. **Correção feita no bloco 3**: esta linha dizia que a guarda não existia e que um arquivo novo tinha sido criado para supri-la. A guarda existia desde a Fase 1, neste caminho; a auditoria não a encontrou por erro de busca. O arquivo redundante foi removido e a cobertura extra que ele tinha (varrer `src/` inteiro por exclusão, mais `XMLHttpRequest` e `EventSource`) foi dobrada na guarda original |
 | 16 | sim | `PaginaStudio.test.jsx`, `salvar só fica disponível quando há mudança, e envia o documento inteiro` (botão desabilitado sem mudança, aviso de não salvo com mudança) e `descartar devolve o que está salvo, sem passar pela API`. "Mudou" é `saoIguais()` do bloco 1, o mesmo critério que o servidor usa para não versionar igual |
 | 17 | sim | Estado de carregando conferido no mesmo teste (`m.salvando`, botão desabilitado). Erro em `erro ao salvar aparece junto do botão, e o rascunho continua na tela`, com a mensagem da API e o rascunho preservado para tentar de novo |
 | 18 | sim | `PaginaStudio.test.jsx`, `projeto arquivado é só leitura, com o motivo na tela`: aviso com o caminho para restaurar, salvar e padrão Kora desabilitados, campos em `readonly`, preview ainda visível |
@@ -228,7 +228,7 @@ conferir com `curl` que o documento gravado tem os valores escolhidos.
 | # | Sim | Evidência |
 |---|---|---|
 | 26 | sim | `docs/02_DESIGN_SYSTEM/README.md`: a lista fantasma (`--projeto-bg`, `--projeto-surface`) saiu, entrou a regra do alias com `aliasDePreview()`, a tabela dos nove grupos editáveis, a exclusão de `--anel-foco` e a seção "Como o preview fica isolado" |
-| 27 | sim | `docs/06_COMPONENTES/README.md`: `PainelTokens` expandido, `PreviewProjeto` e `PaginaStudio` acrescentados, regra 6 apontando para `namespaces.test.js` e regra 1 agora apontando para `src/arquitetura.test.js` |
+| 27 | sim | `docs/06_COMPONENTES/README.md`: `PainelTokens` expandido, `PreviewProjeto` e `PaginaStudio` acrescentados, regra 6 apontando para `namespaces.test.js` e regra 1 apontando para a guarda da camada de serviços |
 | 28 | sim | `docs/09_BACKLOG/fase2.md` com o bloco 2 entregue e o critério P-06 da fase marcado. `memory/decisions.md` com as seis decisões novas do bloco |
 
 ### Validação com o produto rodando
@@ -247,6 +247,11 @@ conferir com `curl` que o documento gravado tem os valores escolhidos.
 
 ### Ressalvas
 
-Nenhuma. Os dois defeitos encontrados na auditoria, o nome acessível repetido entre os dois grupos
-de cor e a guarda da camada de serviços que a spec dava como existente sem existir, foram
-corrigidos dentro do bloco, cada um com teste que impede a volta.
+O defeito do nome acessível repetido entre os dois grupos de cor foi encontrado aqui e corrigido
+dentro do bloco, com teste que impede a volta.
+
+**Uma ressalva aberta pelo bloco 3**: o segundo "defeito" desta auditoria não era defeito. A
+guarda da camada de serviços existia desde a Fase 1, em `src/services/camadaDeServicos.test.js`,
+e a busca que fiz aqui não a encontrou. O arquivo duplicado que criei foi removido no bloco 3 e a
+cobertura a mais que ele trazia foi dobrada na guarda original. Fica registrado porque auditoria
+que erra e não corrige vale menos que auditoria nenhuma.

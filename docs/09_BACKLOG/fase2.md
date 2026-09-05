@@ -16,8 +16,8 @@ não desenha.
 |---|---|---|
 | 1, documento de design e contrato | **entregue** | [`fase2-bloco1-documento-de-design.md`](../../specs/fase2-bloco1-documento-de-design.md) |
 | 2, painel de tokens com preview | **entregue** | [`fase2-bloco2-painel-de-tokens.md`](../../specs/fase2-bloco2-painel-de-tokens.md) |
-| 3, catálogo de regiões e componentes | próximo | |
-| 4, canvas | a fazer | |
+| 3, catálogo de regiões e componentes | **entregue** | [`fase2-bloco3-catalogo.md`](../../specs/fase2-bloco3-catalogo.md) |
+| 4, canvas | próximo | |
 | 5, etapa Design no wizard | a fazer | |
 | 6, exportação para o gerador | a fazer | |
 | 7, diff de design em projeto materializado | a fazer | |
@@ -27,7 +27,7 @@ não desenha.
 - [ ] Criar um projeto, desenhar no Studio e materializar, sem tocar no terminal
 - [ ] O `tokens.css` do projeto gerado tem os valores escolhidos no Studio, não os do template
 - [ ] Cada página desenhada vira rota e arquivo de esqueleto no projeto gerado
-- [ ] Zero elemento no canvas sem componente equivalente no catálogo
+- [x] Zero elemento no canvas sem componente equivalente no catálogo (o contrato recusa; falta o canvas do bloco 4 usá-lo)
 - [x] O preview do Studio não vaza nenhum estilo para a UI do Forge, e nem o contrário (P-06)
 - [ ] Redesenhar um projeto já materializado gera plano de diff, e nada é escrito sem aprovação
 - [ ] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje
@@ -63,8 +63,13 @@ Sem UI. A camada que tudo o mais assume.
 
 ### 3. Catálogo de regiões e componentes
 
-- Catálogo declarativo, um arquivo por item, no mesmo padrão de `presets/` e `regras/`:
-  carregado do repositório, validado por Zod, sincronizado no banco no `forge:init`.
+- Catálogo declarativo, uma pasta por item, no mesmo padrão de `presets/`, `regras/` e
+  `templates/`: carregado do repositório e validado por Zod no boot.
+- **Corrigido ao construir**: este item dizia "sincronizado no banco no `forge:init`". O paralelo
+  certo é `templates/`, que não tem tabela. Preset está no banco porque existe preset custom e o
+  projeto fixa id mais versão; regra está no banco porque `rule_hits` a referencia. O catálogo v1
+  é builtin e nada o referencia por chave estrangeira, então cópia no SQLite seria só uma segunda
+  versão para ficar velha. Justificativa completa na spec do bloco 3.
 - Cada item declara: o que é, quais propriedades aceita, e **qual template gera o código dele**.
   Sem essa amarração, o Studio permite desenhar o que o gerador não sabe escrever.
 - Catálogo é versionado. Componente que sai do catálogo não pode quebrar documento antigo.

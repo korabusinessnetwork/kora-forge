@@ -220,11 +220,23 @@ export const documentoDesignSchema = z.strictObject({
   }
 });
 
+// Item que saiu do catálogo não corrompe documento antigo (ADR-009, decisão 4): o desenho volta
+// inteiro e o que falta vem nomeado ao lado. Sempre lista, nunca `null` nem ausente, para a UI não
+// ter que checar duas coisas antes de decidir o que mostrar.
+export const pendenciaDesignSchema = z.strictObject({
+  no: slugSchema,
+  tipo: slugSchema,
+  pagina: slugSchema,
+  catalogoDoDocumento: z.number().int().min(1),
+  catalogoDoForge: z.number().int().min(1),
+});
+
 export const registroDesignSchema = z.strictObject({
   versao: z.number().int().min(1),
   ativo: z.boolean(),
   criadoEm: z.string().min(1),
   payload: documentoDesignSchema,
+  pendencias: z.array(pendenciaDesignSchema).default([]),
 });
 
 // Projeto sem documento de design é estado normal, e significa "usei o padrão Kora". Por isso a

@@ -4,7 +4,8 @@ import { obterDesign, salvarDesign, listarVersoesDesign } from './design.js';
 
 const resposta = (data) => ({ status: 200, ok: true, json: async () => ({ data, error: null, meta: { requestId: 'r', duracaoMs: 1 } }) });
 const payload = documentoDesignSchema.parse({ paginas: [{ id: 'inicio', nome: 'Início', rota: '/', regioes: [] }] });
-const registro = { versao: 2, ativo: true, criadoEm: '2026-09-05T00:00:00.000Z', payload };
+// `pendencias` chega no bloco 3: item que saiu do catálogo vem nomeado ao lado do desenho.
+const registro = { versao: 2, ativo: true, criadoEm: '2026-09-05T00:00:00.000Z', payload, pendencias: [] };
 
 beforeEach(() => sessionStorage.setItem('forge.token', 'tok'));
 
