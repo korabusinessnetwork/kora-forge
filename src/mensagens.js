@@ -124,6 +124,7 @@ export const mensagens = {
   },
   campo: {
     padrao: 'Padrão',
+    obrigatorio: 'Este campo é obrigatório no catálogo: em branco, o desenho não salva.',
   },
   selecao: {
     padraoKora: 'padrão Kora',
@@ -253,10 +254,10 @@ export const mensagens = {
   },
   studio: {
     titulo: 'Studio',
-    micro: 'Os tokens do projeto que será gerado. O preview ao lado mostra o efeito enquanto você digita.',
+    micro: 'Monte as páginas do projeto e ajuste os tokens. O que está na tela é o que vai sair no disco.',
     voltar: 'Voltar para o projeto',
     abrir: 'Abrir no Studio',
-    salvar: 'Salvar tokens',
+    salvar: 'Salvar design',
     salvando: 'Salvando…',
     descartar: 'Descartar mudanças',
     naoSalvo: 'Há mudanças que ainda não foram salvas. O preview já mostra, o projeto ainda não.',
@@ -311,7 +312,7 @@ export const mensagens = {
     },
     preview: {
       titulo: 'Preview',
-      micro: 'Uma amostra do projeto com os tokens de agora. As páginas desenhadas entram quando o catálogo chegar.',
+      micro: 'Uma amostra do projeto com os tokens de agora, sem depender de nenhuma página desenhada.',
       regiao: 'Preview do projeto',
       amostra: {
         titulo: 'Título da página',
@@ -325,6 +326,128 @@ export const mensagens = {
         mono: 'src/styles/tokens.css',
         estados: { sucesso: 'Sucesso', aviso: 'Aviso', perigo: 'Erro' },
       },
+    },
+
+    // O rótulo de cada ação, usado nos botões de desfazer e refazer. "Desfazer" sozinho obriga a
+    // pessoa a lembrar o que ela acabou de fazer, que é exatamente a carga que o Forge existe
+    // para tirar.
+    acoes: {
+      adicionarPagina: 'adicionar página',
+      removerPagina: 'remover página',
+      moverPagina: 'mover página',
+      renomearPagina: 'renomear página',
+      trocarRota: 'mudar a rota',
+      adicionar: (nome) => `adicionar ${nome}`,
+      remover: (nome) => `remover ${nome}`,
+      mover: (nome) => `mover ${nome}`,
+      editarProp: (rotulo) => `editar ${rotulo}`,
+      editarToken: (rotulo) => `editar ${rotulo}`,
+      restaurarGrupo: (titulo) => `restaurar ${titulo}`,
+      restaurarTokens: 'restaurar todos os tokens',
+      descartar: 'descartar mudanças',
+    },
+
+    historico: {
+      desfazer: 'Desfazer',
+      refazer: 'Refazer',
+      desfazerCom: (rotulo) => `Desfazer: ${rotulo}`,
+      refazerCom: (rotulo) => `Refazer: ${rotulo}`,
+      nadaParaDesfazer: 'Nada para desfazer',
+      nadaParaRefazer: 'Nada para refazer',
+    },
+
+    layout: {
+      esquerda: 'Estrutura do projeto',
+      direita: 'Ajustes do que está selecionado',
+    },
+
+    camadas: {
+      titulo: 'Camadas',
+      micro: 'A estrutura do projeto: páginas, regiões e componentes, na ordem em que vão sair no código.',
+      arvore: 'Estrutura do projeto',
+      vazio: {
+        titulo: 'Nenhuma página ainda',
+        texto: 'Uma página vira uma rota e um arquivo no projeto gerado.',
+        acao: 'Criar a primeira página',
+      },
+      novaPagina: 'Nova página',
+      nomeDaPrimeira: 'Início',
+      nomeDaProxima: 'Nova página',
+      remover: 'Remover',
+      removerRotulo: (nome) => `Remover ${nome}`,
+      // Ação destrutiva confirma quando leva gente junto. Remover uma folha não pergunta: nada
+      // foi escrito em disco ainda e o desfazer devolve na hora, então perguntar sempre seria
+      // atrito sem proteção nenhuma.
+      confirmarRemocao: (nome, quantos) => `Remover ${nome} e os ${quantos} itens dentro dela?`,
+      confirmarPagina: (nome, quantos) => `Remover a página ${nome} e os ${quantos} itens dentro dela?`,
+      confirmar: 'Remover',
+      cancelar: 'Cancelar',
+      pendente: 'não existe mais neste Forge',
+      mover: {
+        cima: 'Mover para cima',
+        baixo: 'Mover para baixo',
+        entrar: 'Mover para dentro do item de cima',
+        sair: 'Mover para fora',
+      },
+      atalhos: 'Setas andam pela árvore, Alt com as setas move o item selecionado, Delete remove.',
+    },
+
+    paleta: {
+      titulo: 'Adicionar',
+      micro: 'Só aparece aqui o que o catálogo aceita neste ponto. Nada de elemento solto.',
+      vazioSemPagina: 'Crie uma página para começar a montar.',
+      vazioSemSelecao: 'Selecione uma região para colocar componentes dentro dela.',
+      vazioNaoAceita: (nome) => `${nome} não aceita nenhum componente, e o que está em volta também não. Selecione outra região.`,
+      adicionarRotulo: (nome) => `Adicionar ${nome}`,
+    },
+
+    propriedades: {
+      titulo: 'Propriedades',
+      micro: 'O que é editável no item selecionado, do jeito que o catálogo declarou.',
+      semSelecao: 'Selecione uma página, região ou componente nas camadas para editar as propriedades dela.',
+      pagina: {
+        titulo: 'Página',
+        nome: 'Nome da página',
+        nomeMicro: 'Aparece nas camadas e no menu do projeto gerado.',
+        rota: 'Rota',
+        rotaMicro: 'O caminho da página no projeto gerado. Vira a rota do React Router.',
+        rotaInvalida: 'Use um caminho como /, /painel ou /painel/config.',
+        rotaRepetida: (nome) => `A página ${nome} já usa esta rota.`,
+        nomeVazio: 'A página precisa de um nome.',
+      },
+      pendente: {
+        titulo: 'Item que este Forge não conhece',
+        texto: (tipo) => `O catálogo deste Forge não tem "${tipo}". O desenho foi preservado inteiro, mas não dá para editar nem salvar enquanto ele estiver aqui.`,
+        props: 'O que está gravado:',
+      },
+    },
+
+    canvas: {
+      titulo: 'Canvas',
+      regiao: 'Página desenhada',
+      vista: 'O que mostrar',
+      vistaMicro: 'A página desenhada, ou a amostra que mostra os tokens sem depender de página nenhuma.',
+      vistaPagina: 'Página',
+      vistaAmostra: 'Amostra de tokens',
+      zoom: 'Zoom',
+      zoomMicro: 'Muda só o tamanho na tela. Não entra no documento nem no projeto gerado.',
+      selecionar: (nome) => `Selecionar ${nome}`,
+      semPagina: {
+        titulo: 'Nenhuma página para desenhar',
+        texto: 'Crie uma página nas camadas e ela aparece aqui.',
+      },
+      paginaVazia: {
+        titulo: 'Página vazia',
+        texto: 'Adicione uma região pelo painel Adicionar. Região é o que segura o conteúdo.',
+      },
+      desconhecido: (tipo) => `Item "${tipo}", fora do catálogo`,
+    },
+
+    pendencias: {
+      aviso: (quantos) => `Este desenho usa ${quantos} ${quantos === 1 ? 'item que este Forge não conhece' : 'itens que este Forge não conhece'}.`,
+      texto: 'Nada foi perdido: o desenho está inteiro. Para voltar a salvar, remova os itens marcados nas camadas.',
+      naoSalva: 'Não dá para salvar enquanto houver item fora do catálogo.',
+      linha: (tipo, pagina) => `${tipo}, na página ${pagina}`,
     },
   },
   wizard: {

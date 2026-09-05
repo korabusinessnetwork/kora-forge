@@ -1,0 +1,141 @@
+/* Os nove itens do catálogo, desenhados com os tokens do projeto. Zona do projeto (P-06): só
+   --projeto-*, nunca --forge-*. O contorno de seleção e o resto da moldura são da ferramenta e
+   vivem no CanvasStudio, fora desta pasta. */
+
+.cabecalho,
+.rodape {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--projeto-espaco-4);
+  padding: var(--projeto-espaco-4) var(--projeto-espaco-6);
+  background: var(--projeto-cor-superficie);
+}
+
+.cabecalho {
+  border-bottom: 1px solid var(--projeto-cor-borda);
+}
+
+.rodape {
+  border-top: 1px solid var(--projeto-cor-borda);
+  color: var(--projeto-cor-texto-secundario);
+  font-size: var(--projeto-texto-sm);
+  line-height: var(--projeto-altura-sm);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--projeto-espaco-4);
+  padding: var(--projeto-espaco-6);
+}
+
+/* Os três degraus que a prop `espacamento` declara no catálogo. */
+.secao[data-espacamento='compacto'] {
+  gap: var(--projeto-espaco-2);
+  padding: var(--projeto-espaco-4);
+}
+
+.secao[data-espacamento='amplo'] {
+  gap: var(--projeto-espaco-6);
+  padding: var(--projeto-espaco-8);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--projeto-texto-xl);
+  line-height: var(--projeto-altura-xl);
+  font-weight: 600;
+  color: var(--projeto-cor-texto);
+}
+
+/* h2 e h3 descem na escala, para o nível do título ser visível e não só semântico. */
+h3.titulo {
+  font-size: var(--projeto-texto-lg);
+  line-height: var(--projeto-altura-lg);
+}
+
+.texto {
+  margin: 0;
+  font-size: var(--projeto-texto-md);
+  line-height: var(--projeto-altura-md);
+  color: var(--projeto-cor-texto);
+}
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--projeto-espaco-2) var(--projeto-espaco-4);
+  border: 1px solid transparent;
+  border-radius: var(--projeto-raio-md);
+  background: var(--projeto-cor-acento);
+  color: var(--projeto-cor-fundo);
+  font-family: inherit;
+  font-size: var(--projeto-texto-sm);
+  line-height: var(--projeto-altura-sm);
+  font-weight: 600;
+  transition: opacity var(--projeto-motion-rapido);
+}
+
+.botao[data-variante='secundario'] {
+  background: var(--projeto-cor-superficie);
+  color: var(--projeto-cor-texto);
+  border-color: var(--projeto-cor-borda);
+}
+
+.botao[data-variante='fantasma'] {
+  background: transparent;
+  color: var(--projeto-cor-acento);
+}
+
+.imagem {
+  display: block;
+  max-width: 100%;
+  border-radius: var(--projeto-raio-md);
+  background: var(--projeto-cor-superficie);
+  border: 1px solid var(--projeto-cor-borda);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--projeto-espaco-1);
+}
+
+.rotulo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--projeto-espaco-1);
+  font-size: var(--projeto-texto-sm);
+  line-height: var(--projeto-altura-sm);
+  color: var(--projeto-cor-texto);
+}
+
+.entrada {
+  padding: var(--projeto-espaco-2) var(--projeto-espaco-3);
+  background: var(--projeto-cor-fundo);
+  color: var(--projeto-cor-texto);
+  border: 1px solid var(--projeto-cor-borda);
+  border-radius: var(--projeto-raio-sm);
+  font-family: inherit;
+  font-size: var(--projeto-texto-sm);
+  line-height: var(--projeto-altura-sm);
+}
+
+.micro {
+  margin: 0;
+  color: var(--projeto-cor-texto-secundario);
+  font-size: var(--projeto-texto-xs);
+  line-height: var(--projeto-altura-xs);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--projeto-espaco-2);
+  padding: var(--projeto-espaco-4);
+  background: var(--projeto-cor-superficie);
+  border: 1px solid var(--projeto-cor-borda);
+  border-radius: var(--projeto-raio-md);
+  box-shadow: var(--projeto-sombra-2);
+}

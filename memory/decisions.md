@@ -346,3 +346,43 @@ comum transformaria a proteção em obstáculo diário.
 `GET /catalog` devolve nome, microtexto, props e `aceita`, e para por aí. Motivo: a paleta do
 canvas precisa disso; o código de geração é assunto do servidor, e mandá-lo ao browser seria
 superfície a mais sem uso nenhum.
+
+### 2026-09-05, o canvas desenha com um componente React por item, não interpretando o fragmento
+Cada item do catálogo tem duas encarnações: o `fragmento.jsx` que o gerador escreve e um
+renderizador em `src/components/studio/itens/`. Motivo: interpretar o fragmento no browser seria
+`new Function` com outro nome, contra a regra de segurança; uma caixa genérica com o nome do item
+não seria preview de nada. O risco das duas encarnações saírem de sincronia é real e por isso a
+guarda é mecânica: `itens/registro.test.jsx` lê o catálogo do disco e cobra ids idênticos, toda
+prop declarada lida, nenhuma prop a mais, e `children` se e somente se o item aceita filhos.
+
+### 2026-09-05, "zoom, pan e snap" do ADR-005 não sobreviveu ao ADR-009
+O backlog pedia canvas com zoom, pan e snap em DOM absoluto. A decisão 2 do ADR-009 já tinha
+fechado que o documento não guarda coordenada, e as duas coisas não convivem. Prevaleceu o
+ADR-009: página é pilha em fluxo, o snap é a vaga na árvore que o `aceita` do pai autoriza, o pan
+é rolagem e o zoom são degraus nomeados (50, 75, 100, 125), aplicados por `data-zoom` em CSS.
+Régua não existe porque não existe posição livre para medir. Nota registrada no próprio ADR-005.
+
+### 2026-09-05, sem arrastar e soltar no Studio
+Mover é reordenar array, e isso já é feito por Alt com as setas e por botão nomeado, com o
+movimento inválido chegando desabilitado. Motivo: arrastar seria um segundo caminho para a mesma
+primitiva, com alvo de soltar, autoscroll e acessibilidade próprios para manter, e o backlog nunca
+pediu. Se entrar um dia, entra por cima da mesma função, não no lugar dela.
+
+### 2026-09-05, o painel de camadas é o controle acessível; o canvas é conveniência de mouse
+A árvore ARIA com roving tabindex faz tudo: andar, selecionar, mover, remover. O envoltório de
+cada nó no canvas não é focável. Motivo: dois alvos de foco para a mesma coisa dariam duas ordens
+de tabulação concorrentes sem acrescentar capacidade nenhuma.
+
+### 2026-09-05, o palco do preview virou o chão compartilhado da zona do projeto
+`PalcoProjeto` saiu de dentro do `PreviewProjeto` e passou a `itens/`, usado também pelo canvas.
+Motivo: com o canvas desenhando o projeto, existiriam dois lugares aplicando tokens em tempo de
+execução, e o segundo poderia divergir do primeiro em silêncio. A guarda de namespace (P-06) foi
+ampliada junto: a zona do projeto agora é `PreviewProjeto/` mais `itens/`, varrida nos dois
+sentidos.
+
+### 2026-09-05, desfazer coalesce por campo, não por tempo
+Digitar vinte letras no mesmo campo é um desfazer só. A junção é por marca (`prop:<id>:<prop>`,
+`token:<caminho>`, `pagina:<id>:<campo>`), não por janela de tempo. Motivo: timer tornaria o
+histórico dependente de relógio e portanto não determinístico, e o mesmo roteiro daria histórias
+diferentes em máquinas diferentes. Tokens passam pela mesma pilha do desenho, porque o documento
+é um só.

@@ -1,19 +1,12 @@
-/* Palco do preview. Só tokens do projeto (--projeto-*), nunca --forge-* (P-06).
-   Fundo, cor e fonte são declarados, não herdados: herdar mostraria o projeto com a cara da
-   ferramenta. Nada de :root, html ou body aqui, que é por onde o vazamento aconteceria. */
+/* A amostra de tokens. O chão isolado (fundo, cor, fonte) mora no PalcoProjeto, que este
+   componente e o canvas compartilham. Aqui fica só o arranjo dos elementos da amostra.
+   Zona do projeto: só --projeto-*, nunca --forge- (P-06). */
 
-.palco {
+.amostra {
   display: flex;
   flex-direction: column;
   gap: var(--projeto-espaco-5);
   padding: var(--projeto-espaco-6);
-  background: var(--projeto-cor-fundo);
-  color: var(--projeto-cor-texto);
-  font-family: var(--projeto-fonte-ui);
-  font-size: var(--projeto-texto-md);
-  line-height: var(--projeto-altura-md);
-  border-radius: var(--projeto-raio-lg);
-  min-height: 100%;
 }
 
 .titulo {

@@ -121,11 +121,22 @@ editá-lo direto deixaria o arquivo gerado internamente incoerente.
 Regra herdada do padrão Kora: no projeto gerado, esses tokens vêm do tenant em tempo de
 execução, nunca hardcodados. O Studio produz o **default** do tenant, não uma marca fixa.
 
-### Como o preview fica isolado
+### Como a zona do projeto fica isolada
 
-O preview roda em um container próprio que declara fundo, cor e fonte a partir dos tokens
-do projeto, em vez de herdar os da ferramenta. Os valores entram como custom properties no
-próprio elemento, porque são dado em tempo de execução e não têm como sair de arquivo
-estático; é a **única** exceção à regra de nada de estilo inline, ela vive em um ponto só,
-e a guarda `src/components/studio/namespaces.test.js` varre os dois sentidos: nada de
-`--forge-*` dentro do preview, nada de `--projeto-*` fora dele.
+Tudo que mostra a cara do projeto roda dentro do `PalcoProjeto`, um container que declara
+fundo, cor e fonte a partir dos tokens do projeto, em vez de herdar os da ferramenta. Os
+valores entram como custom properties no próprio elemento, porque são dado em tempo de
+execução e não têm como sair de arquivo estático; é a **única** exceção à regra de nada de
+estilo inline, e ela vive em um arquivo só.
+
+A zona do projeto é `src/components/studio/PreviewProjeto/` mais `src/components/studio/itens/`:
+a amostra de tokens e os renderizadores dos itens do catálogo, que o canvas desenha. O palco
+é o chão dos dois, para não existirem dois lugares onde o preview pode passar a mentir.
+
+A guarda `src/components/studio/namespaces.test.js` varre os dois sentidos: nada de
+`--forge-*` dentro da zona, nada de `--projeto-*` fora dela, e nenhum arquivo da zona
+escrevendo em `:root`, `html` ou `body`.
+
+A moldura de seleção que o canvas desenha em volta de cada nó é da **ferramenta**, não do
+projeto: ela mora em `CanvasStudio/`, em `--forge-*`. Os dois namespaces se encostam em uma
+linha só, a que renderiza o item dentro do envoltório.

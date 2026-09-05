@@ -1,0 +1,32 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+}
+
+.colunas {
+  display: grid;
+  gap: var(--forge-space-5);
+  align-items: start;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2.4fr) minmax(280px, 1.2fr);
+}
+
+.esquerda,
+.direita {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+  min-width: 0;
+}
+
+.centro {
+  min-width: 0;
+}
+
+/* Abaixo disso as três colunas não cabem sem espremer o canvas a ponto de ele deixar de mostrar
+   o que mostra. Vira pilha, na ordem em que se trabalha. */
+@media (max-width: 1180px) {
+  .colunas {
+    grid-template-columns: 1fr;
+  }
+}

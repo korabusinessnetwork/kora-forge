@@ -1,0 +1,108 @@
+/* A moldura do canvas é da ferramenta: só --forge-*. O que está dentro do palco é do projeto e
+   mora em itens/, com --projeto-*. Os dois se encostam no envoltório de cada nó e em nenhum
+   outro lugar (P-06). */
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-3);
+  min-width: 0;
+  min-height: 0;
+}
+
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--forge-space-4);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--forge-text-lg);
+  line-height: var(--forge-leading-lg);
+}
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--forge-space-4);
+}
+
+.moldura {
+  overflow: auto;
+  min-height: 320px;
+  padding: var(--forge-space-3);
+  background: var(--forge-surface-2);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+}
+
+/* Zoom em degraus, um seletor por degrau, para não haver estilo montado em tempo de execução:
+   o único ponto do produto que faz isso é o palco, porque valor de token é dado. */
+.zoom {
+  transform-origin: top left;
+  transition: transform var(--forge-motion-base);
+}
+
+.zoom[data-zoom='50'] { transform: scale(0.5); width: 200%; }
+.zoom[data-zoom='75'] { transform: scale(0.75); width: 133.33%; }
+.zoom[data-zoom='100'] { transform: scale(1); width: 100%; }
+.zoom[data-zoom='125'] { transform: scale(1.25); width: 80%; }
+
+.palco {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.no {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: var(--forge-radius-sm);
+  cursor: pointer;
+}
+
+.no[data-selecionado='sim'] {
+  border-color: var(--forge-accent);
+  box-shadow: var(--forge-focus-ring);
+}
+
+.desconhecido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  padding: var(--forge-space-4);
+  border: 1px dashed var(--forge-warning);
+  border-radius: var(--forge-radius-md);
+}
+
+.desconhecidoTexto {
+  margin: 0;
+  color: var(--forge-warning);
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+}
+
+.estado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  padding: var(--forge-space-6);
+  text-align: center;
+  color: var(--forge-text-muted);
+}
+
+.estadoTitulo {
+  margin: 0;
+  color: var(--forge-text);
+  font-weight: 600;
+}
+
+.estadoTexto {
+  margin: 0;
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}

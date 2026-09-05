@@ -1,22 +1,18 @@
-import { variaveisDoPreview } from '../../../features/studio/campos.js';
+import PalcoProjeto from '../itens/PalcoProjeto.jsx';
 import { mensagens } from '../../../mensagens.js';
 import estilos from './PreviewProjeto.module.css';
 
 const m = mensagens.studio.preview;
 
-// Organism. O container isolado do Studio (P-06). Recebe os tokens como dado e os aplica como
-// custom properties no próprio elemento, com o alias `--projeto-*`.
+// Organism. A amostra dos tokens: um punhado de elementos que mostram cor, fonte, escala, raio e
+// sombra de uma vez, sem depender de nenhuma página desenhada. Serve para ajustar token sem ter
+// que montar uma página só para ver o efeito.
 //
-// Este é o único ponto do produto que monta estilo em tempo de execução, e a razão é que valor de
-// token é dado: não existe arquivo estático que saiba de antemão a cor que a pessoa vai escolher.
-// A exceção fica aqui e só aqui. Todo o resto é CSS Module, como qualquer componente.
-//
-// O preview declara fundo, cor e fonte em vez de herdar os da ferramenta, senão mostraria o
-// projeto com a cara do Forge e mentiria sobre o que vai sair no disco. Pelo mesmo motivo, nenhum
-// `--forge-*` entra aqui: a moldura em volta é da página, este arquivo é só o palco.
+// O isolamento (P-06) mora no `PalcoProjeto`, que este componente e o canvas compartilham: um
+// palco só, para não existir dois lugares onde o preview pode passar a mentir.
 export default function PreviewProjeto({ tokens }) {
   return (
-    <div className={estilos.palco} style={variaveisDoPreview(tokens)} role="region" aria-label={m.regiao}>
+    <PalcoProjeto tokens={tokens} rotulo={m.regiao} className={estilos.amostra}>
       <h3 className={estilos.titulo}>{m.amostra.titulo}</h3>
       <p className={estilos.secundario}>{m.amostra.secundario}</p>
 
@@ -42,6 +38,6 @@ export default function PreviewProjeto({ tokens }) {
         <span className={estilos.aviso}>{m.amostra.estados.aviso}</span>
         <span className={estilos.perigo}>{m.amostra.estados.perigo}</span>
       </div>
-    </div>
+    </PalcoProjeto>
   );
 }
