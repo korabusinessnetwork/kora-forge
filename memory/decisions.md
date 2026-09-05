@@ -251,3 +251,35 @@ trabalho; Linear, Raycast e Vercel Dashboard como tom, sem cópia visual. Confir
 da Fase 2, porque o Studio cristaliza essas escolhas em tokens exportáveis e mudar depois custaria
 retrabalho na UI da Fase 1, que já foi construída sobre elas.
 
+
+### 2026-09-05, documento de design é árvore aninhada sem coordenada (ADR-009)
+Página é pilha de regiões em ordem de fluxo, região contém componentes em ordem de fluxo, e a
+ordem dos irmãos é a ordem do array. Motivo: campo de ordenação separado é segunda fonte de verdade
+esperando dessincronizar, e coordenada faria a exportação virar tradução de pixel para layout, que
+é exatamente o problema que o ADR-005 recusou. O "DOM absoluto" do ADR-005 é técnica de renderizar
+a superfície do canvas, não formato de gravação. Custo aceito: sem elemento solto, para sempre.
+
+### 2026-09-05, o vocabulário canônico dos tokens é o do arquivo gerado
+O documento grava `tokens.cor.fundo` e `tokens.espaco[1]`, os mesmos nomes que o `tokens.css` já
+escreve e que os cinco templates já consomem. `--projeto-*` do `docs/02` fica como alias de preview
+dentro do Forge. Motivo: sem um canônico, o Studio editaria uma coisa e o projeto nasceria com
+outra. A tradução é `listarTokens()`, tabela explícita, com teste de correspondência exata nas duas
+pontas contra o template. `--anel-foco` fica de fora numa allow-list: é composto de outros dois
+tokens, e editá-lo direto deixaria o CSS gerado internamente incoerente.
+
+### 2026-09-05, a chave `design` só entra no hash do plano quando existe documento
+Nunca como `design: null`. Motivo: `serializarEstavel` inclui a chave, então um `null` no insumo
+mudaria o hash de todo projeto que nunca abriu o Studio, e a Fase 1 regrediria em silêncio. O valor
+do hash sem design foi medido no commit anterior ao bloco, conferido depois dele e congelado em
+teste: `sha256:175a2bf0…`. Guarda de não-regressão, não decoração.
+
+### 2026-09-05, `design_documents` não ganhou coluna nova
+A versão ativa é a de maior número, e `paginas_json` guarda `{ catalogo, paginas }`, não só o array
+de páginas. Motivo: gravar a versão do catálogo sem abrir migration numa tabela que já existia
+desde o schema inicial, e um estado a menos (`ativo`) é um estado a menos para dessincronizar.
+
+### 2026-09-05, campo desconhecido passou a dizer qual campo é
+`formatarIssues` quebra `unrecognized_keys` em uma issue por campo, com caminho completo
+(`paginas.0.regioes.0.x`) e mensagem em português. Motivo: o Zod devolve o caminho do objeto e o
+nome do campo só dentro de uma mensagem em inglês, e erro que não diz qual campo é obriga a
+adivinhar. Vale para toda rota da API local, não só para as de design.

@@ -12,6 +12,7 @@ import { criarServicoSettings } from './modules/settings/servico.js';
 import { criarServicoPresets } from './modules/presets/servico.js';
 import { criarServicoProjetos } from './modules/projetos/servico.js';
 import { criarServicoRegras } from './modules/regras/servico.js';
+import { criarServicoDesign } from './modules/design/servico.js';
 import { criarServicoGerador } from './modules/gerador/servico.js';
 import { criarServicoRunner } from './modules/runner/servico.js';
 import { criarTransmissor } from './lib/transmissor.js';
@@ -20,6 +21,7 @@ import rotasSettings from './modules/settings/rotas.js';
 import rotasPresets from './modules/presets/rotas.js';
 import rotasProjetos from './modules/projetos/rotas.js';
 import rotasRegras from './modules/regras/rotas.js';
+import rotasDesign from './modules/design/rotas.js';
 import rotasGerador from './modules/gerador/rotas.js';
 import rotasRunner from './modules/runner/rotas.js';
 
@@ -75,10 +77,11 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
   const presets = criarServicoPresets({ db });
   const regras = criarServicoRegras({ db, registrarEvento });
   const projetos = criarServicoProjetos({ db, presets, registrarEvento });
+  const design = criarServicoDesign({ db, projetos, registrarEvento });
   const gerador = criarServicoGerador({ regras });
   const transmissor = criarTransmissor();
   const runner = criarServicoRunner({ db, transmissor, registrarEvento, log: app.log });
-  app.decorate('servicos', { settings, presets, projetos, regras, gerador, runner, transmissor, registrarEvento });
+  app.decorate('servicos', { settings, presets, projetos, regras, design, gerador, runner, transmissor, registrarEvento });
   app.addHook('onClose', async () => runner.encerrarTudo());
 
   app.register(fastifyWebsocket);
@@ -119,8 +122,9 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
     instancia.register(rotasPresets, { presets });
     instancia.register(rotasProjetos, { projetos, presets, regras });
     instancia.register(rotasRegras, { regras, projetos, presets });
-    instancia.register(rotasGerador, { gerador, projetos, presets, settings });
-    instancia.register(rotasRunner, { runner, gerador, projetos, presets, settings, transmissor });
+    instancia.register(rotasDesign, { design });
+    instancia.register(rotasGerador, { gerador, projetos, presets, design, settings });
+    instancia.register(rotasRunner, { runner, gerador, projetos, presets, design, settings, transmissor });
     for (const plugin of pluginsApi) instancia.register(plugin);
   }, { prefix: '/api' });
 

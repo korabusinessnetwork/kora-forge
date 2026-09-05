@@ -14,8 +14,8 @@ não desenha.
 
 | Bloco | Estado | Spec |
 |---|---|---|
-| 1, documento de design e contrato | próximo | |
-| 2, painel de tokens com preview | a fazer | |
+| 1, documento de design e contrato | **entregue** | [`fase2-bloco1-documento-de-design.md`](../../specs/fase2-bloco1-documento-de-design.md) |
+| 2, painel de tokens com preview | próximo | |
 | 3, catálogo de regiões e componentes | a fazer | |
 | 4, canvas | a fazer | |
 | 5, etapa Design no wizard | a fazer | |
@@ -53,10 +53,10 @@ Sem UI. A camada que tudo o mais assume.
 ### 2. Painel de tokens com preview ao vivo
 
 - `PainelTokens` edita os tokens do projeto, com preview que atualiza enquanto se digita.
-- **Item a resolver na spec**: hoje `docs/02` chama esses tokens de `--projeto-*`, e o
-  `tokens.css` que o gerador escreve usa `--cor-fundo`, `--espaco-1`, `--fonte-ui`. São os dois
-  lados da mesma coisa e o mapeamento precisa ser explícito e testado, senão o Studio edita uma
-  coisa e o projeto nasce com outra.
+- **Resolvido no bloco 1 (ADR-009)**: o vocabulário canônico é o do arquivo gerado
+  (`--cor-fundo`, `--espaco-1`, `--fonte-ui`), `--projeto-*` é alias de preview, e a tradução é a
+  tabela `listarTokens()` de `shared/schemas/design.js`, com teste de correspondência exata nas
+  duas pontas contra o `tokens.css` do template.
 - Preview roda em container isolado. Nenhum token de projeto vaza para a UI da ferramenta, e a
   regra vira teste de arquitetura, como o de `fetch` e `WebSocket` da Fase 1.
 - Toda pergunta com default, e "usar o padrão Kora" primeiro, como manda o princípio nº 1.

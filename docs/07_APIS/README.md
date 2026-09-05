@@ -67,9 +67,11 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | GET | `/projects/:id/regras` | hits gravados, sem reavaliar |
 | POST | `/projects/:id/regras/avaliar` | reavalia tudo e devolve `{ hits, bloqueios, podeMaterializar }` |
 | PATCH | `/projects/:id/regras/:hitId` | `{ estado, justificativa? }`. `dispensado` exige justificativa de 10 caracteres e regra dispensável |
-| POST | `/projects/:id/design` | salva o design_document do Studio |
+| GET | `/projects/:id/design` | `{ design }` com o documento ativo, ou `{ design: null }` quando o projeto usa o padrão Kora. Ausência é estado normal, **não** 404 |
+| POST | `/projects/:id/design` | salva o documento do Studio. Cria a versão n+1 e a anterior fica no histórico. Corpo idêntico ao ativo **não** versiona de novo |
+| GET | `/projects/:id/design/versoes` | `[{ versao, ativo, criadoEm }]`, da mais nova para a mais antiga |
 | POST | `/projects/:id/plano` | **dry-run**. Devolve `{ hashBlueprint, raiz, arquivos, comandos, pendencias, totais }` e não escreve nada. Recusa com `FORGE_PLAN_BLOQUEADO` se houver bloqueio aberto, e com `FORGE_VALIDATION` em `workspace` se a pasta raiz não estiver configurada |
-| POST | `/projects/:id/materializar` | recebe **só** `{ hashBlueprint }`. O servidor regera o plano e só executa se o hash bater, senão `FORGE_PLAN_STALE`. Checa requisitos antes de escrever qualquer byte, escreve os arquivos e começa a fila de comandos |
+| POST | `/projects/:id/materializar` | recebe **só** `{ hashBlueprint }`. O servidor regera o plano, com o documento de design ativo, e só executa se o hash bater, senão `FORGE_PLAN_STALE`. Checa requisitos antes de escrever qualquer byte, escreve os arquivos e começa a fila de comandos |
 | GET | `/projects/:id/materializar` | estado da materialização em andamento, ou `null` |
 | POST | `/projects/:id/materializar/decidir` | `{ acao }` ∈ {repetir, pular, abortar}. Só vale quando a materialização está parada em falha |
 | WS | `/ws/runs/:runId` | log ao vivo. Envia o histórico já gravado ao conectar. O browser não permite header customizado no handshake, então o token vai no subprotocolo (`forge-token, <token>`), e a mesma guarda das rotas se aplica |
@@ -91,6 +93,45 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | GET | `/builds/:id/ciclos` | ciclo de aprendizado: rodadas de review, achados, correções (Fase 6) |
 | GET | `/relatorios/resumo` | agregado do painel: por projeto e por modelo (Fase 6) |
 | WS | `/ws/builds` | atualização ao vivo do painel (Fase 6) |
+
+## Documento de design, `/api/projects/:id/design`
+
+Contrato do Studio (**ADR-009**). Dado declarativo versionado, nunca código.
+
+**Corpo do `POST`**, e também o `payload` que volta no `GET`:
+
+| Campo | Tipo | O que é |
+|---|---|---|
+| `catalogo.versao` | inteiro ≥ 1 | versão do catálogo de componentes que criou o documento. Maior que a deste Forge é recusa com as duas versões na mensagem |
+| `tokens.cor` | 9 cores | `fundo`, `superficie`, `borda`, `texto`, `textoSecundario`, `acento`, `sucesso`, `aviso`, `perigo` |
+| `tokens.corEscuro` | 5 cores | o que o bloco `prefers-color-scheme: dark` do `tokens.css` sobrescreve |
+| `tokens.fonte` | `ui`, `mono` | famílias tipográficas |
+| `tokens.texto` / `tokens.altura` | `xs`…`xl` | escala tipográfica e a entrelinha de cada degrau |
+| `tokens.espaco` | lista de 8 | a posição **é** o número do token: `espaco[0]` é `--espaco-1` |
+| `tokens.raio` | `sm`, `md`, `lg` | raios de canto |
+| `tokens.sombra` | lista de 2 | `sombra[0]` é `--sombra-1` |
+| `tokens.motion` | `rapido`, `base` | durações |
+| `paginas[]` | lista | `{ id, nome, rota, regioes }` |
+| `paginas[].regioes[]` | árvore | nó `{ id, tipo, props, filhos }`, e `filhos` são nós iguais |
+
+**Resposta**: `{ design }`, com `{ versao, ativo, criadoEm, payload }`, ou `design: null`.
+
+**O que o contrato recusa, e por quê**
+
+- **Campo a mais, em qualquer nível.** O erro nomeia o caminho completo, `paginas.0.regioes.0.x`.
+- **Coordenada.** Não existe `x`, `y`, `largura` nem `topo`: posição é a ordem do array (ADR-009).
+- **Campo de ordenação.** Nada de `ordem` ou `paiId`. Duas fontes de verdade dessincronizam.
+- **Árvore fundo demais.** Máximo de 6 níveis, com mensagem legível em vez de estouro de pilha.
+- **`id` repetido** em qualquer lugar do documento, e **rota repetida** entre páginas.
+- **Rota fora do formato.** `/`, `/painel` e `/painel/config` valem; `painel`, `/Painel` e `/painel/` não.
+- **Valor de token em branco**, que sairia como CSS quebrado no projeto gerado.
+
+**Todo campo tem default**, então `POST` com `{}` é válido e devolve o padrão Kora inteiro: o
+Studio salva enquanto a pessoa desenha, e documento pela metade não pode ser erro.
+
+**O documento entra no hash do plano.** Redesenhar invalida plano já aprovado, e materializar com
+o hash velho responde `FORGE_PLAN_STALE` sem escrever byte nenhum. Projeto **sem** documento gera
+exatamente o mesmo hash de antes da Fase 2: a chave só entra no insumo quando existe documento.
 
 ## Log ao vivo, `/api/ws/runs/:runId`
 

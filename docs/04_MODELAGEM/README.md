@@ -33,7 +33,7 @@ settings (chave-valor)
 | `presets` | Os menus. Builtin (versionado no repo) ou custom (do usuário) |
 | `projects` | Um projeto criado pelo Forge, com caminho em disco e status |
 | `blueprints` | Estado completo do projeto, versionado. Um projeto tem N versões, uma ativa |
-| `design_documents` | Saída do Studio: tokens, páginas e layout |
+| `design_documents` | Saída do Studio: tokens, páginas e hierarquia, versionado. Projeto **sem** documento é estado normal, e quer dizer "usei o padrão Kora" |
 | `api_templates` | Modelos de integração (Supabase, Stripe, WhatsApp, Anthropic, etc.) |
 | `api_connections` | Uma conexão configurada pelo usuário. **Nunca guarda o segredo** |
 | `vault_entries` | O segredo criptografado, ligado à conexão. AES-256-GCM |
@@ -50,12 +50,42 @@ settings (chave-valor)
 ## Invariantes
 
 1. Um projeto tem exatamente um blueprint ativo. Salvar cria versão nova, não sobrescreve.
+1.1. `design_documents` **não tem coluna `ativo`**, e não precisa: a versão ativa é sempre a de
+   maior número. Um estado a menos é um estado a menos para dessincronizar.
 2. `api_connections.status` só vira `ativa` depois de um teste de conexão bem-sucedido.
 3. `vault_entries` nunca é lido por rota que responda ao front. Só o módulo Cofre acessa.
 4. `command_runs.cwd` é sempre validado contra o workspace antes de gravar.
 5. `events` é append-only. Nunca é atualizado nem apagado.
 6. Um `rule_hit` por par projeto e regra, garantido por índice único. Reavaliar atualiza o registro, nunca duplica.
 6. Apagar projeto no Forge não apaga a pasta em disco. São coisas separadas de propósito.
+
+## Ciclo de vida do documento de design (ADR-009)
+
+O documento é a saída do Studio e a segunda entrada do gerador, ao lado do blueprint. São **dois
+ciclos de vida diferentes**, e é por isso que são duas tabelas:
+
+| | `blueprints` | `design_documents` |
+|---|---|---|
+| Quem escreve | o wizard | o Studio |
+| Quando versiona | a cada avanço de etapa | a cada sessão de desenho |
+| Existe sempre? | sim, desde o `POST /projects` | não. Ausência quer dizer "padrão Kora" |
+| Versão ativa | coluna `ativo` | a de maior número |
+
+**Como o documento ocupa as colunas.** `tokens_json` guarda o grupo `tokens`. `paginas_json`
+guarda a parte estrutural inteira, `{ catalogo, paginas }`, e não só o array de páginas: é o que
+permite gravar a versão do catálogo sem abrir migration numa tabela que já existe.
+
+**Salvar.** `POST /projects/:id/design` grava a versão n+1 e emite `design.salvo`. Corpo idêntico
+ao documento ativo **não** cria versão nova, porque o Studio salva sozinho enquanto a pessoa
+desenha e o histórico encheria de versão igual. Projeto arquivado recusa, e manda restaurar antes.
+
+**Relação com o plano.** O documento entra no hash do plano, então redesenhar invalida plano já
+aprovado. A chave só entra no insumo do hash quando existe documento: projeto que nunca abriu o
+Studio gera exatamente o mesmo plano de antes da Fase 2, byte a byte.
+
+**Compatibilidade.** `catalogo.versao` maior que a deste Forge é recusa com as duas versões na
+mensagem, nunca abertura pela metade. Componente que sai do catálogo não reescreve nem apaga
+documento antigo: vira pendência declarada no plano, como template ausente já vira hoje.
 
 ## Extensão prevista, Fase 6 (ADR-008, proposto)
 

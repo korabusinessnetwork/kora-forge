@@ -15,6 +15,7 @@ descartada e consequência de longo prazo mora aqui.
 | [006](adr-006-cofre-de-segredos.md) | Cofre local de segredos | Aceito | 2026-09-02 |
 | [007](adr-007-presets-declarativos.md) | Presets declarativos versionados | Aceito | 2026-09-02 |
 | [008](adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto | 2026-09-02 |
+| [009](adr-009-serializacao-do-design.md) | Serialização do documento de design | Proposto | 2026-09-05 |
 
 ## Como escrever um ADR
 
@@ -30,5 +31,5 @@ descartada e consequência de longo prazo mora aqui.
 |---|---|
 | Empacotar como app desktop (Tauri) | se e quando a Fase 5 justificar |
 | Isolar o runner em container | se surgir necessidade de rodar preset de terceiro |
-| Formato de exportação do Studio para JSX | Fase 2, ao definir a serialização de layout |
+| Formato de exportação do Studio para JSX | resolvido na **ADR-009** |
 | Estratégia de migração do blueprint entre versões de preset | Fase 5 |

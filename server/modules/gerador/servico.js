@@ -95,7 +95,7 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
     });
   }
 
-  function gerarPlano({ projeto, preset, blueprint, workspace }) {
+  function gerarPlano({ projeto, preset, blueprint, design = null, workspace }) {
     if (projeto.status === 'arquivado') throw erroCampo('projeto', 'Projeto arquivado. Restaure antes de gerar o plano.');
     if (!workspace) throw erroCampo('workspace', 'Configure o workspace em Configurações antes de gerar o plano. É a pasta onde os projetos nascem.');
     if (!fs.existsSync(workspace)) throw erroCampo('workspace', 'A pasta do workspace não existe mais. Confira o caminho em Configurações.');
@@ -156,11 +156,19 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
         return { caminho: destino, acao, tamanho: tamanhoEm(conteudo), tamanhoAtual, template, conteudo };
       });
 
-    const hash = createHash('sha256').update(serializarEstavel({
+    // Insumo do hash. O documento de design entra aqui porque redesenhar tem que invalidar plano
+    // já aprovado, senão o servidor executaria algo diferente do que a pessoa viu (ADR-002).
+    //
+    // A chave só entra quando existe documento, e nunca como `design: null`. Projeto sem Studio
+    // precisa gerar o mesmo hash de antes da Fase 2, byte a byte: um `null` no insumo mudaria o
+    // hash de todo projeto que nunca abriu o Studio, e a Fase 1 regrediria em silêncio.
+    const insumo = {
       blueprint: blueprint.payload,
       preset: { id: preset.id, versao: preset.versao },
       templates: usados.map((template) => ({ id: template.id, versao: template.versao })),
-    })).digest('hex');
+    };
+    if (design) insumo.design = { versao: design.versao, payload: design.payload };
+    const hash = createHash('sha256').update(serializarEstavel(insumo)).digest('hex');
 
     return {
       hashBlueprint: `sha256:${hash}`,
