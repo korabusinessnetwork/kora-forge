@@ -61,7 +61,7 @@ Nenhum. Projeto ainda sem código.
 
 ### R-07, `npm install` do projeto gerado falha com npm 10.9.7
 
-**Severidade**: alta. **Status**: aberto, com workaround. **Registrado em**: 2026-09-03.
+**Severidade**: alta. **Status**: fechado em 2026-09-05, por decisão do dono. **Registrado em**: 2026-09-03.
 
 `npm install` falha com `Cannot read properties of null (reading 'edgesOut')` em qualquer
 `package.json` que dependa de `vitest@4.1.11`. Repro mínimo, sem nada do Forge:
@@ -83,9 +83,14 @@ passa e `npm run dev` responde 200, verificado em 2026-09-03.
 declara. Não é defeito do template: o `package.json` gerado é válido e a mesma falha atinge o
 Forge.
 
-**O que fazer no bloco 7**: decidir se o runner detecta a falha e tenta o fallback, ou se o preset
-passa a declarar a flag. Nenhuma das duas foi decidida, e a decisão é do dono, porque
-`--legacy-peer-deps` afrouxa a resolução de peers em todo projeto gerado.
+**Fechamento, 2026-09-05.** O dono decidiu **exigir npm 11 no preset**, e não a flag nem o
+fallback no runner. Os três builtins passaram a declarar `{ "bin": "npm", "min": "11" }` e foram
+para a versão 2. Motivo: com npm 11.16.0 o `npm install` do projeto gerado passa limpo, então o
+defeito é do resolvedor do npm 10, não do template, e `--legacy-peer-deps` afrouxaria a resolução
+de peers em **todo** projeto gerado para consertar uma versão específica de ferramenta. O runner já
+checa requisitos antes de escrever qualquer byte (RN-06.5), então quem tem npm 10 é avisado na
+largada, com nome e versão, em vez de descobrir no meio da fila. Fallback dentro do runner foi
+descartado por conflitar com o ADR-002: o que roda tem que ser o que o plano mostrou.
 
 ### R-08, `npm` e `npx` não nascem no Windows: `spawn npm ENOENT`
 

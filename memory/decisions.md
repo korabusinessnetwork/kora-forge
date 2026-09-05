@@ -237,3 +237,17 @@ Na Fase 1 o conflito é declarado no `PainelPlano` como ação de sobrescrever, 
 Motivo: o critério de aceite da fase não pede diff linha a linha, e o caso comum de materialização
 é pasta nova, sem conflito nenhum. Registrado em `docs/06_COMPONENTES`.
 
+### 2026-09-05, R-07 fechado exigindo npm 11 no preset, não afrouxando peers
+Os três builtins declaram `{ "bin": "npm", "min": "11" }` e foram para a versão 2. Motivo: o
+`npm install` do projeto gerado passa limpo em npm 11.16.0, então o defeito é do resolvedor do npm
+10.9.7, e `--legacy-peer-deps` consertaria uma versão de ferramenta afrouxando a resolução de peers
+em todo projeto que o Forge gerar, para sempre. Requisito é checado antes de qualquer escrita, então
+a máquina com npm 10 recebe aviso na largada. Fallback automático no runner foi descartado por
+conflitar com o ADR-002: o comando que roda tem que ser o que o plano mostrou. Decisão do dono.
+
+### 2026-09-05, identidade visual confirmada, sai de [ASSUMIDO]
+Tema escuro por padrão com alternância para claro, densidade alta, estética de ferramenta de
+trabalho; Linear, Raycast e Vercel Dashboard como tom, sem cópia visual. Confirmado pelo dono antes
+da Fase 2, porque o Studio cristaliza essas escolhas em tokens exportáveis e mudar depois custaria
+retrabalho na UI da Fase 1, que já foi construída sobre elas.
+

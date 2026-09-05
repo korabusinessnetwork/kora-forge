@@ -22,8 +22,10 @@ function workspace() {
 const post = (ctx, url, payload) => ctx.app.inject({ method: 'POST', url, headers: ctx.cabecalhos, payload });
 const patch = (ctx, url, payload) => ctx.app.inject({ method: 'PATCH', url, headers: ctx.cabecalhos, payload });
 
-const blueprintSite = (extra = {}) => ({
-  preset: { id: 'criar-site', versao: 1 },
+// A versão do preset vem do projeto criado, nunca cravada aqui: bumpar um builtin não pode
+// quebrar teste que não fala de versão.
+const blueprintSite = (projeto, extra = {}) => ({
+  preset: { id: projeto.presetId, versao: projeto.presetVersao },
   etapaAtual: 'materializar',
   etapasConcluidas: ['identidade', 'escopo', 'seguranca', 'fundacao', 'materializar'],
   assumidas: ['design'],
@@ -38,12 +40,12 @@ const blueprintSite = (extra = {}) => ({
   ...extra,
 });
 
-async function projetoPronto(ctx, { ws, nome = 'Site da Kora', blueprint = blueprintSite() } = {}) {
+async function projetoPronto(ctx, { ws, nome = 'Site da Kora', blueprint = null } = {}) {
   await patch(ctx, '/api/settings', { workspace: ws });
   const criado = await post(ctx, '/api/projects', { nome, presetId: 'criar-site' });
   expect(criado.statusCode).toBe(201);
   const projeto = criado.json().data.projeto;
-  const salvo = await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprint);
+  const salvo = await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprint ?? blueprintSite(projeto));
   expect(salvo.statusCode).toBe(200);
   return projeto;
 }
@@ -183,7 +185,7 @@ describe('POST /projects/:id/plano', () => {
     const ws = workspace();
     const projeto = await projetoPronto(ctx, { ws });
     const antes = (await gerarPlano(ctx, projeto.id)).json().data.hashBlueprint;
-    const outro = blueprintSite();
+    const outro = blueprintSite(projeto);
     outro.respostas.identidade.essencia = 'Outra coisa.';
     await post(ctx, `/api/projects/${projeto.id}/blueprint`, outro);
     const depois = (await gerarPlano(ctx, projeto.id)).json().data;
@@ -219,7 +221,7 @@ describe('recusas do plano', () => {
     const ctx = novo();
     const criado = await post(ctx, '/api/projects', { nome: 'Sem Workspace', presetId: 'criar-site' });
     const projeto = criado.json().data.projeto;
-    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintSite());
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintSite(projeto));
     const resposta = await gerarPlano(ctx, projeto.id);
     expect(resposta.statusCode).toBe(400);
     expect(resposta.json().error.detalhe.issues[0].caminho).toBe('workspace');
