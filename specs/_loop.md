@@ -3,6 +3,21 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 3 — Fase 1, bloco 9, gaveta de ideias — 2026-09-08
+
+- Spec: `specs/fase1-bloco9-gaveta-de-ideias.md`
+- Resultado da review: aprovado sem ressalvas, 24 de 24 critérios. Suíte com 576 passando e 1
+  pulado, build sem erro, em Windows 11. Validado também no servidor real, com `curl`, incluindo
+  descarte idempotente e os dois eventos de domínio gravados.
+- Aprendido: A-11 e A-12 em `memory/learnings.md`; R-10 em `memory/bugs.md`.
+- Commit: `74a0c19` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- Pendente de decisão: continua o **ADR-009**, proposto na rodada 2 e não aplicado, sobre abrir a
+  pasta do projeto fora do runner. Continuam também o R-07 e os itens `[ASSUMIDO]` de
+  `respostas-intake.md`.
+- Próximo item recomendado: **critério de aceite da Fase 1** — os nove blocos estão entregues, e o
+  que falta é provar a fase de ponta a ponta, criando um projeto real em menos de dez minutos sem
+  tocar no terminal.
+
 ## Rodada 2 — Fase 1, bloco 8, telas de fechamento — 2026-09-08
 
 - Spec: `specs/fase1-bloco8-telas-de-fechamento.md`
