@@ -3,6 +3,23 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 6 — ADR das capacidades próprias do Forge — 2026-09-08
+
+- Spec: `specs/adr-capacidades-proprias-do-forge.md`. ADR em
+  `docs/08_DECISOES/adr-009-capacidades-proprias-do-forge.md`, Status **Proposto**.
+- Resultado da review: aprovado sem ressalvas, 11 de 11 critérios. Suíte com 595 passando e 1
+  pulado, build sem erro. Nenhum código mudou nesta rodada.
+- Aprendido: A-18 em `memory/learnings.md`, sobre proposta de ADR que não entra no repositório
+  desaparecer.
+- Commit: `3e8389a` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- **Pendente de decisão, e é a rodada inteira**: ratificar o ADR-009, recusar, ou pedir para
+  dividir em dois. As duas propostas antigas foram absorvidas, e o número 010 ficou livre.
+  Continuam abertos o R-07 e os itens `[ASSUMIDO]` de `respostas-intake.md`.
+- Próximo item recomendado: **espera o dono**. Se ratificar, a primeira coisa é o teste que varre
+  a árvore cobrando os controles CP-1 a CP-5, no padrão P-09. Se não quiser decidir agora, o
+  próximo item sem dependência é o **R-11**, o log de comando de longa duração que não chega ao
+  banco.
+
 ## Rodada 5 — R-12, parar mata a árvore de processos — 2026-09-08
 
 - Spec: `specs/r12-parar-mata-a-arvore.md`
