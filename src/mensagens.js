@@ -10,6 +10,25 @@ export const mensagens = {
   menu: {
     projetos: 'Projetos',
     config: 'Configurações',
+    ideias: 'Ideias',
+  },
+  ideias: {
+    titulo: 'Guardar uma ideia',
+    micro: 'Some da sua cabeça e fica aqui. Nada muda de tela, e você volta exatamente para onde estava.',
+    abrir: 'Guardar uma ideia',
+    // O atalho é conveniência: o botão é o caminho garantido, e o texto do botão diz os dois.
+    atalho: 'Ctrl+I',
+    atalhoMac: 'Cmd+I',
+    fechar: 'Fechar',
+    campoTitulo: { rotulo: 'A ideia', micro: 'Uma frase basta. Dá para melhorar depois.' },
+    campoProximoPasso: { rotulo: 'Próximo passo', micro: 'Opcional. O que destravaria isso, se você fosse mexer amanhã.' },
+    guardar: 'Guardar',
+    guardada: 'Guardada.',
+    listaTitulo: 'Guardadas',
+    vazio: 'Nada guardado ainda.',
+    descartar: 'Descartar',
+    descartarIdeia: (titulo) => `Descartar a ideia "${titulo}"`,
+    origemDe: (origem) => `de ${origem}`,
   },
   estados: {
     carregando: 'Carregando…',

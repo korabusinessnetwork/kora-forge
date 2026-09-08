@@ -106,3 +106,20 @@ o `PainelMaterializacao` fica ao lado e já mostra exatamente isso. A duplicaç�
 quando um teste contou o mesmo comando quatro vezes na tela. O que muda: critério de aceite de
 componente que divide tela com outro precisa dizer o que ele **não** mostra, porque quem escreve
 a spec de um componente por vez não enxerga a tela montada.
+
+### A-11, `mutationFn` recebendo a função de serviço direto entrega contexto para ela
+Em `GavetaIdeias.jsx`, `useMutation({ mutationFn: descartarIdeia })` fez o serviço ser chamado com
+`('i1', { client, meta, mutationKey })`. O React Query passa o contexto como segundo argumento, e
+o serviço engoliu em silêncio. O sintoma só apareceu porque um teste afirmava
+`toHaveBeenCalledWith('i1')`. Hoje é inofensivo, porque nenhum serviço lê o segundo parâmetro; no
+dia em que um ler, quebra sem erro. O que muda: `mutationFn` sempre encapsulada,
+`mutationFn: (id) => descartarIdeia(id)`. `Materializar.jsx` do bloco 7 ainda tem o padrão antigo
+com `pararRun`, e vale corrigir quando alguém encostar naquele arquivo.
+
+### A-12, atom sem forwardRef não aceita ref, e mexer no atom é caro
+A gaveta precisava focar o campo de título ao abrir, e `Campo` não encaminha ref. Alterar o atom
+significaria mexer numa peça que todo o wizard usa. A saída foi a forma com children, que o
+próprio `Campo` já oferecia para controle vindo de fora. O que muda: antes de alterar um atom
+compartilhado por causa de um caso novo, verificar se ele já tem uma porta de saída; e ao escrever
+spec que depende de foco programático, conferir se o componente aceita ref, porque isso muda o
+desenho e não é detalhe de implementação.

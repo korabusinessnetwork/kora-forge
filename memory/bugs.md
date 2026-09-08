@@ -134,3 +134,21 @@ por quatro causas independentes:
 
 **O que muda na próxima vez**: suíte verde em uma plataforma não diz nada sobre a outra. O Forge é
 ferramenta local que roda em Windows, então Windows é a plataforma principal, não a secundária.
+
+### R-10, `mutationFn` do bloco 7 passa contexto do React Query para o serviço
+
+**Severidade**: baixa, latente. **Status**: aberto. **Registrado em**: 2026-09-08.
+
+`src/features/wizard/etapas/Materializar.jsx` faz `useMutation({ mutationFn: pararRun })`. O React
+Query chama a função com `(variaveis, contexto)`, então `pararRun` recebe um segundo argumento com
+`client`, `meta` e `mutationKey`, que ela não pediu e ignora.
+
+Hoje não causa nada, porque nenhum serviço lê o segundo parâmetro. Vira defeito silencioso no dia
+em que algum ler, por exemplo para receber opções.
+
+**Descoberto** na rodada 3, quando o mesmo padrão em `GavetaIdeias.jsx` fez um teste falhar com
+`toHaveBeenCalledWith('i1')` recebendo dois argumentos. Lá já foi corrigido.
+
+**Correção**: encapsular, `mutationFn: (runId) => pararRun(runId)`. Não foi feita nesta rodada por
+estar fora do escopo do bloco 9, que não toca o wizard. Vale corrigir quando alguém encostar no
+arquivo. Ver A-11 em `memory/learnings.md`.

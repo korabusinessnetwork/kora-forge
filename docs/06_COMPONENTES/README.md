@@ -44,7 +44,7 @@ src/
 | `LinhaPlano` | um arquivo do dry-run: caminho em mono, selo de ação, tamanho (e o tamanho de hoje quando é conflito) e o template de origem |
 | `LinhaComando` | um comando: cmd, args, estado, duração, parar |
 | `CampoConexao` | alias, status, teste de conexão. Nunca mostra o valor |
-| `CartaoIdeia` | título e próximo passo |
+| `CartaoIdeia` | título, próximo passo quando existe, data e de que tela a ideia saiu, com a ação de descartar |
 | `EditorEntidades` | entidades do domínio: nome, o que é e campos, com adicionar e remover |
 | `CartaoBuild` | projeto, spec, modelo por papel, `BarraProgresso`, `Estimativa`, o que falta (Fase 6) |
 | `Estimativa` | faixa P50 a P90 rotulada "estimativa", com a base de cálculo no microtexto; "sem base ainda" quando não há histórico (Fase 6) |
@@ -59,6 +59,7 @@ src/
 | `PainelPlano` | o dry-run inteiro: conflitos no topo, pendências declaradas, arquivos agrupados por pasta, comandos e o aviso de que nada foi escrito. Sem conflito e sem pendência, essas seções não são renderizadas |
 | `PainelLog` | log ao vivo de um run, stdout e stderr diferenciados por marcador e não só por cor, autoscroll que solta quando o usuário rola para cima, teto de linhas na tela, e reconectar quando a conexão cai. Parar continua sendo do `PainelMaterializacao`, ao lado |
 | `PainelMaterializacao` | o que está acontecendo agora: arquivos escritos, fila de comandos com estado, e as três saídas quando um comando obrigatório falha |
+| `GavetaIdeias` | captura de ideia sem sair do fluxo (RN-10): diálogo modal com título e próximo passo opcional, lista das ideias abertas e descarte. Aberta por botão na barra lateral ou por `Ctrl+I`. Fechar devolve o foco a quem abriu |
 | `TelaFinal` | o fim do fluxo F-01, só em materialização concluída: caminho no disco copiável, resumo de arquivos e o atalho que abre a pasta no gerenciador de arquivos |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | área de desenho com zoom, pan, régua, snap |

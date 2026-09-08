@@ -18,7 +18,7 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 | 6, gerador | entregue | `specs/fase1-bloco6-gerador.md` |
 | 7, runner | entregue | `specs/fase1-bloco7-runner.md` |
 | 8, telas de fechamento | entregue | `specs/fase1-bloco8-telas-de-fechamento.md` |
-| 9, gaveta de ideias | próximo | |
+| 9, gaveta de ideias | entregue | `specs/fase1-bloco9-gaveta-de-ideias.md` |
 
 ## Critério de aceite da fase inteira
 
@@ -86,6 +86,13 @@ da spec do bloco.
 
 ### 9. Gaveta de ideias
 - Atalho global, campo com título e próximo passo, volta para onde estava
+
+A gaveta também lista as ideias abertas e deixa descartar. Capturar sem nunca mostrar seria um
+buraco, e a RN-10.2 já dizia que a ideia vai para a lista. Página própria de ideias e transformar
+ideia em projeto ficam para depois da Fase 1.
+
+**Com o bloco 9 entregue, todos os blocos de construção da Fase 1 estão prontos. O que falta é
+rodar o critério de aceite da fase, no topo deste arquivo.**
 
 ## Fora do escopo da Fase 1
 

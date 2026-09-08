@@ -79,3 +79,20 @@
   max-width: 960px;
   padding: var(--forge-space-5);
 }
+
+/* Captura de ideia: fica no pé da barra lateral, longe da navegação, porque não é destino, é ação. */
+.rodape {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-1);
+  margin-top: auto;
+  padding-top: var(--forge-space-4);
+}
+
+.dica {
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}
