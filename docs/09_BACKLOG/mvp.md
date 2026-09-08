@@ -19,17 +19,21 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 | 7, runner | entregue | `specs/fase1-bloco7-runner.md` |
 | 8, telas de fechamento | entregue | `specs/fase1-bloco8-telas-de-fechamento.md` |
 | 9, gaveta de ideias | entregue | `specs/fase1-bloco9-gaveta-de-ideias.md` |
+| critério de aceite da fase | provado em 2026-09-08 | `specs/fase1-criterio-de-aceite.md`, relatório em `fase1-aceite.md` |
 
 ## Critério de aceite da fase inteira
 
-- [ ] Criar um projeto de verdade do começo ao fim, sem tocar no terminal
-- [ ] O projeto gerado tem `CLAUDE.md`, `memory/` (6 arquivos preenchidos com conteúdo real) e `docs/00` a `11`
-- [ ] Zero placeholder `{{...}}` sobrando em qualquer arquivo gerado
-- [ ] ADR-001 do projeto gerado registra a stack escolhida no wizard
-- [ ] `npm run dev` do projeto gerado sobe sem erro
-- [ ] Nenhuma escrita em disco aconteceu sem dry-run aprovado
-- [ ] Tudo funciona com o copiloto desligado, porque ele nem existe ainda
-- [ ] Do clique inicial ao dev server: menos de 10 minutos
+Provado em 2026-09-08 por `npm run verificar:fase1`. Relatório com a evidência item por item,
+e com o que **não** foi provado, em `fase1-aceite.md`.
+
+- [x] Criar um projeto de verdade do começo ao fim, sem tocar no terminal
+- [x] O projeto gerado tem `CLAUDE.md`, `memory/` (6 arquivos preenchidos com conteúdo real) e `docs/00` a `11`
+- [x] Zero placeholder `{{...}}` sobrando em qualquer arquivo gerado
+- [x] ADR-001 do projeto gerado registra a stack escolhida no wizard
+- [x] `npm run dev` do projeto gerado sobe sem erro
+- [x] Nenhuma escrita em disco aconteceu sem dry-run aprovado
+- [x] Tudo funciona com o copiloto desligado, porque ele nem existe ainda
+- [x] Do clique inicial ao dev server: menos de 10 minutos
 
 ## Escopo, em ordem de construção
 

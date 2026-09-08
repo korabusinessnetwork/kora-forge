@@ -123,3 +123,25 @@ próprio `Campo` já oferecia para controle vindo de fora. O que muda: antes de 
 compartilhado por causa de um caso novo, verificar se ele já tem uma porta de saída; e ao escrever
 spec que depende de foco programático, conferir se o componente aceita ref, porque isso muda o
 desenho e não é detalhe de implementação.
+
+### A-13, saída de ferramenta de terminal não é texto, é texto com ANSI dentro
+O `PainelLog` do bloco 8 passou por 26 critérios de aceite e por uma review sem ressalvas, e ainda
+assim mostrava `\u001b[32m` na tela, porque todo teste usava linha fabricada em vez da saída de uma
+ferramenta de verdade. O caso pior não era o lixo visual: a sequência partia o número da porta, e
+`http://localhost:` mais `5175` viravam dois pedaços separados, escondendo a URL do projeto que
+tinha acabado de nascer. O que muda: quando um componente mostra saída de processo, pelo menos um
+teste usa saída real capturada, e a limpeza acontece onde o byte vira linha, não na tela.
+
+### A-14, matar processo no Windows não mata os filhos dele
+`parar()` mandava matar o processo criado pelo Forge e dava por encerrado. No Windows não existe
+grupo de processos como no Unix, então o `vite` criado pelo `npm` sobreviveu, segurando porta e
+arquivos. O defeito ficou invisível por semanas porque o teste do runner usava um script `node`
+folha, sem filhos, o único formato que a implementação atendia. O que muda: teste de "parar"
+precisa de um processo que crie outro processo, senão prova só o caso fácil. Detalhes no R-12.
+
+### A-15, rodada de verificação vale mesmo quando tudo passa
+Esta rodada não construiu recurso nenhum: só provou os oito itens do critério da Fase 1. Ainda
+assim achou três defeitos que nove blocos de construção e quatro reviews não acharam, dois deles
+em código já aprovado. O que muda: fechar fase tem um passo próprio, com prova executável e
+repetível, e ele não é formalidade. `npm run verificar:fase1` é o exemplo, e o padrão vale para as
+fases seguintes.

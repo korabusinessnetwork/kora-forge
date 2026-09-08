@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, afterEach } from 'vitest';
-import { executar, parar, validarComando, ambienteMinimo } from './processo.js';
+import { executar, parar, validarComando, ambienteMinimo, limparAnsi } from './processo.js';
 
 const temporarias = [];
 afterEach(() => {
@@ -48,6 +48,32 @@ describe('validarComando', () => {
     for (const args of [['init'], ['install'], ['run', 'dev'], ['run', 'db:migrate'], ['--version']]) {
       expect(() => validarComando({ cmd: 'npm', args })).not.toThrow();
     }
+  });
+});
+
+describe('limparAnsi', () => {
+  const ESC = String.fromCharCode(27);
+
+  it('tira a cor e deixa o texto', () => {
+    expect(limparAnsi(`${ESC}[32mverde${ESC}[39m`)).toBe('verde');
+  });
+
+  // O caso que motivou a limpeza: o Vite parte o número da porta com sequência de cor no meio, e
+  // sem limpar ninguém acha a URL do projeto que acabou de nascer.
+  it('remonta a URL que o Vite quebra com cor no meio do número', () => {
+    expect(limparAnsi(`${ESC}[36mhttp://localhost:${ESC}[1m5175${ESC}[22m/${ESC}[39m`)).toBe('http://localhost:5175/');
+  });
+
+  // Guarda contra edição que coma o caractere de escape do arquivo: sem ele a expressão passaria a
+  // comer colchete de texto comum, e este teste fica vermelho na hora.
+  it('não encosta em colchete de texto comum', () => {
+    expect(limparAnsi('array[0] e um [aviso] normal')).toBe('array[0] e um [aviso] normal');
+    expect(limparAnsi('npm WARN [deprecated] pacote@1.0.0')).toBe('npm WARN [deprecated] pacote@1.0.0');
+  });
+
+  it('texto sem sequência nenhuma passa intacto', () => {
+    expect(limparAnsi('Initialized empty Git repository in C:/dev/x/.git/')).toBe('Initialized empty Git repository in C:/dev/x/.git/');
+    expect(limparAnsi('')).toBe('');
   });
 });
 

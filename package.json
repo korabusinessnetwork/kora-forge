@@ -15,6 +15,7 @@
     "start": "node server/index.js",
     "build": "vite build",
     "test": "vitest run",
+    "verificar:fase1": "node scripts/verificar-fase1.mjs",
     "db:migrate": "node server/cli/migrate.js"
   },
   "dependencies": {

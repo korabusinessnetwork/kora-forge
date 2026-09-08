@@ -19,6 +19,16 @@ Detalhe da Fase 1 em `mvp.md`.
 | **5** | Presets restantes, editor de presets, tema claro | dá para criar menu novo sem tocar em código |
 | **6** | Harness executado pelo Forge e painel de relatórios (ADR-008, proposto) | dá para despachar um build por modelo, acompanhar todos ao mesmo tempo e ver o que falta, a estimativa e o ciclo de aprendizado |
 
+## Achados da prova da Fase 1 (2026-09-08)
+
+Levantados por `npm run verificar:fase1`. Nenhum impede o critério de aceite, que passou.
+Evidência em `fase1-aceite.md`; os defeitos com correção pendente estão em `memory/bugs.md`.
+
+| Item | O que é | Por que existe | Pronto quando |
+|---|---|---|---|
+| B-01 | A porta do projeto gerado é 5173, a mesma do dev server do Forge | com o Forge aberto, o projeto gerado escorrega para 5174, 5175 e por aí; o Vite anuncia no log, então dá para se virar, mas o padrão convida ao conflito | o template do projeto gerado nasce numa porta que não é a do Forge, ou a escolha é do wizard |
+| B-02 | A tela final não mostra a URL do dev server | ela mostra o caminho no disco e abre a pasta; a URL só existe no log ao vivo, então o último passo até ver o projeto no browser ainda depende de ler log | a tela final mostra a URL e abre no browser, com a mesma clareza do caminho no disco |
+
 ## Fase 2, Studio
 
 - Canvas com zoom, pan e snap

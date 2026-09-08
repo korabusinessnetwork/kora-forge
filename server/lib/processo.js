@@ -39,6 +39,17 @@ export function validarComando({ cmd, args }) {
   }
 }
 
+// Ferramenta de terminal escreve cor e posicionamento em sequência ANSI. O Forge mostra o log num
+// painel HTML e grava em SQLite, e em nenhum dos dois isso vira cor: é lixo no meio do texto, com o
+// agravante de partir número ao meio, como em `http://localhost:<esc>5175<esc>/`. A linha é limpa
+// aqui, no único ponto onde pedaço de stream vira linha, para painel e banco receberem o mesmo.
+// Se um dia o painel renderizar cor, a decisão é preservar aqui e interpretar lá.
+const SEQUENCIA_ANSI = /\[[0-9;?]*[ -/]*[@-~]|[@-Z\\-_]/g;
+
+export function limparAnsi(texto) {
+  return String(texto).replace(SEQUENCIA_ANSI, '');
+}
+
 // Quebra o fluxo em linhas sem perder o resto entre pedaços.
 function criarQuebradorDeLinhas(stream, aoReceber) {
   let resto = '';
@@ -46,7 +57,7 @@ function criarQuebradorDeLinhas(stream, aoReceber) {
     const texto = resto + pedaco.toString('utf8');
     const linhas = texto.split(/\r?\n/);
     resto = linhas.pop() ?? '';
-    for (const linha of linhas) aoReceber(stream, linha);
+    for (const linha of linhas) aoReceber(stream, limparAnsi(linha));
   };
 }
 

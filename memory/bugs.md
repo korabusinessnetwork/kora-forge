@@ -152,3 +152,52 @@ em que algum ler, por exemplo para receber opções.
 **Correção**: encapsular, `mutationFn: (runId) => pararRun(runId)`. Não foi feita nesta rodada por
 estar fora do escopo do bloco 9, que não toca o wizard. Vale corrigir quando alguém encostar no
 arquivo. Ver A-11 em `memory/learnings.md`.
+
+### R-11, log de comando de longa duração nunca chega ao banco
+
+**Severidade**: média. **Status**: aberto. **Registrado em**: 2026-09-08.
+
+`server/modules/runner/servico.js` acumula as linhas em `pendentes` e só grava em `command_logs`
+quando junta 50 ou quando o comando termina. Um `npm run dev`, que por definição não termina,
+cospe umas dez linhas e nenhuma é gravada.
+
+O painel não sofre: ele recebe pelo WebSocket, e o transmissor guarda o histórico em memória. O
+que se perde é a persistência. Reiniciar o Forge apaga o log daquele comando, e a tabela
+`command_logs` mente sobre o que aconteceu.
+
+**Descoberto** na prova do critério de aceite da Fase 1, que tentou ler a URL do dev server em
+`command_logs` e encontrou zero linhas para um comando visivelmente rodando.
+
+**Correção candidata**: esvaziar a fila também por tempo, um `setInterval` curto enquanto o
+comando roda, cancelado ao terminar. Não foi feita aqui porque não impede nenhum dos oito itens do
+critério, e a escolha do intervalo é decisão de produto: gravar demais castiga o disco, gravar de
+menos perde log.
+
+### R-12, parar um comando deixa o processo real vivo no Windows
+
+**Severidade**: alta. **Status**: aberto, precisa de decisão. **Registrado em**: 2026-09-08.
+
+`parar()` em `server/lib/processo.js` mata o processo que o Forge criou. No Windows isso não mata
+os filhos dele. Como `npm run dev` é `node npm-cli.js` que cria o `vite`, matar o npm deixa o vite
+rodando, segurando a porta e os arquivos da pasta.
+
+Medido diretamente: filho morto, neto vivo.
+
+```
+pid do npm (filho): 6600
+pids dos netos: [ 8548, 13416 ]
+chamando parar()...
+filho vivo depois do parar: false
+  neto 8548 vivo depois do parar: true
+```
+
+**Consequência para quem usa**: o botão Parar do bloco 7 não para o dev server, e fechar o Forge
+também não. O processo fica órfão até a máquina reiniciar. Confirmado no mundo real: o dev server
+de um teste da rodada 2 ainda estava vivo horas depois, ocupando a porta 5173.
+
+**Por que não foi corrigido aqui**: matar árvore de processos no Windows pede `taskkill /T`, que
+seria um binário novo executando com privilégio, ou objeto de Job do Windows, que é mudança
+estrutural no runner. As duas mexem no ADR-002 e no controle C3. É decisão do dono, não minha.
+
+**Pergunta que destrava**: o runner passa a matar a árvore de processos, e se sim, por `taskkill`
+entrando na whitelist ou por Job Object sem binário externo?
