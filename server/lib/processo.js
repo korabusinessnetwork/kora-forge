@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { COMANDOS_PERMITIDOS } from '../../shared/comandos.js';
 import { resolverExecutavel } from './binarios.js';
+import { matarArvore, opcoesDeGrupo } from './arvore.js';
 import { ErroForge } from './erro.js';
 
 // Execução de processo do sistema. A parte mais perigosa do produto (ADR-002, controle C3):
@@ -89,6 +90,9 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
     env: ambienteMinimo(),
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
+    // Em POSIX o filho lidera o próprio grupo, para o grupo inteiro poder ser morto sem levar o
+    // Forge junto (R-12). No Windows não muda nada.
+    ...opcoesDeGrupo(),
   });
 
   processo.stdout.on('data', criarQuebradorDeLinhas('stdout', onLinha));
@@ -118,7 +122,8 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
     if (!longaDuracao && Number.isFinite(timeoutMs)) {
       temporizador = setTimeout(() => {
         processo.forgeTimeout = true;
-        processo.kill('SIGKILL');
+        // Pela árvore também: um comando que estourou o tempo pode ter deixado filho trabalhando.
+        matarArvore(processo, { sinal: 'SIGKILL' });
       }, timeoutMs);
       temporizador.unref?.();
     }
@@ -127,12 +132,19 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
   return { processo, terminou };
 }
 
-export function parar(processo) {
+// Parar significa parar: morre o processo e tudo que ele criou (R-12). No Windows o `taskkill /T`
+// já é à força e resolve numa tacada. Em POSIX vale o gentil primeiro, e o bruto depois, os dois
+// sobre o grupo inteiro.
+export function parar(processo, opcoes = {}) {
+  const { plataforma = process.platform } = opcoes;
   if (!processo || processo.exitCode !== null || processo.signalCode !== null) return false;
   processo.forgeParado = true;
-  processo.kill('SIGTERM');
+
+  matarArvore(processo, { ...opcoes, sinal: 'SIGTERM' });
+  if (plataforma === 'win32') return true;
+
   // Se não morrer sozinho, mata de vez. O usuário pediu para parar, e parar significa parar.
-  const forcar = setTimeout(() => processo.kill('SIGKILL'), 3000);
+  const forcar = setTimeout(() => matarArvore(processo, { ...opcoes, sinal: 'SIGKILL' }), 3000);
   forcar.unref?.();
   return true;
 }

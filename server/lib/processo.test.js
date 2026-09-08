@@ -6,6 +6,18 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { executar, parar, validarComando, ambienteMinimo, limparAnsi } from './processo.js';
 
 const temporarias = [];
+
+const processoDoTeste = process.pid;
+
+// Processo existe? `kill` com sinal 0 não mata, só pergunta.
+function vivo(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
 afterEach(() => {
   while (temporarias.length > 0) fs.rmSync(temporarias.pop(), { recursive: true, force: true });
 });
@@ -169,6 +181,63 @@ describe('executar', () => {
     const resultado = await terminou;
     expect(resultado.estado).toBe('cancelado');
     expect(parar(processo)).toBe(false);
+  });
+
+  // R-12. O teste acima usa um script folha, sem filhos, que era justamente o único caso que a
+  // implementação antiga atendia. Aqui vale a forma que quebrava de verdade: `npm run dev`, com o
+  // npm criando o processo que interessa. Medido antes de escrever este teste: matando só o
+  // processo direto, o npm morre e o servidor sobrevive, segurando porta e arquivos. Com um pai
+  // `node` simples o neto morre junto, e por isso um teste sintético não serviria de guarda.
+  it('parar mata também o processo que o npm criou', async () => {
+    const { pasta } = script('');
+    fs.writeFileSync(path.join(pasta, 'package.json'), JSON.stringify({
+      name: 'cenario-r12', version: '1.0.0', private: true, scripts: { dev: 'node servidor.js' },
+    }));
+    fs.writeFileSync(path.join(pasta, 'servidor.js'), 'console.log(process.pid);setInterval(() => {}, 1000);');
+
+    let servidor = null;
+    const { processo, terminou } = executar({
+      cmd: 'npm', args: ['run', 'dev'], cwd: pasta, timeoutMs: 60000, longaDuracao: true,
+      onLinha: (_stream, linha) => {
+        const numero = Number(linha.trim());
+        if (Number.isInteger(numero) && numero > 0 && numero !== processoDoTeste) servidor = numero;
+      },
+    });
+
+    for (let i = 0; i < 100 && servidor === null; i += 1) await new Promise((r) => setTimeout(r, 100));
+    expect(servidor).not.toBeNull();
+    expect(vivo(servidor)).toBe(true);
+
+    expect(parar(processo)).toBe(true);
+    expect((await terminou).estado).toBe('cancelado');
+
+    // O taskkill é assíncrono: a morte pode chegar um instante depois da do processo direto.
+    for (let i = 0; i < 60 && vivo(servidor); i += 1) await new Promise((r) => setTimeout(r, 100));
+    expect(vivo(servidor)).toBe(false);
+  });
+
+  // O timeout usa o mesmo caminho do parar. Sem isso, comando que estoura o tempo deixaria filho
+  // trabalhando enquanto o Forge diz que encerrou.
+  it('timeout também mata o processo que o npm criou', async () => {
+    const { pasta } = script('');
+    fs.writeFileSync(path.join(pasta, 'package.json'), JSON.stringify({
+      name: 'cenario-timeout', version: '1.0.0', private: true, scripts: { dev: 'node servidor.js' },
+    }));
+    fs.writeFileSync(path.join(pasta, 'servidor.js'), 'console.log(process.pid);setInterval(() => {}, 1000);');
+
+    let servidor = null;
+    const { terminou } = executar({
+      cmd: 'npm', args: ['run', 'dev'], cwd: pasta, timeoutMs: 4000,
+      onLinha: (_stream, linha) => {
+        const numero = Number(linha.trim());
+        if (Number.isInteger(numero) && numero > 0 && numero !== processoDoTeste) servidor = numero;
+      },
+    });
+
+    expect((await terminou).estado).toBe('timeout');
+    expect(servidor).not.toBeNull();
+    for (let i = 0; i < 60 && vivo(servidor); i += 1) await new Promise((r) => setTimeout(r, 100));
+    expect(vivo(servidor)).toBe(false);
   });
 
   // R-08. No Windows `npm` é um `.cmd`, e `spawn` sem shell não executa `.cmd`. O bug só apareceu

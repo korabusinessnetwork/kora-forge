@@ -145,3 +145,19 @@ assim achou três defeitos que nove blocos de construção e quatro reviews não
 em código já aprovado. O que muda: fechar fase tem um passo próprio, com prova executável e
 repetível, e ele não é formalidade. `npm run verificar:fase1` é o exemplo, e o padrão vale para as
 fases seguintes.
+
+### A-16, teste de regressão precisa reproduzir a forma que quebrou, não uma parecida
+Para provar o R-12 escrevi um teste com um `node` criando outro `node`, e ele passou **mesmo com o
+defeito presente**: nesse formato o filho morre junto com o pai no Windows. A forma que quebra é
+`npm run dev`, porque o npm cria o processo de um jeito que o desliga do pai. O teste só virou
+guarda depois de usar a forma real, e eu só soube disso medindo os dois formatos lado a lado. O que
+muda: teste de regressão nasce com a pergunta "isto fica vermelho sem a correção?", e a resposta se
+obtém revertendo a correção de propósito, não por raciocínio.
+
+### A-17, corrigir vazamento de processo torna a limpeza de teste assíncrona
+Depois que o `parar` passou a matar árvore, dois testes do runner quebraram apagando a pasta
+temporária: `taskkill` é assíncrono e os processos ainda seguravam os arquivos. O `maxRetries` do
+`fs.rmSync` não resolveu, porque a retentativa é síncrona e não cede tempo ao sistema. A saída foi
+`apagarQuandoLiberar` em `server/testes/apoio.js`, que espera de verdade entre as tentativas. O que
+muda: teste que roda processo e apaga pasta em seguida precisa esperar o processo morrer, e o
+paradoxo é que ele só passava antes porque o produto deixava o neto vivo, sem segurar a pasta pai.

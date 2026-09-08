@@ -175,7 +175,7 @@ menos perde log.
 
 ### R-12, parar um comando deixa o processo real vivo no Windows
 
-**Severidade**: alta. **Status**: aberto, precisa de decisão. **Registrado em**: 2026-09-08.
+**Severidade**: alta. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
 
 `parar()` em `server/lib/processo.js` mata o processo que o Forge criou. No Windows isso não mata
 os filhos dele. Como `npm run dev` é `node npm-cli.js` que cria o `vite`, matar o npm deixa o vite
@@ -199,5 +199,20 @@ de um teste da rodada 2 ainda estava vivo horas depois, ocupando a porta 5173.
 seria um binário novo executando com privilégio, ou objeto de Job do Windows, que é mudança
 estrutural no runner. As duas mexem no ADR-002 e no controle C3. É decisão do dono, não minha.
 
-**Pergunta que destrava**: o runner passa a matar a árvore de processos, e se sim, por `taskkill`
-entrando na whitelist ou por Job Object sem binário externo?
+**Correção**: `server/lib/arvore.js`. No Windows, `taskkill /T /F /PID`, chamado por `spawn` com
+array de argumentos, solto e sem stdio, para completar mesmo se o Forge sair em seguida. Em POSIX o
+filho passa a nascer com `detached`, liderando o próprio grupo, e o sinal vai para o grupo por
+`process.kill(-pid, sinal)`, mantendo os dois estágios. Vale para o botão Parar, para o timeout e
+para o encerramento do Forge, que passam todos pelo mesmo caminho.
+
+A whitelist **não** foi ampliada. `COMANDOS_PERMITIDOS` limita o que um preset manda executar, e o
+`taskkill` é capacidade do próprio Forge, com binário fixo em código e um argumento só, que é um
+pid que o Forge criou. Mesma forma do abridor de pasta do bloco 8. Proposto como ADR-010.
+
+**Guarda de regressão**: `server/lib/processo.test.js` roda um `npm run dev` de verdade, captura o
+pid do processo que o npm criou, chama `parar` e exige que ele morra. Um teste com pai `node`
+simples **não** serviria: nesse formato o filho morre junto, e o teste passaria mesmo com o defeito.
+Medido antes de escrever, e confirmado revertendo a correção para ver o teste ficar vermelho.
+
+**Alternativas descartadas**: grupo de processo com `detached` não existe no Windows; Job Object
+resolveria mas o Node não expõe e exigiria dependência nativa.

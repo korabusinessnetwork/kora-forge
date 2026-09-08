@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect, afterEach } from 'vitest';
-import { criarAppDeTeste, criarPastaTemporaria } from '../../testes/apoio.js';
+import { criarAppDeTeste, criarPastaTemporaria, apagarQuandoLiberar } from '../../testes/apoio.js';
 import { materializacaoSchema } from '../../../shared/schemas/materializacao.js';
 
 let contexto;
@@ -12,7 +12,11 @@ afterEach(async () => {
     await contexto.fechar();
     contexto = null;
   }
-  while (temporarias.length > 0) fs.rmSync(temporarias.pop(), { recursive: true, force: true });
+  // Matar árvore de processos no Windows é assíncrono: o `taskkill` que o `encerrarTudo` dispara
+  // leva alguns milissegundos para derrubar os descendentes, e até lá eles seguram os arquivos.
+  // Tentar de novo é a resposta certa; apagar de primeira era o que só funcionava quando o Forge
+  // deixava neto vivo (R-12).
+  while (temporarias.length > 0) await apagarQuandoLiberar(temporarias.pop());
 });
 function novo() { contexto = criarAppDeTeste(); return contexto; }
 function workspace() {

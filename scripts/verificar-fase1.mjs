@@ -3,7 +3,6 @@ import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import { register } from 'node:module';
-import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 // Prova do critério de aceite da Fase 1 (docs/09_BACKLOG/mvp.md).
@@ -129,46 +128,10 @@ async function lerLogAoVivo(porta, token, runId, ms = 8000) {
   return linhas;
 }
 
-// Mata o que ficou rodando dentro da pasta da prova. Existe porque o runner mata o filho e deixa o
-// neto vivo no Windows, que é o R-12: o dev server sobrevive ao parar. Enquanto o defeito estiver
-// aberto, a prova limpa o que o produto deixa para trás, senão a pasta não some e a execução
-// seguinte encontra a porta ocupada.
-//
-// O alvo é escolhido pelo caminho, não pelo nome: só morre processo cuja linha de comando aponta
-// para dentro da pasta temporária desta execução. Nada do dono é tocado.
-// O caminho e o pid vão por variável de ambiente, nunca interpolados no comando. A regra do
-// CLAUDE.md vale para o código de prova também: comando é array de argumentos, e dado é dado.
-const SCRIPT_SOBRAS = [
-  '$alvo = $env:FORGE_PROVA_PASTA;',
-  '$meu = [int]$env:FORGE_PROVA_PID;',
-  'Get-CimInstance Win32_Process',
-  '| Where-Object { $_.CommandLine -and $_.CommandLine.Contains($alvo) -and $_.ProcessId -ne $meu }',
-  '| Select-Object -ExpandProperty ProcessId',
-].join(' ');
-
-function matarSobrasEm(pasta) {
-  if (process.platform !== 'win32') return 0;
-  try {
-    const saida = execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command', SCRIPT_SOBRAS], {
-      stdio: ['ignore', 'pipe', 'ignore'],
-      env: { ...process.env, FORGE_PROVA_PASTA: pasta, FORGE_PROVA_PID: String(process.pid) },
-    }).toString().trim();
-    const pids = saida ? saida.split(/\s+/).map(Number).filter(Number.isFinite) : [];
-    for (const pid of pids) {
-      try { process.kill(pid, 'SIGKILL'); } catch { /* já morto */ }
-    }
-    return pids.length;
-  } catch {
-    return 0;
-  }
-}
-
 async function limpar() {
-  const sobras = temporaria ? matarSobrasEm(temporaria) : 0;
-  if (sobras > 0) console.log(`
-limpeza: ${sobras} processo(s) ainda rodando dentro da pasta da prova, mortos aqui (ver R-12)`);
-  // O onClose do app mata os filhos diretos do runner. Apagar a pasta antes de todos morrerem dá
-  // EPERM no Windows, então a ordem importa e a espera também.
+  // O onClose do app mata a árvore de processos de cada comando em andamento (R-12). Antes da
+  // correção a prova precisava caçar sobras aqui; agora sobra é sintoma de regressão, e aparece
+  // como falha ao apagar a pasta em vez de ser varrida para debaixo do tapete.
   try { await servidor?.app.close(); } catch { /* já fechado */ }
   await esperar(1500);
   try { bancoAberto?.close(); } catch { /* já fechado */ }
