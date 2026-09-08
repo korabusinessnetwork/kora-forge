@@ -3,6 +3,23 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 5 — R-12, parar mata a árvore de processos — 2026-09-08
+
+- Spec: `specs/r12-parar-mata-a-arvore.md`
+- Resultado da review: aprovado sem ressalvas, 15 de 15 critérios. Suíte com 595 passando e 1
+  pulado, build sem erro, e `npm run verificar:fase1` com os oito itens passando **sem** a limpeza
+  de sobras que existia só por causa deste defeito.
+- Aprendido: A-16 e A-17 em `memory/learnings.md`; R-12 fechado em `memory/bugs.md`.
+- Commit: `1ab5e6f` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- Pendente de decisão, quatro:
+  1. **ADR-010**, novo, sobre o Forge chamar `taskkill`, binário do sistema fora da whitelist. A
+     whitelist de preset não foi tocada. Compartilha o princípio do ADR-009 e pode virar um ADR só.
+  2. **ADR-009**, da rodada 2, sobre abrir a pasta do projeto fora do runner.
+  3. **R-07**, `--legacy-peer-deps` no preset ou fallback no runner.
+  4. Os itens `[ASSUMIDO]` em `respostas-intake.md`.
+- Próximo item recomendado: **decidir os dois ADRs abertos** — são duas capacidades já construídas
+  e rodando sem ratificação, e nenhuma outra correção deveria entrar antes disso.
+
 ## Rodada 4 — critério de aceite da Fase 1 — 2026-09-08
 
 - Spec: `specs/fase1-criterio-de-aceite.md`. Relatório em `docs/09_BACKLOG/fase1-aceite.md`.
