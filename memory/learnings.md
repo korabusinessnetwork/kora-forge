@@ -161,3 +161,17 @@ temporária: `taskkill` é assíncrono e os processos ainda seguravam os arquivo
 `apagarQuandoLiberar` em `server/testes/apoio.js`, que espera de verdade entre as tentativas. O que
 muda: teste que roda processo e apaga pasta em seguida precisa esperar o processo morrer, e o
 paradoxo é que ele só passava antes porque o produto deixava o neto vivo, sem segurar a pasta pai.
+
+### A-18, proposta de ADR que não entra no repositório desaparece
+O passo `/aprender` manda propor ADR ao dono e esperar o aval. Nas rodadas 2 e 5 eu escrevi as
+duas propostas em pasta temporária da sessão e mostrei o texto no resumo. Resultado: por quatro
+rodadas o repositório teve duas capacidades arquiteturais em produção, `abrirPasta` e `arvore`,
+**sem ADR nenhum**, contrariando o CLAUDE.md, e as propostas iam sumir com a pasta.
+
+O erro foi confundir "não decidir" com "não registrar". O próprio
+`docs/08_DECISOES/README.md` já resolve isso: "Status vira Aceito quando a decisão passa a valer",
+e o ADR-008 está commitado como `Proposto` desde o começo do projeto.
+
+**O que muda**: proposta de ADR nasce em `docs/08_DECISOES/` com Status `Proposto`, no mesmo
+commit do código que ela justifica. Esperar o aval é sobre o Status, não sobre o arquivo existir.
+Assim quem abrir o repositório vê o que está em uso e ainda não foi ratificado.
