@@ -91,3 +91,18 @@ para o `npm.cmd`. A primeira quebra o controle C3 do ADR-002. A segunda o Node b
 funcionou respeita as duas travas: executar o Node apontando para o `npm-cli.js`, que é o que o
 `.cmd` faz por dentro. O que muda: quando a correção pede para afrouxar um controle registrado em
 ADR, o caminho é procurar a terceira saída antes, não negociar o controle.
+
+### A-09, o texto repetido em dois componentes vizinhos é bug de produto, não colisão de teste
+`mensagens.materializacao.estado.concluida` e o título da `TelaFinal` nasceram com a mesma frase,
+"Pronto. O projeto nasceu.", e como os dois componentes aparecem juntos na etapa Materializar, a
+tela mostrava a frase duas vezes. O sintoma chegou como teste vermelho, `getByText` achando dois
+elementos, e a tentação era trocar por `getAllByText`. O que muda: quando um seletor de teste
+passa a achar mais de um elemento, a primeira pergunta é se a tela está repetindo informação, e
+não como fazer o seletor tolerar a repetição.
+
+### A-10, painéis vizinhos duplicam conteúdo quando cada um é especificado sozinho
+A spec do bloco 8 pediu, no critério 12, a lista de comandos com resultado na `TelaFinal`. Só que
+o `PainelMaterializacao` fica ao lado e já mostra exatamente isso. A duplicação só ficou visível
+quando um teste contou o mesmo comando quatro vezes na tela. O que muda: critério de aceite de
+componente que divide tela com outro precisa dizer o que ele **não** mostra, porque quem escreve
+a spec de um componente por vez não enxerga a tela montada.

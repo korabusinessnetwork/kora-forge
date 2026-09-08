@@ -57,8 +57,9 @@ src/
 | `PassoWizard` | casca de uma etapa: título, microtexto, campos, avisos, navegação, pular. Mostra "Etapa x de y" com o total real do preset |
 | `TrilhaEtapas` | etapas do preset em ordem, com estado (concluída, assumida, atual, pendente). Etapa à frente da atual não é clicável |
 | `PainelPlano` | o dry-run inteiro: conflitos no topo, pendências declaradas, arquivos agrupados por pasta, comandos e o aviso de que nada foi escrito. Sem conflito e sem pendência, essas seções não são renderizadas |
-| `PainelLog` | log ao vivo, stdout e stderr diferenciados, autoscroll com trava, parar |
+| `PainelLog` | log ao vivo de um run, stdout e stderr diferenciados por marcador e não só por cor, autoscroll que solta quando o usuário rola para cima, teto de linhas na tela, e reconectar quando a conexão cai. Parar continua sendo do `PainelMaterializacao`, ao lado |
 | `PainelMaterializacao` | o que está acontecendo agora: arquivos escritos, fila de comandos com estado, e as três saídas quando um comando obrigatório falha |
+| `TelaFinal` | o fim do fluxo F-01, só em materialização concluída: caminho no disco copiável, resumo de arquivos e o atalho que abre a pasta no gerenciador de arquivos |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | área de desenho com zoom, pan, régua, snap |
 | `PainelTokens` | edição dos tokens `--projeto-*` com preview ao vivo |

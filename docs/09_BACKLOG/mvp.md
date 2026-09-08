@@ -17,7 +17,8 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 | 5, motor de regras | entregue | `specs/fase1-bloco5-motor-de-regras.md` |
 | 6, gerador | entregue | `specs/fase1-bloco6-gerador.md` |
 | 7, runner | entregue | `specs/fase1-bloco7-runner.md` |
-| 8, telas de fechamento | próximo | |
+| 8, telas de fechamento | entregue | `specs/fase1-bloco8-telas-de-fechamento.md` |
+| 9, gaveta de ideias | próximo | |
 
 ## Critério de aceite da fase inteira
 
@@ -77,7 +78,11 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 ### 8. Telas de fechamento
 - Painel do plano, agrupado por pasta, com conflitos no topo
 - Painel de log ao vivo
-- Tela final com caminho, resumo e atalho para abrir no editor
+- Tela final com caminho, resumo e atalho para abrir a pasta do projeto
+
+O atalho abre a **pasta** no gerenciador de arquivos do sistema, não um editor: o Forge não sabe
+qual editor o dono usa, e perguntar contrariaria o princípio nº 1. Decisão registrada na seção 4
+da spec do bloco.
 
 ### 9. Gaveta de ideias
 - Atalho global, campo com título e próximo passo, volta para onde estava

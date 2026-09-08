@@ -117,7 +117,7 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
     instancia.register(rotasHealth, { versao, home: config.home, settings });
     instancia.register(rotasSettings, { settings });
     instancia.register(rotasPresets, { presets });
-    instancia.register(rotasProjetos, { projetos, presets, regras });
+    instancia.register(rotasProjetos, { projetos, presets, regras, settings });
     instancia.register(rotasRegras, { regras, projetos, presets });
     instancia.register(rotasGerador, { gerador, projetos, presets, settings });
     instancia.register(rotasRunner, { runner, gerador, projetos, presets, settings, transmissor });

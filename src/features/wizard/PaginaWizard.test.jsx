@@ -6,12 +6,12 @@ import { mensagens } from '../../mensagens.js';
 import { ErroApi } from '../../services/api.js';
 import PaginaWizard from './PaginaWizard.jsx';
 
-vi.mock('../../services/projetos.js', () => ({ obterProjeto: vi.fn(), salvarBlueprint: vi.fn(), atualizarProjeto: vi.fn() }));
+vi.mock('../../services/projetos.js', () => ({ obterProjeto: vi.fn(), salvarBlueprint: vi.fn(), atualizarProjeto: vi.fn(), abrirPastaDoProjeto: vi.fn() }));
 vi.mock('../../services/presets.js', () => ({ obterPreset: vi.fn() }));
 vi.mock('../../services/regras.js', () => ({ avaliarRegras: vi.fn(), decidirSobreHit: vi.fn() }));
 vi.mock('../../services/plano.js', () => ({ gerarPlano: vi.fn() }));
 vi.mock('../../services/materializacao.js', () => ({ materializar: vi.fn(), obterMaterializacao: vi.fn(), decidirMaterializacao: vi.fn(), pararRun: vi.fn() }));
-import { obterProjeto, salvarBlueprint, atualizarProjeto } from '../../services/projetos.js';
+import { obterProjeto, salvarBlueprint, atualizarProjeto, abrirPastaDoProjeto } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
 import { avaliarRegras, decidirSobreHit } from '../../services/regras.js';
 import { gerarPlano } from '../../services/plano.js';
@@ -406,8 +406,52 @@ describe('aprovar e materializar', () => {
     fireEvent.click(botao);
     await waitFor(() => expect(materializar).toHaveBeenCalledWith('p1', `sha256:${'a'.repeat(64)}`));
     expect(await screen.findByText(mm.estado.concluida)).toBeInTheDocument();
-    // O comando aparece nos dois painéis: no plano (o que vai rodar) e na materialização (o que rodou).
-    expect(screen.getAllByText('git init')).toHaveLength(2);
+    // O comando aparece em três lugares, cada um respondendo a uma pergunta diferente: no plano
+    // (o que vai rodar), na materialização (o que rodou) e no rótulo do log (de quem é esta saída).
+    expect(screen.getAllByText('git init')).toHaveLength(3);
+  });
+
+  it('concluída mostra a tela final ao lado do painel, sem substituí-lo', async () => {
+    emMaterializar();
+    obterMaterializacao.mockResolvedValue(estadoDe());
+    renderizar('/projetos/p1/wizard/materializar');
+
+    expect(await screen.findByRole('heading', { name: mensagens.telaFinal.titulo })).toBeInTheDocument();
+    // O painel de materialização continua na tela, e o log ao lado dele.
+    expect(screen.getByText(mm.estado.concluida)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: mensagens.log.titulo })).toBeInTheDocument();
+  });
+
+  it('abortada não mostra a tela final', async () => {
+    emMaterializar();
+    obterMaterializacao.mockResolvedValue(estadoDe({ estado: 'abortada' }));
+    renderizar('/projetos/p1/wizard/materializar');
+
+    expect(await screen.findByText(mm.estado.abortada)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: mensagens.telaFinal.titulo })).toBeNull();
+  });
+
+  it('parada em falha não mostra a tela final', async () => {
+    emMaterializar();
+    obterMaterializacao.mockResolvedValue(estadoDe({
+      estado: 'parado_em_falha',
+      comandos: [{ id: 'install', cmd: 'npm', args: ['install'], obrigatorio: true, longaDuracao: false, estado: 'falha', runId: 'r2', exitCode: 1, erro: 'Saiu com código 1.' }],
+    }));
+    renderizar('/projetos/p1/wizard/materializar');
+
+    expect(await screen.findByRole('button', { name: mm.repetir })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: mensagens.telaFinal.titulo })).toBeNull();
+  });
+
+  it('abrir a pasta passa pela camada de serviços, e o erro aparece legível', async () => {
+    emMaterializar();
+    obterMaterializacao.mockResolvedValue(estadoDe());
+    abrirPastaDoProjeto.mockRejectedValue(new ErroApi('FORGE_VALIDATION', 'A pasta do projeto não está mais no disco.', {}, 400));
+    renderizar('/projetos/p1/wizard/materializar');
+
+    fireEvent.click(await screen.findByRole('button', { name: mensagens.telaFinal.abrir }));
+    await waitFor(() => expect(abrirPastaDoProjeto).toHaveBeenCalledWith('p1'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('A pasta do projeto não está mais no disco.');
   });
 
   it('ferramenta ausente mostra a lista do que falta, não uma mensagem genérica', async () => {

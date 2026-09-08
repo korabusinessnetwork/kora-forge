@@ -189,6 +189,27 @@ export const mensagens = {
     planoVelho: 'O blueprint mudou depois deste plano. Recarregue para gerar um plano novo.',
     saidaDe: (id) => `Saída de ${id}`,
   },
+  log: {
+    titulo: 'Log ao vivo',
+    regiao: 'Saída do comando em execução',
+    esperando: 'Esperando a primeira linha…',
+    semSessao: 'Sem sessão local. Abra o Forge pela URL que o terminal imprimiu.',
+    conexaoPerdida: 'A conexão com o log caiu. A execução continua no servidor.',
+    reconectar: 'Reconectar',
+    stream: { stdout: 'saída:', stderr: 'erro:' },
+    fim: (estado, exitCode) => {
+      const texto = { sucesso: 'Comando concluído.', falha: 'Comando falhou.', timeout: 'Tempo esgotado.', cancelado: 'Comando parado.' }[estado] ?? 'Comando encerrado.';
+      return exitCode === null || exitCode === 0 ? texto : `${texto} exit ${exitCode}.`;
+    },
+  },
+  telaFinal: {
+    // Não repete o texto de estado do painel ao lado. Lá diz que terminou; aqui diz onde ficou.
+    titulo: 'Seu projeto está aqui',
+    micro: 'A pasta abaixo já tem a fundação, a documentação e o histórico do que foi decidido.',
+    rotuloCaminho: 'caminho do projeto',
+    abrir: 'Abrir a pasta',
+    abrirMicro: 'Abre no gerenciador de arquivos do sistema.',
+  },
   regras: {
     severidade: { info: 'dica', aviso: 'aviso', bloqueio: 'bloqueio' },
     automatico: 'O plano já cuida disso. Nada a fazer.',

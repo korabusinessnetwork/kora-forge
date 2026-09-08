@@ -1,0 +1,112 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+  background: var(--forge-surface);
+  min-width: 0;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: baseline;
+  gap: var(--forge-space-3);
+  flex-wrap: wrap;
+}
+
+.titulo {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--forge-text-muted);
+}
+
+.rotulo {
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}
+
+.caixa {
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: var(--forge-space-3);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-bg);
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+}
+
+.caixa:focus-visible {
+  outline: none;
+  box-shadow: var(--forge-focus-ring);
+}
+
+.linha,
+.linhaErro {
+  display: flex;
+  gap: var(--forge-space-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--forge-text);
+}
+
+/* A distinção entre os dois streams não é só cor: o marcador muda de caractere e de peso, e o
+   nome do stream vai para o leitor de tela. */
+.linhaErro {
+  color: var(--forge-danger);
+  font-weight: 600;
+}
+
+.marcador {
+  flex: none;
+  width: 1ch;
+  color: var(--forge-text-muted);
+}
+
+.linhaErro .marcador {
+  color: var(--forge-danger);
+}
+
+.vozDoStream {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.vazio {
+  color: var(--forge-text-muted);
+}
+
+.fim {
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  color: var(--forge-text-muted);
+}
+
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: var(--forge-space-3);
+  flex-wrap: wrap;
+  padding: var(--forge-space-3);
+  border: 1px solid var(--forge-warning);
+  border-radius: var(--forge-radius-md);
+  background: var(--forge-surface-2);
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}

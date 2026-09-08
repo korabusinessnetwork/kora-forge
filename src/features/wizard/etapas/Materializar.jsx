@@ -2,10 +2,13 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { gerarPlano } from '../../../services/plano.js';
 import { materializar, obterMaterializacao, decidirMaterializacao, pararRun } from '../../../services/materializacao.js';
+import { abrirPastaDoProjeto } from '../../../services/projetos.js';
 import Botao from '../../../components/shared/Botao/Botao.jsx';
 import CampoBooleano from '../../../components/shared/CampoBooleano/CampoBooleano.jsx';
 import PainelPlano from '../../../components/plano/PainelPlano/PainelPlano.jsx';
 import PainelMaterializacao from '../../../components/plano/PainelMaterializacao/PainelMaterializacao.jsx';
+import PainelLog from '../../../components/plano/PainelLog/PainelLog.jsx';
+import TelaFinal from '../../../components/plano/TelaFinal/TelaFinal.jsx';
 import { mensagens } from '../../../mensagens.js';
 import estilos from './Fundacao.module.css';
 
@@ -20,7 +23,8 @@ export default function Materializar({ valor, onChange, projeto }) {
     queryKey: ['materializacao', projeto.id],
     queryFn: () => obterMaterializacao(projeto.id),
     retry: false,
-    // Enquanto está rodando, o estado muda sozinho. O log linha a linha chega no bloco 8.
+    // Enquanto está rodando, o estado muda sozinho. O log linha a linha vem pelo WebSocket, no
+    // PainelLog, e não depende deste intervalo.
     refetchInterval: (consulta) => (EM_ANDAMENTO.includes(consulta.state.data?.estado) ? 1000 : false),
   });
 
@@ -31,11 +35,17 @@ export default function Materializar({ valor, onChange, projeto }) {
     mutationFn: pararRun,
     onSuccess: () => clienteQuery.invalidateQueries({ queryKey: ['materializacao', projeto.id] }),
   });
+  const abrir = useMutation({ mutationFn: () => abrirPastaDoProjeto(projeto.id) });
 
   const faltaWorkspace = plano.error?.detalhe?.issues?.[0]?.caminho === 'workspace';
   const ferramentas = aprovar.error?.detalhe?.ferramentas?.filter((ferramenta) => !ferramenta.ok) ?? [];
   const planoVelho = aprovar.error?.codigo === 'FORGE_PLAN_STALE';
   const emAndamento = materializacao.data && EM_ANDAMENTO.includes(materializacao.data.estado);
+  // O log segue o comando que está rodando; terminada a fila, segue o último que chegou a rodar,
+  // para a saída da falha continuar na tela em vez de sumir junto com o estado.
+  const comandoDoLog = materializacao.data?.comandos.find((comando) => comando.estado === 'rodando')
+    ?? [...(materializacao.data?.comandos ?? [])].reverse().find((comando) => comando.runId);
+  const concluida = materializacao.data?.estado === 'concluida';
 
   return (
     <>
@@ -53,11 +63,25 @@ export default function Materializar({ valor, onChange, projeto }) {
       {plano.data ? <PainelPlano plano={plano.data} /> : null}
 
       {materializacao.data ? (
-        <PainelMaterializacao
+        <div className={estilos.execucao}>
+          <PainelMaterializacao
+            materializacao={materializacao.data}
+            onDecidir={(acao) => decidir.mutate(acao)}
+            onParar={(runId) => parar.mutate(runId)}
+            decidindo={decidir.isPending}
+          />
+          {comandoDoLog?.runId ? (
+            <PainelLog runId={comandoDoLog.runId} rotulo={`${comandoDoLog.cmd} ${comandoDoLog.args.join(' ')}`} />
+          ) : null}
+        </div>
+      ) : null}
+
+      {concluida ? (
+        <TelaFinal
           materializacao={materializacao.data}
-          onDecidir={(acao) => decidir.mutate(acao)}
-          onParar={(runId) => parar.mutate(runId)}
-          decidindo={decidir.isPending}
+          onAbrir={() => abrir.mutate()}
+          abrindo={abrir.isPending}
+          erroAoAbrir={abrir.error}
         />
       ) : null}
 
