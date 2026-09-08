@@ -175,3 +175,11 @@ e o ADR-008 está commitado como `Proposto` desde o começo do projeto.
 **O que muda**: proposta de ADR nasce em `docs/08_DECISOES/` com Status `Proposto`, no mesmo
 commit do código que ela justifica. Esperar o aval é sobre o Status, não sobre o arquivo existir.
 Assim quem abrir o repositório vê o que está em uso e ainda não foi ratificado.
+
+### A-19, escrita em lote sem gatilho de tempo perde tudo de quem nunca termina
+O runner gravava `command_logs` a cada cinquenta linhas ou no fim do comando. Parecia razoável até
+aparecer o caso que não se encaixa em nenhum dos dois: um dev server imprime meia dúzia de linhas e
+não termina nunca, então o log dele não existia no banco enquanto rodasse. O padrão de lote assume
+que todo produtor ou é volumoso ou acaba, e comando de longa duração não é nem um nem outro. O que
+muda: acumulador com gatilho por quantidade nasce também com gatilho por tempo, e o teste que prova
+isso usa um produtor que fica vivo, não um que termina.

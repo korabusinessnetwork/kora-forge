@@ -155,7 +155,7 @@ arquivo. Ver A-11 em `memory/learnings.md`.
 
 ### R-11, log de comando de longa duração nunca chega ao banco
 
-**Severidade**: média. **Status**: aberto. **Registrado em**: 2026-09-08.
+**Severidade**: média. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
 
 `server/modules/runner/servico.js` acumula as linhas em `pendentes` e só grava em `command_logs`
 quando junta 50 ou quando o comando termina. Um `npm run dev`, que por definição não termina,
@@ -168,10 +168,22 @@ que se perde é a persistência. Reiniciar o Forge apaga o log daquele comando, 
 **Descoberto** na prova do critério de aceite da Fase 1, que tentou ler a URL do dev server em
 `command_logs` e encontrou zero linhas para um comando visivelmente rodando.
 
-**Correção candidata**: esvaziar a fila também por tempo, um `setInterval` curto enquanto o
-comando roda, cancelado ao terminar. Não foi feita aqui porque não impede nenhum dos oito itens do
-critério, e a escolha do intervalo é decisão de produto: gravar demais castiga o disco, gravar de
-menos perde log.
+**Correção**: a fila passou a esvaziar também por tempo, com `INTERVALO_DESPEJO_MS` de um segundo,
+agendado só quando há linha esperando e cancelado ao despejar, sempre com `unref` para não segurar
+o processo vivo. O teto de cinquenta linhas virou `LOTE_MAXIMO` e continua mandando em rajada.
+`encerrarTudo` passou a gravar o que está na fila **antes** de marcar encerrado, porque depois
+disso `gravarComCuidado` recusa escrever e as linhas seriam descartadas.
+
+**O intervalo, e por quê um segundo**: ele não governa a experiência de ninguém. Quem olha o painel
+recebe pelo WebSocket, na hora. O banco serve para depois, e ali um segundo é invisível. Em rajada
+o lote dispara antes e o temporizador nem chega a ser usado.
+
+**Guarda de regressão**: quatro testes em `server/modules/runner/runner.test.js`, sob "log persiste
+sem esperar o comando terminar". Os dois centrais foram vistos ficando vermelhos com a correção
+revertida de propósito.
+
+**Fica em aberto**: `command_logs` cresce sem limite, e agora cresce também para comando que nunca
+termina. Podar ou limitar por run é item próprio, e não urgente.
 
 ### R-12, parar um comando deixa o processo real vivo no Windows
 
