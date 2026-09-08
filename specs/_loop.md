@@ -3,6 +3,21 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 7 — R-11, o log persiste sem esperar o comando terminar — 2026-09-08
+
+- Spec: `specs/r11-log-persiste-sem-esperar-o-fim.md`
+- Resultado da review: aprovado sem ressalvas, 13 de 13 critérios. Suíte com 599 passando e 1
+  pulado, build sem erro, e `npm run verificar:fase1` com os oito itens passando.
+- Aprendido: A-19 em `memory/learnings.md`; R-11 fechado em `memory/bugs.md`.
+- Commit: `dc572cc` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- Pendente de decisão, três, todas de rodadas anteriores:
+  1. **ADR-009**, ratificar, recusar ou dividir. Duas capacidades em uso sem respaldo escrito.
+  2. **R-07**, `--legacy-peer-deps` no preset ou fallback no runner.
+  3. Os itens `[ASSUMIDO]` em `respostas-intake.md`.
+- Próximo item recomendado: **B-02**, a tela final mostrar a URL do dev server. É a última coisa
+  entre o dono e o projeto aberto no browser sem ler log, e o R-11 acabou de tornar isso possível
+  pelo servidor, porque a URL agora existe no banco.
+
 ## Rodada 6 — ADR das capacidades próprias do Forge — 2026-09-08
 
 - Spec: `specs/adr-capacidades-proprias-do-forge.md`. ADR em
