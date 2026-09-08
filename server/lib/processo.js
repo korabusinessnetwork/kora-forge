@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { COMANDOS_PERMITIDOS } from '../../shared/comandos.js';
+import { resolverExecutavel } from './binarios.js';
 import { ErroForge } from './erro.js';
 
 // Execução de processo do sistema. A parte mais perigosa do produto (ADR-002, controle C3):
@@ -49,10 +50,29 @@ function criarQuebradorDeLinhas(stream, aoReceber) {
   };
 }
 
+// Falha ao iniciar o processo vira mensagem que diz o que fazer, com código estável. Ferramenta
+// que não existe e ferramenta que só roda por shell são a mesma resposta para quem usa: instale ou
+// ajuste o PATH. O Forge não liga shell para contornar (ADR-002).
+function descreverFalhaAoIniciar(cmd, erro) {
+  if (erro?.code === 'ENOENT') {
+    return { codigo: 'FORGE_TOOL_MISSING', mensagem: `A ferramenta "${cmd}" não foi encontrada. Instale ou verifique o PATH.` };
+  }
+  if (erro?.code === 'EINVAL') {
+    return { codigo: 'FORGE_TOOL_MISSING', mensagem: `A ferramenta "${cmd}" existe mas só roda através de shell, e o Forge nunca usa shell.` };
+  }
+  return { codigo: 'FORGE_RUN_FAILED', mensagem: erro?.message ?? 'O processo não pôde ser iniciado.' };
+}
+
 export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaDuracao = false }) {
   validarComando({ cmd, args });
 
-  const processo = spawn(cmd, args, {
+  // A validação acima vale sobre o comando declarado no preset. A resolução abaixo é interna: sai
+  // de `process.execPath` e do `PATH`, nunca de entrada do usuário. Por isso ela pode produzir um
+  // caminho absoluto com espaço e barra invertida, que a allowlist de argumento recusaria, e é
+  // justamente essa ordem que mantém a allowlist estrita sem quebrar o Windows.
+  const { arquivo, prefixo } = resolverExecutavel(cmd);
+
+  const processo = spawn(arquivo, [...prefixo, ...args], {
     cwd,
     shell: false,
     env: ambienteMinimo(),
@@ -73,7 +93,10 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
       resolver(resultado);
     };
 
-    processo.on('error', (erro) => responder({ estado: 'falha', exitCode: null, erro: erro.message }));
+    processo.on('error', (erro) => {
+      const { codigo, mensagem } = descreverFalhaAoIniciar(cmd, erro);
+      responder({ estado: 'falha', exitCode: null, erro: mensagem, codigo });
+    });
     processo.on('close', (codigo, sinal) => {
       if (processo.forgeTimeout) return responder({ estado: 'timeout', exitCode: codigo, erro: `Tempo esgotado depois de ${timeoutMs} ms.` });
       if (processo.forgeParado) return responder({ estado: 'cancelado', exitCode: codigo, erro: null });

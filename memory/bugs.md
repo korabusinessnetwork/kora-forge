@@ -86,3 +86,51 @@ Forge.
 **O que fazer no bloco 7**: decidir se o runner detecta a falha e tenta o fallback, ou se o preset
 passa a declarar a flag. Nenhuma das duas foi decidida, e a decisão é do dono, porque
 `--legacy-peer-deps` afrouxa a resolução de peers em todo projeto gerado.
+
+### R-08, o runner não executava `npm` no Windows
+
+**Severidade**: crítica. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
+
+`server/lib/processo.js` fazia `spawn('npm', args, { shell: false })`. No Windows isso falha com
+`ENOENT`, porque `npm` é `npm.cmd` e o Node não consulta o `PATHEXT` quando o shell está
+desligado. `git` e `node` funcionavam, porque são `.exe`. Resultado: o bloco 7 rodava a fila
+inteira no Linux e não rodava nada na máquina do dono, que é Windows, o que derrubava três itens
+do critério de aceite da Fase 1 sem nenhum teste ficar vermelho.
+
+Duas saídas foram testadas e descartadas: `shell: true` viola o controle C3 do ADR-002, e apontar
+o `spawn` direto para `npm.cmd` falha com `EINVAL`, porque o Node recusa executar `.cmd` e `.bat`
+sem shell desde a correção do CVE-2024-27980.
+
+**Correção**: `server/lib/binarios.js` resolve o executável antes do `spawn`. Para `npm` e `npx`
+executa o próprio Node apontando para o CLI em JavaScript (`npm-cli.js`), que é o que o `.cmd` faz
+por dentro. Para o resto procura no `PATH` respeitando o `PATHEXT` e aceitando só `.com` e `.exe`.
+Fora do Windows nada muda. A resolução roda **depois** de `validarComando`, e por isso a allowlist
+de argumento continua estrita: o caminho absoluto que ela produz é interno, nunca declarado.
+
+**Guarda de regressão**: `server/lib/processo.test.js` executa o `npm` de verdade, e
+`server/modules/runner/requisitos.test.js` exige que a checagem encontre o npm. Sem isso o bug
+volta invisível, que foi exatamente como ele entrou.
+
+### R-09, oito testes verdes no Linux falhavam no Windows
+
+**Severidade**: média. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
+
+O handoff do bloco 7 registrou 435 testes verdes. Na primeira execução em Windows, oito falharam,
+por quatro causas independentes:
+
+1. Seis eram o R-08 acima, com o agravante de que o teste passava o caminho absoluto do arquivo
+   temporário como argumento, e caminho absoluto do Windows tem barra invertida e dois-pontos de
+   unidade, que a allowlist recusa de propósito. Corrigido passando o nome relativo, resolvido
+   pelo `cwd`, sem afrouxar a allowlist.
+2. `server/boot.test.js` usava `RAIZ.pathname`, que em Windows devolve `/C:/...` e produz
+   `C:\C:\Users\...` depois do `path.join`. O código de produção já usava `fileURLToPath`
+   corretamente; era defeito só do teste.
+3. `server/lib/caminhos.test.js` criava symlink, que no Windows exige modo desenvolvedor ou
+   privilégio de administrador e falha com `EPERM`. O caso passou a ser pulado quando o sistema
+   recusa, em vez de falhar.
+4. A captura de saída exigia ordem entre `stdout` e `stderr`. São canos separados e essa ordem
+   nunca foi garantida; no Linux ela só era estável por acaso. O teste passou a exigir ordem
+   dentro de cada stream.
+
+**O que muda na próxima vez**: suíte verde em uma plataforma não diz nada sobre a outra. O Forge é
+ferramenta local que roda em Windows, então Windows é a plataforma principal, não a secundária.

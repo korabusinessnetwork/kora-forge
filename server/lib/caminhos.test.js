@@ -51,13 +51,21 @@ describe('inspecionar', () => {
     expect(inspecionar(base, path.join(base, 'a.md')).isFile()).toBe(true);
   });
 
-  it('aceita symlink que aponta para dentro e recusa o que aponta para fora', () => {
+  it('aceita symlink que aponta para dentro e recusa o que aponta para fora', (contexto) => {
     const base = pasta();
     const fora = pasta();
     fs.writeFileSync(path.join(base, 'real.md'), 'dentro');
     fs.writeFileSync(path.join(fora, 'segredo.md'), 'fora');
-    fs.symlinkSync(path.join(base, 'real.md'), path.join(base, 'dentro.link'));
-    fs.symlinkSync(path.join(fora, 'segredo.md'), path.join(base, 'fora.link'));
+    try {
+      fs.symlinkSync(path.join(base, 'real.md'), path.join(base, 'dentro.link'));
+      fs.symlinkSync(path.join(fora, 'segredo.md'), path.join(base, 'fora.link'));
+    } catch (erro) {
+      // O Windows só deixa criar symlink com modo desenvolvedor ligado ou privilégio de
+      // administrador. Sem isso o caso não é testável, e pular é honesto: a proteção continua
+      // coberta pelos outros testes de caminho, e falhar aqui esconderia regressão de verdade.
+      if (erro?.code === 'EPERM' || erro?.code === 'EACCES') return contexto.skip();
+      throw erro;
+    }
 
     expect(inspecionar(base, path.join(base, 'dentro.link')).isFile()).toBe(true);
     let erro;

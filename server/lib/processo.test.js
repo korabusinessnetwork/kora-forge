@@ -10,13 +10,15 @@ afterEach(() => {
   while (temporarias.length > 0) fs.rmSync(temporarias.pop(), { recursive: true, force: true });
 });
 
-// Script auxiliar em pasta temporária: o caminho passa pela allowlist de argumento, e assim dá
-// para testar processo de verdade sem afrouxar a regra que protege o runner.
+// Script auxiliar em pasta temporária. O argumento é o nome relativo, resolvido pelo `cwd`, e não
+// o caminho absoluto: caminho absoluto do Windows tem barra invertida e dois-pontos de unidade, que
+// a allowlist de argumento recusa de propósito. Testar com nome relativo prova o runner sem
+// afrouxar a regra que o protege.
 function script(corpo) {
   const pasta = fs.mkdtempSync(path.join(os.tmpdir(), 'kora-forge-proc-'));
   temporarias.push(pasta);
-  const arquivo = path.join(pasta, 'script.js');
-  fs.writeFileSync(arquivo, corpo);
+  const arquivo = 'script.js';
+  fs.writeFileSync(path.join(pasta, arquivo), corpo);
   return { pasta, arquivo };
 }
 
@@ -83,7 +85,12 @@ describe('executar', () => {
     const { terminou } = executar({ cmd: 'node', args: [arquivo], cwd: pasta, timeoutMs: 15000, onLinha: (stream, linha) => linhas.push([stream, linha]) });
     const resultado = await terminou;
     expect(resultado).toEqual({ estado: 'sucesso', exitCode: 0, erro: null });
-    expect(linhas).toEqual([['stdout', 'linha 1'], ['stdout', 'linha 2'], ['stderr', 'erro 1']]);
+    // A ordem é garantida dentro de cada stream, nunca entre os dois: stdout e stderr são canos
+    // separados, e quem chega primeiro depende do sistema operacional.
+    const so = (stream) => linhas.filter(([nome]) => nome === stream).map(([, linha]) => linha);
+    expect(so('stdout')).toEqual(['linha 1', 'linha 2']);
+    expect(so('stderr')).toEqual(['erro 1']);
+    expect(linhas).toHaveLength(3);
   });
 
   it('exit code diferente de zero vira falha com o código', async () => {
@@ -136,6 +143,17 @@ describe('executar', () => {
     const resultado = await terminou;
     expect(resultado.estado).toBe('cancelado');
     expect(parar(processo)).toBe(false);
+  });
+
+  // R-08. No Windows `npm` é um `.cmd`, e `spawn` sem shell não executa `.cmd`. O bug só apareceu
+  // rodando na máquina do dono, nunca em teste, então o teste passa a existir: ele roda o npm de
+  // verdade, que é a única forma de provar que o runner ainda funciona nas duas plataformas.
+  it('executa o npm de verdade, na plataforma em que está rodando', async () => {
+    let saida = '';
+    const { terminou } = executar({ cmd: 'npm', args: ['--version'], cwd: process.cwd(), timeoutMs: 60000, onLinha: (_s, linha) => { saida += linha; } });
+    const resultado = await terminou;
+    expect(resultado.estado).toBe('sucesso');
+    expect(saida.trim()).toMatch(/^\d+\.\d+\.\d+/);
   });
 
   it('valida o comando antes de qualquer spawn', () => {

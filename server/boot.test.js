@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { prepararHome, gerarTokenDeSessao, lerVersao, SUBPASTAS_HOME } from './boot.js';
 
@@ -35,6 +36,6 @@ describe('gerarTokenDeSessao', () => {
 
 describe('lerVersao', () => {
   it('lê a versão do package.json', () => {
-    expect(lerVersao(RAIZ.pathname)).toMatch(/^\d+\.\d+\.\d+/);
+    expect(lerVersao(fileURLToPath(RAIZ))).toMatch(/^\d+\.\d+\.\d+/);
   });
 });

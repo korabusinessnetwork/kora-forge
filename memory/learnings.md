@@ -68,3 +68,26 @@ sobrar na saída é bug, não pendência.
 Por isso a fundação deste projeto foi escrita manualmente, apesar de o produto existir
 justamente para automatizar isso. O que muda: cada etapa manual escrita aqui virou item
 de escopo da Fase 1.
+
+### A-06, teste verde em uma plataforma não diz nada sobre a outra
+`server/lib/processo.js` fazia `spawn('npm', ..., { shell: false })` e passou por 435 testes
+verdes, uma spec e uma auditoria de bloco, todos rodados em Linux. Na máquina do dono, que é
+Windows, o runner não executava nenhum comando `npm`, porque `npm` é `npm.cmd` e o Node só
+consulta o `PATHEXT` com shell ligado. O que muda: o Forge é ferramenta local e Windows é a
+plataforma principal dele, então nenhum bloco que toca processo, caminho ou sistema de arquivos
+fecha sem rodar a suíte no Windows.
+
+### A-07, o teste que prova o comando é o que roda o comando de verdade
+O bug do R-08 sobreviveu porque todo teste do runner usava `node` com um script temporário, e
+`node` é `.exe`, o único caso que já funcionava. A cobertura parecia alta e não tocava o caminho
+que quebrava. O que muda: quando o valor de uma função é falar com o sistema operacional, existe
+pelo menos um teste que fala com o sistema operacional de verdade, mesmo que custe um segundo.
+Vale para runner, para escrita em disco e para a checagem de requisitos.
+
+### A-08, contornar uma trava de segurança é sinal de que a saída certa é outra
+Diante do `ENOENT` do `npm`, as duas saídas óbvias eram ligar `shell: true` ou apontar o `spawn`
+para o `npm.cmd`. A primeira quebra o controle C3 do ADR-002. A segunda o Node bloqueia com
+`EINVAL`, porque executar `.cmd` sem shell foi fechado na correção do CVE-2024-27980. A saída que
+funcionou respeita as duas travas: executar o Node apontando para o `npm-cli.js`, que é o que o
+`.cmd` faz por dentro. O que muda: quando a correção pede para afrouxar um controle registrado em
+ADR, o caminho é procurar a terceira saída antes, não negociar o controle.
