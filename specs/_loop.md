@@ -3,6 +3,24 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 4 — critério de aceite da Fase 1 — 2026-09-08
+
+- Spec: `specs/fase1-criterio-de-aceite.md`. Relatório em `docs/09_BACKLOG/fase1-aceite.md`.
+- Resultado da review: aprovado sem ressalvas. Os oito itens do critério da fase passaram, mais os
+  quatro desta spec. Suíte com 580 passando e 1 pulado, build sem erro, em Windows 11. A prova é
+  repetível por `npm run verificar:fase1` e roda isolada do ambiente do dono.
+- Aprendido: A-13, A-14 e A-15 em `memory/learnings.md`; R-11 e R-12 em `memory/bugs.md`; B-01 e
+  B-02 em `docs/09_BACKLOG/README.md`.
+- Commit: `bf080ea` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- Pendente de decisão, agora são quatro:
+  1. **R-12**, parar um comando deixa o processo real vivo no Windows. O botão Parar não para o dev
+     server. A correção mexe no ADR-002: `taskkill` na whitelist ou Job Object no runner?
+  2. **ADR-009**, proposto na rodada 2, sobre abrir a pasta do projeto fora do runner.
+  3. **R-07**, `--legacy-peer-deps` no preset ou fallback no runner.
+  4. Os itens `[ASSUMIDO]` em `respostas-intake.md`.
+- Próximo item recomendado: **R-12** — é o único defeito aberto que atinge quem usa, o botão Parar
+  do bloco 7 não para nada, e o Forge deixa processo órfão segurando porta.
+
 ## Rodada 3 — Fase 1, bloco 9, gaveta de ideias — 2026-09-08
 
 - Spec: `specs/fase1-bloco9-gaveta-de-ideias.md`
@@ -11,12 +29,9 @@ no CLAUDE.md e no ADR-008.
   descarte idempotente e os dois eventos de domínio gravados.
 - Aprendido: A-11 e A-12 em `memory/learnings.md`; R-10 em `memory/bugs.md`.
 - Commit: `74a0c19` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
-- Pendente de decisão: continua o **ADR-009**, proposto na rodada 2 e não aplicado, sobre abrir a
-  pasta do projeto fora do runner. Continuam também o R-07 e os itens `[ASSUMIDO]` de
-  `respostas-intake.md`.
+- Pendente de decisão: ADR-009, R-07 e os itens `[ASSUMIDO]`.
 - Próximo item recomendado: **critério de aceite da Fase 1** — os nove blocos estão entregues, e o
-  que falta é provar a fase de ponta a ponta, criando um projeto real em menos de dez minutos sem
-  tocar no terminal.
+  que falta é provar a fase de ponta a ponta.
 
 ## Rodada 2 — Fase 1, bloco 8, telas de fechamento — 2026-09-08
 
@@ -27,10 +42,8 @@ no CLAUDE.md e no ADR-008.
 - Aprendido: A-09 e A-10 em `memory/learnings.md`; P-09 em `memory/patterns.md`.
 - Commit: `85bf23f` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
 - Pendente de decisão: **ADR-009 proposto e não aplicado**, sobre abrir a pasta do projeto fora do
-  runner. O texto pronto foi apresentado ao dono. Se recusado, o botão sai e sobra o caminho
-  copiável. Continuam abertos o R-07 e os itens `[ASSUMIDO]` de `respostas-intake.md`.
-- Próximo item recomendado: **bloco 9, gaveta de ideias** — é o último bloco da Fase 1, e sem ele
-  o critério de aceite da fase não pode ser rodado.
+  runner. Se recusado, o botão sai e sobra o caminho copiável.
+- Próximo item recomendado: **bloco 9, gaveta de ideias** — é o último bloco da Fase 1.
 
 ## Rodada 1 — R-08, runner executa npm no Windows — 2026-09-08
 
@@ -39,9 +52,5 @@ no CLAUDE.md e no ADR-008.
   pulado, build sem erro, em Windows 11.
 - Aprendido: R-08 e R-09 em `memory/bugs.md`; A-06, A-07 e A-08 em `memory/learnings.md`.
 - Commit: `f35738b` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
-- Pendente de decisão: nenhuma nesta rodada. Continua aberto de rodadas anteriores o R-07, se o
-  preset passa a declarar `--legacy-peer-deps` ou se o runner tenta fallback, e os itens marcados
-  `[ASSUMIDO]` em `respostas-intake.md`.
-- Próximo item recomendado: **bloco 8, telas de fechamento** — é o próximo escrito em
-  `docs/09_BACKLOG/mvp.md`, e agora ele fecha a Fase 1 em cima de um runner que roda de verdade
-  nesta máquina.
+- Pendente de decisão: nenhuma nesta rodada. Continua aberto o R-07.
+- Próximo item recomendado: **bloco 8, telas de fechamento**.
