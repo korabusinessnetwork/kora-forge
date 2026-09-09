@@ -309,6 +309,8 @@ async function executar() {
   const dev = materializacao.comandos.find((c) => c.id === 'dev');
 
   const linhasDoDev = dev?.runId ? await lerLogAoVivo(porta, servidor.tokenSessao, dev.runId) : [];
+  // B-02: a URL que a tela final oferece como link vem do servidor, não da leitura do log.
+  const urlDoEstado = (await obterMaterializacao(projeto.id)).comandos.find((c) => c.url)?.url ?? null;
   // A URL é usada como o Vite anunciou. Trocar `localhost` por `127.0.0.1` quebra: no Windows o
   // Vite escuta em ::1, e o endereço IPv4 não responde. É a URL do log que o usuário vai clicar.
   const urlDev = linhasDoDev.join(' ').match(/https?:\/\/[a-z0-9.-]+:\d+\/?/i)?.[0] ?? null;
@@ -316,10 +318,11 @@ async function executar() {
   marcos.fim = Date.now();
 
   registrar(5, 'npm run dev do projeto gerado sobe sem erro',
-    dev?.estado === 'rodando' && statusDev === 200, [
+    dev?.estado === 'rodando' && statusDev === 200 && urlDoEstado !== null, [
       `npm install do projeto gerado: ${instalou?.estado ?? 'não rodou'}`,
       `npm run build do projeto gerado: ${construiu?.estado ?? 'não rodou'}`,
       `npm run dev, iniciado pelo runner: ${dev?.estado ?? 'não rodou'}`,
+      `URL no estado da materialização, que é a que vira link na tela final: ${urlDoEstado ?? 'nenhuma'}`,
       urlDev
         ? `URL anunciada no log ao vivo: ${urlDev} respondeu HTTP ${statusDev ?? 'nada'}`
         : `o log ao vivo não anunciou URL. ${linhasDoDev.length} linhas: ${JSON.stringify(linhasDoDev.slice(-8))}`,

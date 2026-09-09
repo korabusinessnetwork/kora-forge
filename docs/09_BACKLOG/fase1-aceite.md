@@ -60,7 +60,7 @@ registrados porque a correção pede decisão.
   escondia a URL do projeto recém-nascido. A limpeza passou a acontecer onde pedaço de stream vira
   linha, então painel e banco recebem o mesmo texto.
 
-## Observações que viraram item de backlog
+## Observações que viraram item de backlog, e foram fechadas na rodada 8
 
 - **A porta 5173 do projeto gerado é a mesma do Forge.** O template fixa `server: { port: 5173 }`,
   que é a porta do dev server do próprio Forge. Com o Forge aberto, o projeto gerado escorrega

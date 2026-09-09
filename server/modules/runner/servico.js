@@ -18,6 +18,20 @@ import { checarRequisitos } from './requisitos.js';
 const LOTE_MAXIMO = 50;
 const INTERVALO_DESPEJO_MS = 1000;
 
+// A URL que um dev server anuncia é o último passo entre materializar e ver o projeto rodando
+// (B-02). Ela vem da saída de um processo, ou seja, de fora, então a aceitação é estreita: só
+// loopback, sem caminho, sem domínio. O que sai daqui vira link na tela e nada além disso; nunca
+// argumento de comando, porque conteúdo de fora é dado, nunca instrução.
+const URL_DE_LOOPBACK = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?\/?$/;
+
+export function urlAnunciada(linha) {
+  for (const pedaco of String(linha).split(/\s+/)) {
+    const limpo = pedaco.replace(/[.,;:)\]]+$/, '');
+    if (URL_DE_LOOPBACK.test(limpo)) return limpo;
+  }
+  return null;
+}
+
 function erroCampo(caminho, mensagem) {
   return new ErroForge('FORGE_VALIDATION', mensagem, { issues: [{ caminho, mensagem }] });
 }
@@ -66,7 +80,7 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
     comandos: materializacao.comandos.map((comando) => ({
       id: comando.id, cmd: comando.cmd, args: comando.args, obrigatorio: comando.obrigatorio,
       longaDuracao: comando.longaDuracao, estado: comando.estado, runId: comando.runId,
-      exitCode: comando.exitCode, erro: comando.erro,
+      exitCode: comando.exitCode, erro: comando.erro, url: comando.url,
     })),
     indice: materializacao.indice,
     iniciadaEm: materializacao.iniciadaEm,
@@ -162,6 +176,9 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
       onLinha: (stream, linha) => {
         const evento = { tipo: 'linha', stream, linha, ts: new Date().toISOString() };
         pendentes.push({ stream, linha, ts: evento.ts });
+        // Só comando de longa duração anuncia servidor, e vale a primeira URL: o Vite imprime a
+        // Local antes da Network, e é a Local que interessa.
+        if (comando.longaDuracao && comando.url === null) comando.url = urlAnunciada(linha);
         if (pendentes.length >= LOTE_MAXIMO) despejar();
         else agendarDespejo();
         transmissor.publicar(runId, evento);
@@ -231,7 +248,7 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
       raiz: plano.raiz,
       estado: 'escrevendo',
       arquivos,
-      comandos: plano.comandos.map((comando) => ({ ...comando, estado: 'pendente', runId: null, exitCode: null, erro: null })),
+      comandos: plano.comandos.map((comando) => ({ ...comando, estado: 'pendente', runId: null, exitCode: null, erro: null, url: null })),
       indice: 0,
       iniciadaEm: new Date().toISOString(),
       terminadaEm: null,

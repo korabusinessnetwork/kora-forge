@@ -24,6 +24,9 @@ export const comandoExecutadoSchema = z.strictObject({
   runId: z.string().nullable(),
   exitCode: z.number().int().nullable(),
   erro: z.string().nullable(),
+  // URL de loopback que o próprio comando anunciou, quando anunciou. É o que a tela final oferece
+  // como link para o projeto recém-nascido (B-02).
+  url: z.string().nullable(),
 });
 
 export const materializacaoSchema = z.strictObject({

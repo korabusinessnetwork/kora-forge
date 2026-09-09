@@ -21,13 +21,13 @@ Detalhe da Fase 1 em `mvp.md`.
 
 ## Achados da prova da Fase 1 (2026-09-08)
 
-Levantados por `npm run verificar:fase1`. Nenhum impede o critério de aceite, que passou.
-Evidência em `fase1-aceite.md`; os defeitos com correção pendente estão em `memory/bugs.md`.
+Levantados por `npm run verificar:fase1`. Nenhum impediu o critério de aceite, que passou.
+Evidência em `fase1-aceite.md`.
 
-| Item | O que é | Por que existe | Pronto quando |
-|---|---|---|---|
-| B-01 | A porta do projeto gerado é 5173, a mesma do dev server do Forge | com o Forge aberto, o projeto gerado escorrega para 5174, 5175 e por aí; o Vite anuncia no log, então dá para se virar, mas o padrão convida ao conflito | o template do projeto gerado nasce numa porta que não é a do Forge, ou a escolha é do wizard |
-| B-02 | A tela final não mostra a URL do dev server | ela mostra o caminho no disco e abre a pasta; a URL só existe no log ao vivo, então o último passo até ver o projeto no browser ainda depende de ler log | a tela final mostra a URL e abre no browser, com a mesma clareza do caminho no disco |
+| Item | O que é | Estado |
+|---|---|---|
+| B-01 | A porta do projeto gerado era 5173, a mesma do dev server do Forge | **fechado** na rodada 8: o template nasce na 5273, sem `strictPort`, então porta ocupada escorrega em vez de falhar |
+| B-02 | A tela final não mostrava a URL do dev server | **fechado** na rodada 8: o runner captura a URL de loopback que o comando de longa duração anuncia, e a tela final a oferece como link e como texto copiável. Spec em `specs/b01-b02-url-do-dev-server.md` |
 
 ## Fase 2, Studio
 

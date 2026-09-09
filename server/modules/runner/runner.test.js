@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect, afterEach } from 'vitest';
 import { criarAppDeTeste, criarPastaTemporaria, apagarQuandoLiberar } from '../../testes/apoio.js';
+import { urlAnunciada } from './servico.js';
 import { materializacaoSchema } from '../../../shared/schemas/materializacao.js';
 
 let contexto;
@@ -390,6 +391,86 @@ describe('log persiste sem esperar o comando terminar', () => {
     await esperar(() => runner.obter(projeto.id).estado === 'concluida');
     const runId = runner.obter(projeto.id).comandos[0].runId;
     expect(linhasDe(ctx, runId)).toEqual([{ stream: 'stdout', linha: 'feito' }]);
+  });
+});
+
+// B-02. O último passo entre materializar e ver o projeto rodando era ler o log atrás da URL.
+describe('URL anunciada pelo dev server', () => {
+  describe('urlAnunciada', () => {
+    it.each([
+      ['linha do Vite, Local', '  ➜  Local:   http://localhost:5273/', 'http://localhost:5273/'],
+      ['sem barra no fim', 'servindo em http://127.0.0.1:5273', 'http://127.0.0.1:5273'],
+      ['sem porta', 'abra http://localhost', 'http://localhost'],
+      ['pontuação colada', 'rodando em http://localhost:5273/.', 'http://localhost:5273/'],
+      ['https em loopback', 'https://127.0.0.1:5273/', 'https://127.0.0.1:5273/'],
+    ])('aceita %s', (_rotulo, linha, esperado) => {
+      expect(urlAnunciada(linha)).toBe(esperado);
+    });
+
+    it.each([
+      ['endereço de rede', '  ➜  Network: http://192.168.1.52:5273/'],
+      ['domínio externo', 'documentação em https://vitejs.dev'],
+      ['loopback com caminho', 'painel em http://localhost:5273/admin'],
+      ['texto que só parece', 'localhost:5273 sem esquema'],
+      ['linha sem nada', 'Initialized empty Git repository'],
+      ['vazio', ''],
+    ])('recusa %s', (_rotulo, linha) => {
+      expect(urlAnunciada(linha)).toBeNull();
+    });
+
+    it('vale a primeira, e o Vite imprime a Local antes da Network', () => {
+      expect(urlAnunciada('http://localhost:5273/ e http://127.0.0.1:9999/')).toBe('http://localhost:5273/');
+    });
+  });
+
+  it('comando de longa duração guarda a URL que anunciou', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    const servidor = arquivo('servidor.js', ['console.log("  -> Local:   http://localhost:5273/");', 'setInterval(() => {}, 1000);'].join(''));
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('dev', ['servidor.js'], { longaDuracao: true })], [servidor]),
+    });
+
+    await esperar(() => runner.obter(projeto.id).comandos[0].url !== null, 8000);
+    expect(runner.obter(projeto.id).comandos[0].url).toBe('http://localhost:5273/');
+    runner.encerrarTudo();
+  });
+
+  it('comando comum não vira link, mesmo imprimindo endereço', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    const falante = arquivo('falante.js', 'console.log("http://localhost:5273/");');
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('um', ['falante.js'])], [falante]),
+    });
+
+    await esperar(() => runner.obter(projeto.id).estado === 'concluida');
+    expect(runner.obter(projeto.id).comandos[0].url).toBeNull();
+  });
+
+  it('comando que não anuncia nada fica com url nula, e isso não é erro', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('um', ['ok.js'])]),
+    });
+
+    await esperar(() => runner.obter(projeto.id).estado === 'concluida');
+    const estado = runner.obter(projeto.id);
+    expect(estado.comandos[0].url).toBeNull();
+    expect(materializacaoSchema.safeParse(estado).success).toBe(true);
   });
 });
 

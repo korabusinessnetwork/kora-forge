@@ -183,3 +183,20 @@ não termina nunca, então o log dele não existia no banco enquanto rodasse. O 
 que todo produtor ou é volumoso ou acaba, e comando de longa duração não é nem um nem outro. O que
 muda: acumulador com gatilho por quantidade nasce também com gatilho por tempo, e o teste que prova
 isso usa um produtor que fica vivo, não um que termina.
+
+### A-20, antes de mandar o sistema abrir algo, ver se a tela já sabe abrir
+Para mostrar a URL do projeto novo, o caminho por inércia era repetir o abridor de pasta do bloco 8
+com a URL no lugar do caminho. Seria mandar o sistema operacional abrir um browser que já estava
+aberto, já que a interface do Forge roda dentro de um. Um `<a href target="_blank">` faz o mesmo
+sem processo nenhum. E tem um ganho de segurança que não é acessório: a URL vem da saída de um
+processo, ou seja, de fora, e passá-la a um binário promoveria dado a instrução, que é justamente o
+que o CLAUDE.md proíbe. O que muda: quando a ação é "levar o usuário a algum lugar", perguntar
+primeiro se o meio onde a interface já vive resolve, antes de recorrer ao sistema.
+
+### A-21, schema estrito acusa mudança de contrato, e é para ele acusar mesmo
+Adicionar `url` ao comando deixou três testes de serviço vermelhos, porque os fixtures não tinham o
+campo e `z.strictObject` com `nullable` exige presença. A tentação é afrouxar para `optional`. Foi
+o contrário: os fixtures foram atualizados, porque o servidor sempre preenche o campo e o estado da
+materialização nem é persistido, então não existe dado velho para tolerar. O que muda: quando um
+schema estrito quebra teste ao ganhar campo, a pergunta é se existe de verdade um produtor que não
+preenche. Se não existe, afrouxar só esconde o contrato.

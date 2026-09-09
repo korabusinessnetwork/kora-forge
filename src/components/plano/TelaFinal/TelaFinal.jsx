@@ -12,6 +12,10 @@ const mm = mensagens.materializacao;
 // Só aparece em materialização concluída. Abortada e parada em falha continuam no painel anterior.
 export default function TelaFinal({ materializacao, onAbrir, abrindo, erroAoAbrir }) {
   const { arquivos, raiz } = materializacao;
+  // A URL vem do que o dev server anunciou, validada no servidor. Vira link porque a interface do
+  // Forge já roda num browser: mandar o sistema abrir o browser que já está aberto seria caminho
+  // longo, e passar texto vindo de fora para um binário seria promover dado a instrução (B-02).
+  const url = materializacao.comandos.find((comando) => comando.url)?.url ?? null;
 
   return (
     <section className={estilos.tela} aria-labelledby="titulo-tela-final">
@@ -21,6 +25,15 @@ export default function TelaFinal({ materializacao, onAbrir, abrindo, erroAoAbri
       <Chave valor={raiz} rotulo={m.rotuloCaminho} />
 
       <p className={estilos.resumo}>{mm.arquivos(arquivos.criados, arquivos.sobrescritos, arquivos.pulados)}</p>
+
+      {url ? (
+        <div className={estilos.endereco}>
+          <p className={estilos.subtitulo}>{m.urlTitulo}</p>
+          <a className={estilos.link} href={url} target="_blank" rel="noreferrer">{url}</a>
+          <p className={estilos.micro}>{m.urlMicro}</p>
+          <Chave valor={url} rotulo={m.rotuloUrl} />
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="primario" carregando={abrindo} onClick={onAbrir}>{m.abrir}</Botao>
