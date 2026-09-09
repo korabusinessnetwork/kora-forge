@@ -3,6 +3,20 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 11 — ADR-010, serialização de layout do Studio — 2026-09-09
+
+- Spec: `specs/adr-serializacao-de-layout.md`. ADR em
+  `docs/08_DECISOES/adr-010-serializacao-de-layout.md`, Status **Proposto**.
+- Resultado da review: aprovado sem ressalvas, 13 de 13 critérios. Suíte com 684 passando e 1
+  pulado, build sem erro. Nenhum código mudou.
+- Aprendido: A-26 e A-27 em `memory/learnings.md`.
+- Commit: `c744e54` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- **Pendente de decisão, e agora são duas perguntas nesta rodada**: ratificar o ADR-010, e dizer se
+  a leitura de "DOM absoluto" do ADR-005 está certa. A segunda muda o formato antes de ele começar.
+- Continuam pendentes de rodadas anteriores: **ADR-009**, o **P-06** e os itens `[ASSUMIDO]`.
+- Próximo item recomendado: **espera o dono**. Sem o ADR-010 ratificado, o Studio não avança. Se o
+  dono preferir código enquanto decide, sobrou o **R-13** e a dívida **TD-01**, a suíte lenta.
+
 ## Rodada 10 — Fase 2, bloco 1, os tokens do projeto — 2026-09-09
 
 - Spec: `specs/fase2-bloco1-tokens-do-projeto.md`
