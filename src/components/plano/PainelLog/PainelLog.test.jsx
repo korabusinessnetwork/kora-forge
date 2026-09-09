@@ -22,6 +22,14 @@ class SocketFalso {
     act(() => this.onmessage({ data: JSON.stringify(evento) }));
   }
 
+  // Rajada num `act` só. Emitir uma a uma renderiza o React por linha, e com centenas de linhas
+  // isso vira trabalho quadrático que estoura o tempo do teste sem provar nada a mais.
+  emitirVarios(eventos) {
+    act(() => {
+      for (const evento of eventos) this.onmessage({ data: JSON.stringify(evento) });
+    });
+  }
+
   cair() {
     act(() => this.onclose());
   }
@@ -183,7 +191,7 @@ describe('PainelLog', () => {
 
   it('descarta as linhas mais antigas para a aba não travar', () => {
     render(<PainelLog runId="r1" />);
-    for (let i = 0; i < 520; i += 1) sockets[0].emitir(linha(`linha ${i}`));
+    sockets[0].emitirVarios(Array.from({ length: 520 }, (_, i) => linha(`linha ${i}`)));
 
     expect(screen.queryByText(/linha 0$/)).not.toBeInTheDocument();
     expect(screen.getByText(/linha 519/)).toBeInTheDocument();

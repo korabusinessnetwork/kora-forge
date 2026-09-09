@@ -208,3 +208,27 @@ achou mais dois: `atualizarSettings` e `criarProjeto`. Nada de errado com o regi
 que se sabia; o erro seria tratá-lo como inventário. O que muda: rodada que abre um bug registrado
 começa varrendo o padrão no código inteiro, antes de escrever a spec, e a spec já nasce com o
 número real de ocorrências.
+
+### A-23, hash de aprovação precisa cobrir tudo que muda o conteúdo aprovado
+O plano do Forge é aprovado por hash, e o hash cobria blueprint, preset e templates. Ao fazer o
+`tokens.css` sair do documento de design, criei um quarto insumo e não o incluí. O efeito era
+silencioso e grave: o usuário via um plano, mudava o design, aprovava o plano antigo, e o runner
+regerava com os tokens novos. O hash batia, e ele recebia um arquivo que nunca aprovou, que é
+exatamente o que o dry-run existe para impedir. O que muda: insumo novo na geração entra no hash no
+mesmo commit, e a pergunta ao adicionar qualquer fonte de dado ao gerador é "isto muda o que vai
+para o disco?". Se sim, entra.
+
+### A-24, teste de módulo não vê defeito que mora entre dois módulos
+O defeito acima passou por 25 critérios e por testes de catálogo, de serviço, de painel, de preview
+e de etapa, todos verdes. Nenhum poderia tê-lo pego: o teste do gerador não conhecia design, e o do
+design não conhecia plano. Ele apareceu materializando um projeto de verdade e olhando o arquivo no
+disco. O que muda: quando uma rodada liga dois módulos que não se conheciam, o critério de aceite
+inclui um caminho que atravessa os dois, e a validação no produto real deixa de ser conferência
+final para ser o teste principal.
+
+### A-25, `act` por evento vira trabalho quadrático
+Um teste do `PainelLog` emitia 520 linhas, cada uma dentro do próprio `act`, o que renderiza o React
+por linha sobre uma lista que cresce. Passava em 21 s de suíte e estourou o tempo quando a suíte
+chegou a 75 s. Emitir tudo num `act` só derrubou de 5,8 s para menos de 1 s, provando a mesma coisa.
+O que muda: teste que simula rajada emite a rajada de uma vez; um `act` por evento só faz sentido
+quando o que se testa é o passo a passo.

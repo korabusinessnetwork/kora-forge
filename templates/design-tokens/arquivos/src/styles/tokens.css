@@ -1,63 +1,68 @@
 /* Tokens de {{PROJETO}}. Nenhum componente pode ter cor, espaçamento, raio ou fonte fora daqui.
    White-label: {{WHITE_LABEL}}. Quando Sim, estes valores são o default do tenant, e o tenant
-   sobrescreve em tempo de execução. Nunca hardcode marca de cliente em componente. */
+   sobrescreve em tempo de execução. Nunca hardcode marca de cliente em componente.
+
+   Os valores vêm do documento de design do projeto, editado na etapa Design do KORA FORGE. Sem
+   documento, saem os defaults do catálogo, que são exatamente os que este arquivo sempre teve. */
 :root {
   color-scheme: light;
 
   /* Cor */
-  --cor-fundo: #ffffff;
-  --cor-superficie: #f7f7f8;
-  --cor-borda: #e3e3e7;
-  --cor-texto: #17171a;
-  --cor-texto-secundario: #6b6b76;
-  --cor-acento: #2f6fed;
-  --cor-sucesso: #1f8a5b;
-  --cor-aviso: #b8860b;
-  --cor-perigo: #c8372d;
+  --cor-fundo: {{COR_FUNDO}};
+  --cor-superficie: {{COR_SUPERFICIE}};
+  --cor-borda: {{COR_BORDA}};
+  --cor-texto: {{COR_TEXTO}};
+  --cor-texto-secundario: {{COR_TEXTO_SECUNDARIO}};
+  --cor-acento: {{COR_ACENTO}};
+  --cor-sucesso: {{COR_SUCESSO}};
+  --cor-aviso: {{COR_AVISO}};
+  --cor-perigo: {{COR_PERIGO}};
 
   /* Tipografia */
-  --fonte-ui: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --fonte-mono: ui-monospace, "JetBrains Mono", "Cascadia Code", monospace;
-  --texto-xs: 12px;
-  --altura-xs: 16px;
-  --texto-sm: 13px;
-  --altura-sm: 20px;
-  --texto-md: 15px;
-  --altura-md: 24px;
-  --texto-lg: 20px;
-  --altura-lg: 28px;
-  --texto-xl: 28px;
-  --altura-xl: 36px;
+  --fonte-ui: {{FONTE_UI}};
+  --fonte-mono: {{FONTE_MONO}};
+  --texto-xs: {{TEXTO_XS}};
+  --altura-xs: {{ALTURA_XS}};
+  --texto-sm: {{TEXTO_SM}};
+  --altura-sm: {{ALTURA_SM}};
+  --texto-md: {{TEXTO_MD}};
+  --altura-md: {{ALTURA_MD}};
+  --texto-lg: {{TEXTO_LG}};
+  --altura-lg: {{ALTURA_LG}};
+  --texto-xl: {{TEXTO_XL}};
+  --altura-xl: {{ALTURA_XL}};
 
   /* Espaçamento */
-  --espaco-1: 4px;
-  --espaco-2: 8px;
-  --espaco-3: 12px;
-  --espaco-4: 16px;
-  --espaco-5: 24px;
-  --espaco-6: 32px;
-  --espaco-7: 48px;
-  --espaco-8: 64px;
+  --espaco-1: {{ESPACO_1}};
+  --espaco-2: {{ESPACO_2}};
+  --espaco-3: {{ESPACO_3}};
+  --espaco-4: {{ESPACO_4}};
+  --espaco-5: {{ESPACO_5}};
+  --espaco-6: {{ESPACO_6}};
+  --espaco-7: {{ESPACO_7}};
+  --espaco-8: {{ESPACO_8}};
 
   /* Raio, sombra, motion */
-  --raio-sm: 4px;
-  --raio-md: 8px;
-  --raio-lg: 14px;
-  --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.08);
-  --sombra-2: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --motion-rapido: 120ms ease-out;
-  --motion-base: 200ms ease-out;
+  --raio-sm: {{RAIO_SM}};
+  --raio-md: {{RAIO_MD}};
+  --raio-lg: {{RAIO_LG}};
+  --sombra-1: {{SOMBRA_1}};
+  --sombra-2: {{SOMBRA_2}};
+  --motion-rapido: {{MOTION_RAPIDO}};
+  --motion-base: {{MOTION_BASE}};
+  /* Derivado, não escolhido: o anel de foco é sempre fundo mais acento, para o contraste não
+     depender de quem editou os tokens. */
   --anel-foco: 0 0 0 2px var(--cor-fundo), 0 0 0 4px var(--cor-acento);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --cor-fundo: #0e0f12;
-    --cor-superficie: #16181d;
-    --cor-borda: #282c34;
-    --cor-texto: #e8eaed;
-    --cor-texto-secundario: #9aa0a9;
+    --cor-fundo: {{ESCURO_COR_FUNDO}};
+    --cor-superficie: {{ESCURO_COR_SUPERFICIE}};
+    --cor-borda: {{ESCURO_COR_BORDA}};
+    --cor-texto: {{ESCURO_COR_TEXTO}};
+    --cor-texto-secundario: {{ESCURO_COR_TEXTO_SECUNDARIO}};
   }
 }
 

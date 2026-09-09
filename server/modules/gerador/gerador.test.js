@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, it, expect, afterEach } from 'vitest';
+import { TOKENS_PADRAO } from '../../../shared/schemas/design.js';
 import { criarAppDeTeste, criarPastaTemporaria } from '../../testes/apoio.js';
 import { carregarTemplatesBuiltin, PASTA_TEMPLATES_BUILTIN } from './servico.js';
 import { planoSchema } from '../../../shared/schemas/plano.js';
@@ -189,6 +190,39 @@ describe('POST /projects/:id/plano', () => {
     const depois = (await gerarPlano(ctx, projeto.id)).json().data;
     expect(depois.hashBlueprint).not.toBe(antes);
     expect(depois.arquivos.find((a) => a.caminho === 'memory/identity.md').conteudo).toContain('Outra coisa.');
+  });
+
+  // O hash prova que o que vai ser escrito é o que foi aprovado (ADR-002). Sem os tokens nele,
+  // alguém aprovava um `tokens.css` e recebia outro: o hash batia porque o blueprint não mudara, e
+  // o runner regerava o plano já com os tokens novos. Foi assim que o defeito apareceu, rodando o
+  // fluxo de verdade e não em teste.
+  it('mudar um token do design muda o hash e o tokens.css gerado', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, { ws: workspace() });
+    const antes = (await gerarPlano(ctx, projeto.id)).json().data;
+    const cssAntes = antes.arquivos.find((a) => a.caminho.endsWith('tokens.css')).conteudo;
+
+    ctx.app.servicos.design.salvar(projeto.id, { tokens: { COR_ACENTO: '#ff5722' } });
+
+    const depois = (await gerarPlano(ctx, projeto.id)).json().data;
+    const cssDepois = depois.arquivos.find((a) => a.caminho.endsWith('tokens.css')).conteudo;
+
+    expect(depois.hashBlueprint).not.toBe(antes.hashBlueprint);
+    expect(cssAntes).toContain('--cor-acento: #2f6fed;');
+    expect(cssDepois).toContain('--cor-acento: #ff5722;');
+    expect(cssDepois).not.toMatch(/\{\{/);
+  });
+
+  it('sem documento de design, o tokens.css sai com os defaults do catálogo', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, { ws: workspace() });
+    const css = (await gerarPlano(ctx, projeto.id)).json().data.arquivos.find((a) => a.caminho.endsWith('tokens.css')).conteudo;
+
+    for (const [chave, valor] of Object.entries(TOKENS_PADRAO)) {
+      if (chave.startsWith('ESCURO_')) continue;
+      expect(css).toContain(`: ${valor};`);
+    }
+    expect(css).not.toMatch(/\{\{/);
   });
 
   it('arquivo idêntico vira pular, diferente vira sobrescrever', async () => {

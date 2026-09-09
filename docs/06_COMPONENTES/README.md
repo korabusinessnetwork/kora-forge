@@ -63,7 +63,8 @@ src/
 | `TelaFinal` | o fim do fluxo F-01, só em materialização concluída: caminho no disco copiável, resumo de arquivos e o atalho que abre a pasta no gerenciador de arquivos |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | área de desenho com zoom, pan, régua, snap |
-| `PainelTokens` | edição dos tokens `--projeto-*` com preview ao vivo |
+| `PainelTokens` | edição dos tokens do projeto, agrupados por cor, tipografia, espaçamento, forma e movimento, com o nome legível de cada um e restaurar por token ou geral |
+| `PreviewTokens` | um pedaço de interface de verdade desenhado só com os tokens do projeto, isolado num elemento próprio, sem nenhum `--forge-*` dentro |
 | `VisualizadorDiff` | diff de arquivo em conflito, lado a lado |
 | `GaleriaModelosApi` | catálogo de modelos de integração |
 | `PainelRelatorios` | todos os builds ao mesmo tempo, com `CartaoBuild` por projeto, filtro por estado e aba por modelo com `LinhaModelo` (Fase 6) |

@@ -1,3 +1,5 @@
+import { completarTokens } from './schemas/design.js';
+
 // Mapa de valores do gerador: toda chave que qualquer template usa tem um valor string, sempre.
 // Resposta em branco vira um texto honesto e visível, nunca string vazia silenciosa.
 export const A_DEFINIR = '_a definir_';
@@ -35,9 +37,14 @@ export function pastaDeDados(modelo) {
   return modelo === 'B' ? 'server' : 'supabase';
 }
 
-export function montarValores(contexto, { data, projeto, preset }) {
+export function montarValores(contexto, { data, projeto, preset, tokens }) {
   const { identidade, escopo, arquitetura, dados, seguranca, fundacao } = contexto;
   return {
+    // Tokens do documento de design do projeto, ou os defaults do catálogo quando não há documento.
+    // Entram um por chave, e não como um bloco de CSS pronto, para o template continuar sendo CSS
+    // legível e versionado em vez de casca preenchida por string montada em JavaScript (P-03).
+    ...completarTokens(tokens ?? {}),
+
     PROJETO: projeto.nome,
     SLUG: projeto.slug,
     DATA: data,

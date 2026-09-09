@@ -5,13 +5,13 @@ import { z } from 'zod';
 
 const paradaSchema = z.strictObject({ runId: z.string().min(1), estado: z.string().min(1) });
 
-export default async function rotasRunner(app, { runner, gerador, projetos, presets, settings, transmissor }) {
+export default async function rotasRunner(app, { runner, gerador, projetos, presets, settings, transmissor, design }) {
   app.post('/projects/:id/materializar', { config: { schemaSaida: materializacaoSchema } }, async (request) => {
     const { hashBlueprint } = validar(pedidoMaterializacaoSchema, request.body ?? {});
     const { projeto, blueprint } = projetos.obterOuFalhar(request.params.id);
     const preset = presets.obterOuFalhar(projeto.presetId);
     // O plano é regenerado aqui. O hash prova que é o mesmo que o usuário aprovou (ADR-002).
-    const plano = gerador.gerarPlano({ projeto, preset, blueprint, workspace: settings.obter().workspace });
+    const plano = gerador.gerarPlano({ projeto, preset, blueprint, workspace: settings.obter().workspace, tokens: design.tokensDe(projeto.id) });
     if (plano.hashBlueprint !== hashBlueprint) {
       throw new ErroForge('FORGE_PLAN_STALE', 'O blueprint mudou depois do plano. Gere o plano de novo e confira antes de aprovar.');
     }

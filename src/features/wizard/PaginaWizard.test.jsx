@@ -221,13 +221,17 @@ describe('trilha e volta', () => {
     expect(await screen.findByRole('heading', { level: 1, name: m.passos.identidade.titulo })).toBeInTheDocument();
   });
 
+  // A etapa Design deixou de ser futura no bloco 1 da Fase 2. A que sobrou é APIs, que espera a
+  // Fase 3, e é ela que prova o comportamento de "continuar marca como assumida".
   it('etapa futura só oferece continuar e é marcada como assumida', async () => {
-    obterProjeto.mockResolvedValue({ projeto: projeto(), blueprint: blueprint({ etapaAtual: 'design' }) });
-    renderizar('/projetos/p1/wizard/design');
-    expect(await screen.findByText(m.passos.futura.design.texto)).toBeInTheDocument();
+    // Preset próprio só deste teste: mexer no ETAPAS_SITE mudaria a sequência que os outros usam.
+    obterPreset.mockResolvedValue({ ...preset, etapas: ['identidade', 'apis', 'materializar'] });
+    obterProjeto.mockResolvedValue({ projeto: projeto(), blueprint: blueprint({ etapaAtual: 'apis' }) });
+    renderizar('/projetos/p1/wizard/apis');
+    expect(await screen.findByText(m.passos.futura.apis.texto)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: m.pular }));
     await waitFor(() => expect(salvarBlueprint).toHaveBeenCalledTimes(1));
-    expect(salvarBlueprint.mock.calls[0][1].assumidas).toEqual(['design']);
+    expect(salvarBlueprint.mock.calls[0][1].assumidas).toEqual(['apis']);
   });
 });
 

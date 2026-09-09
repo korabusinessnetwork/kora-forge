@@ -1,0 +1,121 @@
+/* A moldura é do Forge, e usa token do Forge. Do `.palco` para dentro é o projeto, e ali só entra
+   token do projeto: nenhum `--forge-*` abaixo desta linha, senão o preview mentiria. */
+.moldura {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  min-width: 0;
+}
+
+.rotulo {
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--forge-text-muted);
+}
+
+.palco {
+  padding: var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-fundo);
+  font-family: var(--fonte-ui);
+  overflow-x: auto;
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-md);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.tituloAmostra {
+  margin: 0;
+  font-size: var(--texto-xl);
+  line-height: var(--altura-xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.textoAmostra {
+  margin: 0;
+  font-size: var(--texto-md);
+  line-height: var(--altura-md);
+  color: var(--cor-texto);
+}
+
+.textoSecundario {
+  margin: 0;
+  font-size: var(--texto-sm);
+  line-height: var(--altura-sm);
+  color: var(--cor-texto-secundario);
+}
+
+.linhaBotoes {
+  display: flex;
+  gap: var(--espaco-2);
+  flex-wrap: wrap;
+}
+
+.botaoPrimario,
+.botaoSecundario {
+  padding: var(--espaco-2) var(--espaco-4);
+  border-radius: var(--raio-sm);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-sm);
+  transition: opacity var(--motion-rapido);
+}
+
+.botaoPrimario {
+  background: var(--cor-acento);
+  color: var(--cor-fundo);
+  border: 1px solid var(--cor-acento);
+}
+
+.botaoSecundario {
+  background: transparent;
+  color: var(--cor-texto);
+  border: 1px solid var(--cor-borda);
+}
+
+.selos {
+  display: flex;
+  gap: var(--espaco-2);
+  flex-wrap: wrap;
+}
+
+.seloSucesso,
+.seloAviso,
+.seloPerigo {
+  padding: var(--espaco-1) var(--espaco-2);
+  border-radius: var(--raio-sm);
+  font-size: var(--texto-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-fundo);
+}
+
+.seloSucesso {
+  background: var(--cor-sucesso);
+}
+
+.seloAviso {
+  background: var(--cor-aviso);
+}
+
+.seloPerigo {
+  background: var(--cor-perigo);
+}
+
+.mono {
+  font-family: var(--fonte-mono);
+  font-size: var(--texto-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-secundario);
+}

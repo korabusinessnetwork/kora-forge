@@ -17,10 +17,11 @@ import Seguranca from './etapas/Seguranca.jsx';
 import Fundacao from './etapas/Fundacao.jsx';
 import Materializar from './etapas/Materializar.jsx';
 import EtapaFutura from './etapas/EtapaFutura.jsx';
+import Design from './etapas/Design.jsx';
 import { mensagens } from '../../mensagens.js';
 import estilos from './PaginaWizard.module.css';
 
-const COMPONENTE_POR_ETAPA = { identidade: Identidade, escopo: Escopo, arquitetura: Arquitetura, dados: Dados, seguranca: Seguranca, fundacao: Fundacao, materializar: Materializar };
+const COMPONENTE_POR_ETAPA = { identidade: Identidade, escopo: Escopo, arquitetura: Arquitetura, design: Design, dados: Dados, seguranca: Seguranca, fundacao: Fundacao, materializar: Materializar };
 
 const semDuplicar = (lista, etapa) => lista.filter((item) => item !== etapa);
 

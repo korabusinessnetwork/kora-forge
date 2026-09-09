@@ -6,6 +6,7 @@ import { manifestoTemplateSchema } from '../../../shared/schemas/plano.js';
 import { COMANDOS_PERMITIDOS } from '../../../shared/comandos.js';
 import { montarContexto } from '../../../shared/contexto.js';
 import { montarValores } from '../../../shared/valores.js';
+import { completarTokens } from '../../../shared/schemas/design.js';
 import { renderizar } from '../../../shared/template.js';
 import { serializarEstavel } from '../../../shared/serializar.js';
 import { avaliarCondicao } from '../../../shared/avaliador.js';
@@ -95,7 +96,7 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
     });
   }
 
-  function gerarPlano({ projeto, preset, blueprint, workspace }) {
+  function gerarPlano({ projeto, preset, blueprint, workspace, tokens }) {
     if (projeto.status === 'arquivado') throw erroCampo('projeto', 'Projeto arquivado. Restaure antes de gerar o plano.');
     if (!workspace) throw erroCampo('workspace', 'Configure o workspace em Configurações antes de gerar o plano. É a pasta onde os projetos nascem.');
     if (!fs.existsSync(workspace)) throw erroCampo('workspace', 'A pasta do workspace não existe mais. Confira o caminho em Configurações.');
@@ -114,7 +115,7 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
       .map((regra) => ({ regraId: regra.id, efeitos: regra.efeitos }));
 
     const raiz = resolverNoWorkspace(workspace, projeto.slug);
-    const valores = montarValores(contexto, { data: blueprint.criadoEm.slice(0, 10), projeto, preset });
+    const valores = montarValores(contexto, { data: blueprint.criadoEm.slice(0, 10), projeto, preset, tokens });
 
     const pendencias = [];
     const usados = templatesPedidos({ preset, hits: hitsAtivos })
@@ -156,10 +157,16 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
         return { caminho: destino, acao, tamanho: tamanhoEm(conteudo), tamanhoAtual, template, conteudo };
       });
 
+    // O hash prova que o que vai ser escrito é o que o usuário aprovou (ADR-002). Por isso ele cobre
+    // tudo que muda o conteúdo do plano, e os tokens do design mudam: sem eles aqui, alguém
+    // aprovaria um `tokens.css` e receberia outro, que é exatamente o que o dry-run existe para
+    // impedir. Entram os tokens completos, e não a versão do documento, porque documento na versão
+    // zero é um estado legítimo com conteúdo próprio.
     const hash = createHash('sha256').update(serializarEstavel({
       blueprint: blueprint.payload,
       preset: { id: preset.id, versao: preset.versao },
       templates: usados.map((template) => ({ id: template.id, versao: template.versao })),
+      tokens: completarTokens(tokens ?? {}),
     })).digest('hex');
 
     return {

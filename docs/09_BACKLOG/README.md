@@ -29,10 +29,24 @@ Evidência em `fase1-aceite.md`.
 | B-01 | A porta do projeto gerado era 5173, a mesma do dev server do Forge | **fechado** na rodada 8: o template nasce na 5273, sem `strictPort`, então porta ocupada escorrega em vez de falhar |
 | B-02 | A tela final não mostrava a URL do dev server | **fechado** na rodada 8: o runner captura a URL de loopback que o comando de longa duração anuncia, e a tela final a oferece como link e como texto copiável. Spec em `specs/b01-b02-url-do-dev-server.md` |
 
+## Dívida técnica aberta
+
+| Item | O que é | Por que importa |
+|---|---|---|
+| TD-01 | A suíte passou de 21 s para 75 s na rodada 10 | a maior parte é legítima, porque o painel de tokens renderiza 41 campos e a etapa Design é testada oito vezes, mas o `npm test` antes de commitar é parte do processo, e 75 s começa a pesar. Junto disso: os testes que rodam processo de verdade falharam uma vez sob disputa de CPU e não reproduziram em quatro execuções seguidas |
+| TD-02 | `command_logs` cresce sem limite | desde a rodada 7 cresce também para comando que nunca termina. Podar ou limitar por run ainda não é urgente, porque dev server imprime pouco |
+
 ## Fase 2, Studio
 
+Aberta em 2026-09-08. Bloco 1 entregue, spec em `specs/fase2-bloco1-tokens-do-projeto.md`.
+
+| Bloco | Estado |
+|---|---|
+| 1, tokens do projeto | **entregue**: documento de design versionado, painel com preview ao vivo, e o `tokens.css` gerado a partir dele |
+| 2 em diante | não iniciados; o de layout depende do ADR de serialização |
+
 - Canvas com zoom, pan e snap
-- Painel de tokens com preview ao vivo
+- ~~Painel de tokens com preview ao vivo~~ (bloco 1)
 - Biblioteca de regiões e componentes espelhando o design system do projeto
 - Serialização do layout (exige ADR próprio)
 - Exportação: `tokens.css`, rotas, esqueleto de JSX
