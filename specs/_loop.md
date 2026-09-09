@@ -3,6 +3,22 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 8 — B-01 e B-02, a URL do projeto novo na tela final — 2026-09-08
+
+- Spec: `specs/b01-b02-url-do-dev-server.md`
+- Resultado da review: aprovado sem ressalvas, 18 de 18 critérios. Suíte com 618 passando e 1
+  pulado, build sem erro, e `npm run verificar:fase1` com os oito itens passando. Validado no
+  produto real: projeto nasceu na 5273 e a URL chegou ao estado da materialização.
+- Aprendido: A-20 e A-21 em `memory/learnings.md`; B-01 e B-02 fechados em
+  `docs/09_BACKLOG/README.md`.
+- Commit: `5eefd70` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- Pendente de decisão, três, todas de rodadas anteriores:
+  1. **ADR-009**, ratificar, recusar ou dividir. Está no repositório como `Proposto`.
+  2. **R-07**, `--legacy-peer-deps` no preset ou fallback no runner.
+  3. Os itens `[ASSUMIDO]` em `respostas-intake.md`.
+- Próximo item recomendado: **R-10**, e ele é o último que dá para fechar sem decisão sua. Depois
+  dele, o backlog que sobra é decisão do dono ou é Fase 2, e a Fase 2 só abre quando o dono mandar.
+
 ## Rodada 7 — R-11, o log persiste sem esperar o comando terminar — 2026-09-08
 
 - Spec: `specs/r11-log-persiste-sem-esperar-o-fim.md`
