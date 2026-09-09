@@ -43,12 +43,12 @@ Aberta em 2026-09-08. Bloco 1 entregue, spec em `specs/fase2-bloco1-tokens-do-pr
 | Bloco | Estado |
 |---|---|
 | 1, tokens do projeto | **entregue**: documento de design versionado, painel com preview ao vivo, e o `tokens.css` gerado a partir dele |
-| 2 em diante | não iniciados; o de layout depende do ADR de serialização |
+| 2 em diante | não iniciados. Dependem do **ADR-010**, a serialização de layout, proposto em 2026-09-09 e esperando ratificação |
 
 - Canvas com zoom, pan e snap
 - ~~Painel de tokens com preview ao vivo~~ (bloco 1)
 - Biblioteca de regiões e componentes espelhando o design system do projeto
-- Serialização do layout (exige ADR próprio)
+- Serialização do layout (ADR-010, proposto)
 - Exportação: `tokens.css`, rotas, esqueleto de JSX
 - Plano de diff ao alterar design de projeto já materializado
 

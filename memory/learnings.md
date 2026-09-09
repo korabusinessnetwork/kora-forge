@@ -232,3 +232,20 @@ por linha sobre uma lista que cresce. Passava em 21 s de suíte e estourou o tem
 chegou a 75 s. Emitir tudo num `act` só derrubou de 5,8 s para menos de 1 s, provando a mesma coisa.
 O que muda: teste que simula rajada emite a rajada de uma vez; um `act` por evento só faz sentido
 quando o que se testa é o passo a passo.
+
+### A-26, ADR aceito pode carregar ambiguidade que só aparece na implementação
+O ADR-005 diz "implementação com DOM absoluto" e justifica com "o que é DOM exporta para JSX quase
+um para um". As duas frases convivem em paz enquanto ninguém implementa, e brigam no instante em que
+alguém pergunta o que é guardado: elemento absoluto exporta para desenho, não para esqueleto. Não é
+defeito de quem escreveu, é o limite do que uma decisão consegue antecipar. O que muda: quando uma
+rodada cumpre uma pendência deixada por um ADR aceito, ela relê o ADR inteiro procurando frase que
+só faz sentido de um jeito depois de escolhida, e o ADR novo declara a leitura que adotou em vez de
+assumir que era óbvia.
+
+### A-27, o que um formato não pode expressar é decisão de produto, não detalhe técnico
+Ao desenhar a serialização do Studio, a parte que mais custou não foi escolher árvore ou coordenada:
+foi listar o que o formato **não** pode dizer. Vínculo com dado, evento, condicional e estado por nó
+são exatamente o que separa "gera esqueleto" de "é low-code", e low-code é não-objetivo escrito em
+`memory/identity.md`. Sem essa lista, o formato cresceria por pedido razoável até virar outra coisa.
+O que muda: formato novo nasce com a seção do que ele recusa expressar, e cada recusa aponta a
+decisão ou o não-objetivo que a sustenta.

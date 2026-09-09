@@ -16,6 +16,7 @@ descartada e consequência de longo prazo mora aqui.
 | [007](adr-007-presets-declarativos.md) | Presets declarativos versionados | Aceito | 2026-09-02 |
 | [008](adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto | 2026-09-02 |
 | [009](adr-009-capacidades-proprias-do-forge.md) | Capacidades próprias do Forge, fora da whitelist de preset | Proposto | 2026-09-08 |
+| [010](adr-010-serializacao-de-layout.md) | Serialização de layout do Studio | Proposto | 2026-09-09 |
 
 ## Como escrever um ADR
 
@@ -31,7 +32,6 @@ descartada e consequência de longo prazo mora aqui.
 |---|---|
 | Empacotar como app desktop (Tauri) | se e quando a Fase 5 justificar |
 | Isolar o runner em container | se surgir necessidade de rodar preset de terceiro |
-| Formato de exportação do Studio para JSX | Fase 2, ao definir a serialização de layout |
 | Estratégia de migração do blueprint entre versões de preset | Fase 5 |
 | Detectar o editor do dono sem perguntar, para o atalho da tela final abrir o editor e não a pasta | se a detecção se mostrar confiável; ver ADR-009 |
 
@@ -41,3 +41,4 @@ descartada e consequência de longo prazo mora aqui.
 |---|---|
 | [008](adr-008-harness-e-painel-de-relatorios.md) | a Fase 6 inteira |
 | [009](adr-009-capacidades-proprias-do-forge.md) | duas capacidades já construídas e em uso seguem sem respaldo escrito: abrir a pasta do projeto e matar a árvore de processos |
+| [010](adr-010-serializacao-de-layout.md) | os blocos 2 em diante do Studio: canvas, biblioteca de componentes e exportação de rotas e JSX não têm o que guardar nem o que gerar |
