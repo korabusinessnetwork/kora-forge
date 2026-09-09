@@ -200,3 +200,11 @@ o contrário: os fixtures foram atualizados, porque o servidor sempre preenche o
 materialização nem é persistido, então não existe dado velho para tolerar. O que muda: quando um
 schema estrito quebra teste ao ganhar campo, a pergunta é se existe de verdade um produtor que não
 preenche. Se não existe, afrouxar só esconde o contrato.
+
+### A-22, bug registrado aponta onde doeu, não onde existe
+O R-10 foi registrado na rodada 3 apontando um lugar, `pararRun` em `Materializar.jsx`, porque foi
+ali que o sintoma apareceu. Ao abrir a rodada para corrigi-lo, uma varredura de trinta segundos
+achou mais dois: `atualizarSettings` e `criarProjeto`. Nada de errado com o registro, ele conta o
+que se sabia; o erro seria tratá-lo como inventário. O que muda: rodada que abre um bug registrado
+começa varrendo o padrão no código inteiro, antes de escrever a spec, e a spec já nasce com o
+número real de ocorrências.

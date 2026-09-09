@@ -32,7 +32,7 @@ export default function Materializar({ valor, onChange, projeto }) {
   const aprovar = useMutation({ mutationFn: () => materializar(projeto.id, plano.data.hashBlueprint), onSuccess: atualizar });
   const decidir = useMutation({ mutationFn: (acao) => decidirMaterializacao(projeto.id, acao), onSuccess: atualizar });
   const parar = useMutation({
-    mutationFn: pararRun,
+    mutationFn: (runId) => pararRun(runId),
     onSuccess: () => clienteQuery.invalidateQueries({ queryKey: ['materializacao', projeto.id] }),
   });
   const abrir = useMutation({ mutationFn: () => abrirPastaDoProjeto(projeto.id) });

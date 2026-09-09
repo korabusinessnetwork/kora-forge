@@ -137,7 +137,7 @@ ferramenta local que roda em Windows, então Windows é a plataforma principal, 
 
 ### R-10, `mutationFn` do bloco 7 passa contexto do React Query para o serviço
 
-**Severidade**: baixa, latente. **Status**: aberto. **Registrado em**: 2026-09-08.
+**Severidade**: baixa, latente. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
 
 `src/features/wizard/etapas/Materializar.jsx` faz `useMutation({ mutationFn: pararRun })`. O React
 Query chama a função com `(variaveis, contexto)`, então `pararRun` recebe um segundo argumento com
@@ -149,9 +149,15 @@ em que algum ler, por exemplo para receber opções.
 **Descoberto** na rodada 3, quando o mesmo padrão em `GavetaIdeias.jsx` fez um teste falhar com
 `toHaveBeenCalledWith('i1')` recebendo dois argumentos. Lá já foi corrigido.
 
-**Correção**: encapsular, `mutationFn: (runId) => pararRun(runId)`. Não foi feita nesta rodada por
-estar fora do escopo do bloco 9, que não toca o wizard. Vale corrigir quando alguém encostar no
-arquivo. Ver A-11 em `memory/learnings.md`.
+**Correção**: encapsular, `mutationFn: (runId) => pararRun(runId)`, feita na rodada 9.
+
+**Eram três, não uma.** O registro apontava só o `pararRun`. A varredura antes de escrever a spec
+achou também `atualizarSettings` em `FormularioConfig.jsx` e `criarProjeto` em
+`PaginaNovoProjeto.jsx`.
+
+**Guarda de regressão**: `src/services/api.test.js` varre `src/` e falha listando arquivo e linha de
+qualquer `mutationFn` que receba identificador nu. Vista ficando vermelha com o padrão
+reintroduzido de propósito. Ver A-11 em `memory/learnings.md` e o padrão P-09.
 
 ### R-11, log de comando de longa duração nunca chega ao banco
 
