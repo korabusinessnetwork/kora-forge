@@ -3,6 +3,27 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 10 — Fase 2, bloco 1, os tokens do projeto — 2026-09-09
+
+- Spec: `specs/fase2-bloco1-tokens-do-projeto.md`
+- Resultado da review: aprovado sem ressalvas, 25 de 25 critérios. Suíte com 684 passando e 1
+  pulado, build sem erro, prova da Fase 1 com os oito itens. Validado no produto real: token
+  alterado, projeto materializado, e o valor conferido no `tokens.css` em disco.
+- Aprendido: A-23, A-24 e A-25 em `memory/learnings.md`; TD-01 e TD-02 em
+  `docs/09_BACKLOG/README.md`.
+- Commit: `a0867d0` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- **Um defeito grave foi encontrado e corrigido dentro da rodada**: o hash do plano não cobria os
+  tokens, então dava para aprovar um `tokens.css` e receber outro. Nenhum teste de módulo poderia
+  ter pego, porque morava entre o gerador e o design.
+- Pendente de decisão, três:
+  1. **ADR-009**, ratificar, recusar ou dividir. No repositório como `Proposto`.
+  2. **P-06**, que diz `--projeto-*` enquanto o template gera nome sem prefixo. Padrão que afeta
+     output gerado precisa do aval do dono.
+  3. Os itens `[ASSUMIDO]` em `respostas-intake.md`.
+- Próximo item recomendado: **ADR de serialização de layout**, porque ele destrava os blocos 2 em
+  diante do Studio e o ADR-005 já o previu. Se o dono preferir código antes de decisão, o **R-13**
+  segue disponível e é pequeno.
+
 ## Rodada 9 — R-10, mutationFn encapsulada — 2026-09-08
 
 - Spec: `specs/r10-mutationfn-encapsulada.md`
