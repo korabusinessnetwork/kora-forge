@@ -3,6 +3,23 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 9 — R-10, mutationFn encapsulada — 2026-09-08
+
+- Spec: `specs/r10-mutationfn-encapsulada.md`
+- Resultado da review: aprovado sem ressalvas, 9 de 9 critérios. Suíte com 619 passando e 1 pulado,
+  build sem erro. A varredura foi vista ficando vermelha com o padrão reintroduzido de propósito.
+- Aprendido: A-22 em `memory/learnings.md`; R-10 fechado e **R-13 aberto** em `memory/bugs.md`;
+  P-09 corrigido em `memory/patterns.md`, que listava a mesma varredura duas vezes.
+- Commit: `69f4669` na branch `fix/r08-runner-npm-windows`, empurrada para o origin sem pull request.
+- **O R-07 deixou de precisar de decisão.** O repro mínimo não falha mais, medido nas duas versões
+  de npm desta máquina, 11.16.0 e 12.0.1. Era bug do resolvedor do npm 10.9.7, corrigido pelo npm.
+  Fechar o registro é do dono; a medição está em `memory/bugs.md`.
+- Pendente de decisão, agora duas:
+  1. **ADR-009**, ratificar, recusar ou dividir.
+  2. Os itens `[ASSUMIDO]` em `respostas-intake.md`.
+- Próximo item recomendado: **abrir a Fase 2**, ou o R-13 se o dono preferir mais uma correção
+  antes. Não há mais defeito que atinja quem usa, e o backlog da Fase 1 está vazio.
+
 ## Rodada 8 — B-01 e B-02, a URL do projeto novo na tela final — 2026-09-08
 
 - Spec: `specs/b01-b02-url-do-dev-server.md`

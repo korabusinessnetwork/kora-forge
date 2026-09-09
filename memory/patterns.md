@@ -122,13 +122,14 @@ Regra que vale para o código inteiro, e não para uma função, é provada por 
 os arquivos e falha listando quem quebrou. Sem isso a regra depende de alguém lembrar dela na
 revisão, e o Forge multiplica os próprios padrões em cada projeto que gera.
 
-Três invariantes já são cobertos assim:
+Três invariantes já são cobertos assim, cada um num arquivo:
 
 - `server/lib/processo.test.js`, "nada de shell no servidor": nenhum arquivo importa de
   `child_process` algo diferente de `spawn`, e ninguém escreve `shell: true` nem `execSync`.
 - `src/services/logAoVivo.test.js`, "só a camada de serviços abre WebSocket": nenhum arquivo em
   `src/components/` ou `src/features/` instancia `WebSocket`.
-- `server/lib/processo.test.js` de novo, na parte que exige `shell: false` presente no runner.
+- `src/services/api.test.js`, "mutationFn nunca recebe a função de serviço nua": a fronteira da
+  camada de serviços é explícita, e biblioteca de tela não passa contexto para dentro dela.
 
 Como escrever um: varra a pasta, ignore os próprios testes, junte os culpados numa lista e afirme
 `expect(problemas).toEqual([])`. A lista vazia é a asserção, e a lista cheia já é o relatório de

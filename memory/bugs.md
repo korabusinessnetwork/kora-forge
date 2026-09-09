@@ -61,7 +61,8 @@ Nenhum. Projeto ainda sem código.
 
 ### R-07, `npm install` do projeto gerado falha com npm 10.9.7
 
-**Severidade**: alta. **Status**: aberto, com workaround. **Registrado em**: 2026-09-03.
+**Severidade**: alta. **Status**: não reproduz desde npm 11. **Registrado em**: 2026-09-03.
+**Reavaliado em**: 2026-09-08.
 
 `npm install` falha com `Cannot read properties of null (reading 'edgesOut')` em qualquer
 `package.json` que dependa de `vitest@4.1.11`. Repro mínimo, sem nada do Forge:
@@ -86,6 +87,27 @@ Forge.
 **O que fazer no bloco 7**: decidir se o runner detecta a falha e tenta o fallback, ou se o preset
 passa a declarar a flag. Nenhuma das duas foi decidida, e a decisão é do dono, porque
 `--legacy-peer-deps` afrouxa a resolução de peers em todo projeto gerado.
+
+### Reavaliação em 2026-09-08: a decisão deixou de ser necessária
+
+O repro mínimo do bug **não falha mais**, medido nas duas versões de npm que existem nesta máquina:
+
+| npm | Onde | Resultado do repro |
+|---|---|---|
+| 12.0.1 | global, em `%APPDATA%
+pm` | instalou, exit 0 |
+| 11.16.0 | o que vem com o Node, e é o que o runner executa | instalou, exit 0 |
+
+O `package.json` que o Forge gera continua declarando `vitest@4.1.11`, exatamente o repro, e o
+`npm install` do projeto gerado passou em todas as execuções de `npm run verificar:fase1`.
+
+Era bug do resolvedor do npm 10.9.7, e o npm o corrigiu. Nada mudou no Forge.
+
+**Consequência**: a pergunta que estava aberta, `--legacy-peer-deps` no preset ou fallback no
+runner, não precisa mais ser respondida, a menos que o dono queira dar suporte explícito a quem
+ainda está no npm 10.9.7. Como o Forge já exige Node 20 ou maior, e o npm que vem com ele é bem
+mais novo, o custo de não fazer nada é baixo. Fechar isto é decisão do dono; o registro fica aqui
+com a medição.
 
 ### R-08, o runner não executava `npm` no Windows
 
@@ -234,3 +256,34 @@ Medido antes de escrever, e confirmado revertendo a correção para ver o teste 
 
 **Alternativas descartadas**: grupo de processo com `detached` não existe no Windows; Job Object
 resolveria mas o Node não expõe e exigiria dependência nativa.
+
+### R-13, o runner usa o npm que vem com o Node, não o que está no PATH
+
+**Severidade**: baixa. **Status**: aberto. **Registrado em**: 2026-09-08.
+
+A correção do R-08 resolve o `npm` procurando o `npm-cli.js` ao lado de `process.execPath`. Isso
+acha sempre o npm **empacotado com o Node**, e ignora um npm mais novo que o dono tenha instalado
+globalmente, que é o que responde no terminal dele.
+
+Medido nesta máquina:
+
+| Quem | Versão |
+|---|---|
+| `npm --version` no terminal do dono | 12.0.1, de `%APPDATA%
+pm` |
+| o que o runner do Forge executa | 11.16.0, de `C:\Program Files
+odejs` |
+
+Nada quebra: as duas versões instalam o projeto gerado sem erro. O problema é de surpresa. Quem
+depura uma falha de instalação vai comparar com o npm do terminal e olhar para outra versão, e
+uma correção que o dono ganhou ao atualizar o npm não chega ao Forge.
+
+**Descoberto** na rodada 9, ao reavaliar o R-07 e notar que o repro rodava numa versão e o runner
+noutra.
+
+**Correção candidata**: procurar primeiro o `npm-cli.js` do npm global, em
+`%APPDATA%
+pm
+ode_modules
+pmin`, e só então cair para o empacotado. O caminho do global não
+é fixo em toda instalação, então vale checar `npm_config_prefix` antes de assumir a pasta.
