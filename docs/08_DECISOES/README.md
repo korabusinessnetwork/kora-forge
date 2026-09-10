@@ -17,6 +17,7 @@ descartada e consequência de longo prazo mora aqui.
 | [008](adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto | 2026-09-02 |
 | [009](adr-009-capacidades-proprias-do-forge.md) | Capacidades próprias do Forge, fora da whitelist de preset | Proposto | 2026-09-08 |
 | [010](adr-010-serializacao-de-layout.md) | Serialização de layout do Studio | Proposto | 2026-09-09 |
+| [011](adr-011-motor-de-design-externo.md) | Motor de design externo opcional, o caso do Open Design | Proposto | 2026-09-09 |
 
 ## Como escrever um ADR
 
@@ -42,3 +43,4 @@ descartada e consequência de longo prazo mora aqui.
 | [008](adr-008-harness-e-painel-de-relatorios.md) | a Fase 6 inteira |
 | [009](adr-009-capacidades-proprias-do-forge.md) | duas capacidades já construídas e em uso seguem sem respaldo escrito: abrir a pasta do projeto e matar a árvore de processos |
 | [010](adr-010-serializacao-de-layout.md) | os blocos 2 em diante do Studio: canvas, biblioteca de componentes e exportação de rotas e JSX não têm o que guardar nem o que gerar |
+| [011](adr-011-motor-de-design-externo.md) | nada trava. A decisão é abrir ou fechar uma porta futura. Mesmo aprovado, a implementação segue bloqueada até o spike de `spikes/open-design/SPIKE.md` ser executado de verdade |
