@@ -17,7 +17,7 @@ descartada e consequência de longo prazo mora aqui.
 | [008](adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto | 2026-09-02 |
 | [009](adr-009-serializacao-do-design.md) | Serialização do documento de design | Proposto | 2026-09-05 |
 | [010](adr-010-capacidades-proprias-do-forge.md) | Capacidades próprias do Forge, fora da whitelist de preset | Proposto | 2026-09-08 |
-| [011](adr-011-motor-de-design-externo.md) | Motor de design externo opcional, o caso do Open Design | Proposto | 2026-09-09 |
+| [011](adr-011-motor-de-design-externo.md) | Motor de design externo, o caso do Open Design, **não integrar** | Aceito | 2026-09-10 |
 | [012](adr-012-serializacao-de-layout.md) | Serialização de layout do Studio | Supersedido por ADR-009 | 2026-09-09 |
 
 > **Sobre a numeração do 010 ao 012.** O projeto seguiu por um tempo em duas linhas de trabalho
@@ -53,4 +53,3 @@ descartada e consequência de longo prazo mora aqui.
 | [008](adr-008-harness-e-painel-de-relatorios.md) | a Fase 6 inteira |
 | [009](adr-009-serializacao-do-design.md) | nada mais. Já está implementado nos blocos 3 e 4 da Fase 2, e a ratificação é formalidade atrasada |
 | [010](adr-010-capacidades-proprias-do-forge.md) | três capacidades já construídas e em uso seguem sem respaldo escrito: abrir a pasta do projeto, matar a árvore de processos e abrir o browser no fim do boot |
-| [011](adr-011-motor-de-design-externo.md) | nada trava. A decisão é abrir ou fechar uma porta futura. Mesmo aprovado, a implementação segue bloqueada até o spike de `spikes/open-design/SPIKE.md` ser executado de verdade |

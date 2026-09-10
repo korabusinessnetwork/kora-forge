@@ -20,14 +20,6 @@ session.key
 logs/
 *.log
 
-# Spikes. O roteiro e o insumo ficam versionados, a saída gerada não (ADR-011)
-spikes/**/gerado/
-spikes/**/node_modules/
-spikes/**/*.pdf
-spikes/**/*.pptx
-spikes/**/*.mp4
-spikes/**/*.zip
-
 # Sistema e editor
 .DS_Store
 Thumbs.db

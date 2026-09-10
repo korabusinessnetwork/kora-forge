@@ -422,3 +422,30 @@ Motivo de ser um lugar só, e não os dois: duas implementações da mesma regra
 branches divergiram. O banco passa a guardar o log já limpo, e painel e banco recebem o mesmo
 texto. O custo aceito é perder a informação de cor para sempre. Se algum dia o painel renderizar
 cor, a mudança é preservar no runner e interpretar no painel, nunca voltar a limpar nos dois.
+
+### 2026-09-10, o Forge não integra motor de design externo (ADR-011, aceito)
+Avaliado o Open Design (`nexu-io/open-design`, Apache-2.0) como motor opcional de geração visual, a
+decisão foi **não integrar**. A avaliação recomendava um adapter opcional atrás de interface; o dono
+decidiu contra, e o assunto está fechado.
+
+O que sustentou o "não", em ordem de peso: o Open Design **não é um renderizador**, ele orquestra um
+coding agent, então a geração não é determinística e nunca poderia estar no caminho crítico
+(Princípio nº 2); integrar significaria um **segundo daemon privilegiado** na máquina, com proxy
+para provedores de LLM e chave de API dentro, fora de S-01 a S-08; e a superfície é 0.x sem garantia
+nenhuma, tendo revertido CLI e API inteiras dentro de uma minor (0.19.2 introduziu, 0.20.0
+reverteu), com documentação que não cobre Windows, o ambiente primário (T-02).
+
+O argumento que mais pesou contra o "opcional": **opcional não é grátis**. Adapter atrás de
+configuração ainda é código para manter, testar, documentar, explicar e auditar, e cobra atenção
+justamente na fase em que ela é escassa.
+
+Custo aceito: o Forge não exporta HTML, PDF nem MP4, e não vai ganhar isso de graça. Se a
+necessidade aparecer de verdade, é trabalho próprio ou nova avaliação.
+
+O que faria reabrir, e os três juntos, não isolados: Open Design declarar estabilidade e chegar a
+1.0; necessidade real e recorrente de exportar apresentação ou vídeo; e existir caminho de geração
+determinístico, sem LLM no meio.
+
+O handoff `DESIGN.md` que o desenho previa **não foi adotado**: existia para alimentar o motor. A
+ideia de o projeto gerado sair com um contrato de design legível pelo Claude Code continua boa, mas
+se voltar, volta pelo próprio mérito e com spec própria.
