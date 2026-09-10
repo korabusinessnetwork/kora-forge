@@ -10,14 +10,11 @@ const m = mensagens.log;
 // nunca silencioso.
 export const TETO_DE_LINHAS = 500;
 
-// Processo de terminal escreve cor e movimento de cursor como sequência de escape. No terminal
-// isso vira cor; numa página vira `[32m[1mVITE` no meio da frase. O log continua guardado cru no
-// banco, fiel ao que o processo escreveu; a limpeza é só de apresentação.
-const ESCAPE_DE_TERMINAL = new RegExp('\\u001b\\[[0-9;?]*[ -/]*[@-~]|\\u001b][^\\u0007]*\\u0007|[\\u0000-\\u0008\\u000b-\\u001f\\u007f]', 'g');
-
-export function limparEscapes(texto) {
-  return String(texto).replace(ESCAPE_DE_TERMINAL, '');
-}
+// A sequência de escape do terminal **não** é limpa aqui. Ela sai no runner, em `limparAnsi`, no
+// único ponto onde pedaço de stream vira linha, e por isso painel e banco recebem exatamente o
+// mesmo texto (R-13). Limpar de novo na renderização daria duas implementações da mesma regra, que
+// é justamente como as duas linhas de trabalho divergiram. Se um dia o painel for renderizar cor,
+// a mudança é preservar no runner e interpretar aqui, nunca limpar nos dois lugares.
 
 // Perto o bastante do fim para o autoscroll continuar valendo. Sem folga, um pixel de arredondamento
 // travaria a rolagem sozinho.
@@ -125,7 +122,7 @@ export default function PainelLog({
                 data-stream={evento.stream}
               >
                 <span className={estilos.rotuloStream}>{m.stream[evento.stream]}</span>
-                <span className={estilos.texto}>{limparEscapes(evento.linha)}</span>
+                <span className={estilos.texto}>{evento.linha}</span>
               </p>
             ))}
             {fim ? <p className={estilos.fim} data-stream="fim">{m.fim(mensagens.materializacao.comandoEstado[fim.estado] ?? fim.estado)}</p> : null}

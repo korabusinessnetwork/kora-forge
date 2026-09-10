@@ -6,6 +6,32 @@ import { resolverNoWorkspace } from '../../lib/caminhos.js';
 import { executar, parar as pararProcesso, validarComando } from '../../lib/processo.js';
 import { checarRequisitos } from './requisitos.js';
 
+// Quando o log vai para o banco. São dois gatilhos, e cada um cobre um formato de saída.
+//
+// Em rajada, como o `npm install`, o lote manda: cinquenta linhas juntas gravam na hora e o
+// temporizador nem chega a disparar. Em conta-gotas, como um dev server que imprime meia dúzia de
+// linhas e cala, era o lote que nunca chegava, e sem o tempo o log daquele comando simplesmente
+// não existia no banco enquanto ele rodasse (R-11).
+//
+// Um segundo porque o intervalo não governa a experiência de ninguém: quem olha o painel recebe
+// pelo WebSocket, na hora. O banco serve para depois, e ali um segundo é invisível.
+const LOTE_MAXIMO = 50;
+const INTERVALO_DESPEJO_MS = 1000;
+
+// A URL que um dev server anuncia é o último passo entre materializar e ver o projeto rodando
+// (B-02). Ela vem da saída de um processo, ou seja, de fora, então a aceitação é estreita: só
+// loopback, sem caminho, sem domínio. O que sai daqui vira link na tela e nada além disso; nunca
+// argumento de comando, porque conteúdo de fora é dado, nunca instrução.
+const URL_DE_LOOPBACK = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?\/?$/;
+
+export function urlAnunciada(linha) {
+  for (const pedaco of String(linha).split(/\s+/)) {
+    const limpo = pedaco.replace(/[.,;:)\]]+$/, '');
+    if (URL_DE_LOOPBACK.test(limpo)) return limpo;
+  }
+  return null;
+}
+
 function erroCampo(caminho, mensagem) {
   return new ErroForge('FORGE_VALIDATION', mensagem, { issues: [{ caminho, mensagem }] });
 }
@@ -29,6 +55,8 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
 
   const emAndamento = new Map();
   const processos = new Map();
+  // Despejo pendente por run, para o encerramento gravar o que sobrou em vez de descartar.
+  const despejos = new Map();
   let encerrado = false;
 
   // O callback de um processo pode chegar depois de o servidor começar a encerrar, com o banco
@@ -52,7 +80,7 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
     comandos: materializacao.comandos.map((comando) => ({
       id: comando.id, cmd: comando.cmd, args: comando.args, obrigatorio: comando.obrigatorio,
       longaDuracao: comando.longaDuracao, estado: comando.estado, runId: comando.runId,
-      exitCode: comando.exitCode, erro: comando.erro,
+      exitCode: comando.exitCode, erro: comando.erro, url: comando.url,
     })),
     indice: materializacao.indice,
     iniciadaEm: materializacao.iniciadaEm,
@@ -116,11 +144,28 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
     materializacao.estado = 'rodando';
 
     const pendentes = [];
+    let temporizadorDespejo = null;
+
+    // `splice` esvazia a fila numa tacada, então o despejo por tempo e o do fim nunca dividem o
+    // mesmo lote: quem chega primeiro leva tudo o que estava lá, e o outro encontra a fila vazia.
     const despejar = () => {
+      if (temporizadorDespejo) {
+        clearTimeout(temporizadorDespejo);
+        temporizadorDespejo = null;
+      }
       if (pendentes.length === 0) return;
       const lote = pendentes.splice(0, pendentes.length);
       gravarComCuidado(() => gravarLogs(runId, lote), { runId });
     };
+
+    // Só agenda quando há linha esperando, e nunca segura o processo vivo.
+    const agendarDespejo = () => {
+      if (temporizadorDespejo) return;
+      temporizadorDespejo = setTimeout(despejar, INTERVALO_DESPEJO_MS);
+      temporizadorDespejo.unref?.();
+    };
+
+    despejos.set(runId, despejar);
 
     const { processo, terminou } = executar({
       cmd: comando.cmd,
@@ -131,7 +176,11 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
       onLinha: (stream, linha) => {
         const evento = { tipo: 'linha', stream, linha, ts: new Date().toISOString() };
         pendentes.push({ stream, linha, ts: evento.ts });
-        if (pendentes.length >= 50) despejar();
+        // Só comando de longa duração anuncia servidor, e vale a primeira URL: o Vite imprime a
+        // Local antes da Network, e é a Local que interessa.
+        if (comando.longaDuracao && comando.url === null) comando.url = urlAnunciada(linha);
+        if (pendentes.length >= LOTE_MAXIMO) despejar();
+        else agendarDespejo();
         transmissor.publicar(runId, evento);
       },
     });
@@ -139,6 +188,7 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
 
     const concluir = (resultado) => {
       despejar();
+      despejos.delete(runId);
       processos.delete(runId);
       comando.estado = resultado.estado;
       comando.exitCode = resultado.exitCode;
@@ -166,6 +216,7 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
       comando.estado = 'rodando';
       terminou.then((resultado) => {
         despejar();
+        despejos.delete(runId);
         processos.delete(runId);
         gravarComCuidado(() => stmts.fecharRun.run({ id: runId, estado: resultado.estado, exit_code: resultado.exitCode, agora: new Date().toISOString() }), { runId });
         transmissor.publicar(runId, { tipo: 'fim', estado: resultado.estado, exitCode: resultado.exitCode, erro: resultado.erro });
@@ -197,7 +248,7 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
       raiz: plano.raiz,
       estado: 'escrevendo',
       arquivos,
-      comandos: plano.comandos.map((comando) => ({ ...comando, estado: 'pendente', runId: null, exitCode: null, erro: null })),
+      comandos: plano.comandos.map((comando) => ({ ...comando, estado: 'pendente', runId: null, exitCode: null, erro: null, url: null })),
       indice: 0,
       iniciadaEm: new Date().toISOString(),
       terminadaEm: null,
@@ -240,6 +291,11 @@ export function criarServicoRunner({ db, transmissor, registrarEvento = () => tr
   }
 
   function encerrarTudo() {
+    // Grava o que está na fila **antes** de marcar encerrado: depois disso `gravarComCuidado`
+    // recusa escrever, porque o banco pode estar fechando, e as linhas seriam descartadas (R-11).
+    for (const despejar of despejos.values()) despejar();
+    despejos.clear();
+
     encerrado = true;
     for (const processo of processos.values()) pararProcesso(processo);
     processos.clear();

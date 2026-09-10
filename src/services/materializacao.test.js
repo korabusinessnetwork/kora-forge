@@ -4,7 +4,7 @@ import { materializar, obterMaterializacao, decidirMaterializacao, pararRun } fr
 const estado = {
   projetoId: 'p1', raiz: '/dev/kora/alfa', estado: 'rodando',
   arquivos: { criados: 32, sobrescritos: 0, pulados: 0 },
-  comandos: [{ id: 'git-init', cmd: 'git', args: ['init'], obrigatorio: true, longaDuracao: false, estado: 'sucesso', runId: 'r1', exitCode: 0, erro: null }],
+  comandos: [{ id: 'git-init', cmd: 'git', args: ['init'], obrigatorio: true, longaDuracao: false, estado: 'sucesso', runId: 'r1', exitCode: 0, erro: null, url: null }],
   indice: 1, iniciadaEm: '2026-09-03T00:00:00.000Z', terminadaEm: null,
 };
 const resposta = (data) => ({ status: 200, ok: true, json: async () => ({ data, error: null, meta: { requestId: 'r', duracaoMs: 1 } }) });

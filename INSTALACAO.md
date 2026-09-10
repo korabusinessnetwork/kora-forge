@@ -44,10 +44,13 @@ no init.
 npm run forge
 ```
 
-Sobe dois processos: API local em `http://127.0.0.1:7337` e front em
-`http://127.0.0.1:5173`. O terminal imprime a URL já com o token de sessão no fragmento
-(`#token=`). Abra essa URL, e não `localhost:5173` seco: sem o token, a UI avisa que precisa do
-link do terminal.
+É o único comando do dia a dia. Sobe dois processos, API local em `http://127.0.0.1:7337` e front
+em `http://127.0.0.1:5173`, espera o dev server responder e **abre o browser sozinho** na URL já
+com o token de sessão no fragmento (`#token=`).
+
+Se preferir abrir à mão, o terminal continua imprimindo a mesma URL. O que não funciona é
+`localhost:5173` seco: sem o token, a UI avisa que precisa do link do terminal. Para subir sem
+abrir janela nova, `FORGE_ABRIR_BROWSER=off`.
 
 > O bind é sempre `127.0.0.1`, nunca `0.0.0.0`. Ver `docs/11_SEGURANCA/README.md`.
 
@@ -80,6 +83,7 @@ Nenhuma é obrigatória. As reconhecidas ficam em `.env.local`:
 | `FORGE_WORKSPACE` | vazio | raiz permitida para materializar projetos |
 | `FORGE_COPILOT` | `off` | liga o copiloto Claude |
 | `FORGE_COPILOT_BUDGET_USD` | `5` | teto mensal do copiloto |
+| `FORGE_ABRIR_BROWSER` | `on` | abrir o browser no fim do boot, com o link que carrega o token |
 
 Chaves de API nunca vão para `.env`, vão para o cofre. Ver **ADR-006**.
 

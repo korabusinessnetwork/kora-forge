@@ -386,3 +386,39 @@ Digitar vinte letras no mesmo campo é um desfazer só. A junção é por marca 
 histórico dependente de relógio e portanto não determinístico, e o mesmo roteiro daria histórias
 diferentes em máquinas diferentes. Tokens passam pela mesma pilha do desenho, porque o documento
 é um só.
+
+### 2026-09-10, as duas linhas de trabalho paralelas foram reconciliadas em main
+O projeto correu por um tempo em duas branches que não sabiam uma da outra: `main`, que foi pela
+Fase 2 do Studio (documento de design, painel de tokens, catálogo de regiões, canvas), e
+`fix/r08-runner-npm-windows`, que rodou o loop `spec → build → review` e fez em paralelo o bloco 8,
+o bloco 9, os R-07 a R-13 e uma versão menor dos tokens. Vinte e duas commits contra nove, 29
+arquivos em conflito, dois deles `add/add` no mesmo módulo criado do zero dos dois lados.
+
+A reconciliação seguiu três regras, nesta ordem de prioridade:
+
+1. **Design e Studio ficam com a `main`**, que estava três blocos à frente na mesma capacidade.
+   Caiu junto a etapa Design do wizard e os componentes `components/design/*` da outra linha: eram
+   a mesma coisa, menor. Tokens passam a ser editados no Studio, pela página do projeto.
+2. **Runner fica com a linha do loop**, que tinha `binarios.js`, `arvore.js` para matar árvore de
+   processos (R-12) e mapeamento de erro com código estável. As exceções foram `runner/rotas.js` e
+   `gerador/rotas.js`, que só diferiam pela chamada ao serviço de design.
+3. **Documentação e memória viram união.** Nada de registro foi apagado.
+
+**A lição que vale para a próxima**: o perigo não estavam nos 29 conflitos, que o git aponta. Estava
+nos arquivos que **auto-mergearam sem conflito e ficaram semanticamente quebrados**, porque cada
+lado mexeu num pedaço diferente do mesmo arquivo. `src/mensagens.js` terminou com as chaves `log` e
+`telaFinal` duplicadas, e em JavaScript a última vence, então metade da interface perdeu o texto em
+silêncio. `shared/valores.js` passou a importar uma função que o schema vencedor não exporta. Nos
+dois casos o git não avisou nada: quem avisou foi a suíte de testes. **Merge grande só é seguro com
+suíte verde antes e depois, e "sem conflito" não é sinônimo de "correto".**
+
+### 2026-09-10, a sequência de escape do terminal é limpa na captura, nunca na renderização
+As duas linhas resolveram o mesmo problema em lugares opostos: o loop limpava em `limparAnsi`, no
+runner, e a `main` limpava em `limparEscapes`, dentro do `PainelLog`. Ficou a da captura, por
+decisão do dono, com a cobertura da outra incorporada: a expressão passou a pegar também OSC e
+caractere de controle solto.
+
+Motivo de ser um lugar só, e não os dois: duas implementações da mesma regra é exatamente como as
+branches divergiram. O banco passa a guardar o log já limpo, e painel e banco recebem o mesmo
+texto. O custo aceito é perder a informação de cor para sempre. Se algum dia o painel renderizar
+cor, a mudança é preservar no runner e interpretar no painel, nunca voltar a limpar nos dois.

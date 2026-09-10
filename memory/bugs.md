@@ -61,7 +61,8 @@ Nenhum. Projeto ainda sem código.
 
 ### R-07, `npm install` do projeto gerado falha com npm 10.9.7
 
-**Severidade**: alta. **Status**: fechado em 2026-09-05, por decisão do dono. **Registrado em**: 2026-09-03.
+**Severidade**: alta. **Status**: fechado em 2026-09-05 por decisão do dono, e não reproduz desde npm 11. **Registrado em**: 2026-09-03.
+**Reavaliado em**: 2026-09-08.
 
 `npm install` falha com `Cannot read properties of null (reading 'edgesOut')` em qualquer
 `package.json` que dependa de `vitest@4.1.11`. Repro mínimo, sem nada do Forge:
@@ -83,57 +84,209 @@ passa e `npm run dev` responde 200, verificado em 2026-09-03.
 declara. Não é defeito do template: o `package.json` gerado é válido e a mesma falha atinge o
 Forge.
 
-**Fechamento, 2026-09-05.** O dono decidiu **exigir npm 11 no preset**, e não a flag nem o
-fallback no runner. Os três builtins passaram a declarar `{ "bin": "npm", "min": "11" }` e foram
-para a versão 2. Motivo: com npm 11.16.0 o `npm install` do projeto gerado passa limpo, então o
-defeito é do resolvedor do npm 10, não do template, e `--legacy-peer-deps` afrouxaria a resolução
-de peers em **todo** projeto gerado para consertar uma versão específica de ferramenta. O runner já
-checa requisitos antes de escrever qualquer byte (RN-06.5), então quem tem npm 10 é avisado na
-largada, com nome e versão, em vez de descobrir no meio da fila. Fallback dentro do runner foi
-descartado por conflitar com o ADR-002: o que roda tem que ser o que o plano mostrou.
+**O que fazer no bloco 7**: decidir se o runner detecta a falha e tenta o fallback, ou se o preset
+passa a declarar a flag. Nenhuma das duas foi decidida, e a decisão é do dono, porque
+`--legacy-peer-deps` afrouxa a resolução de peers em todo projeto gerado.
 
-### R-08, `npm` e `npx` não nascem no Windows: `spawn npm ENOENT`
+### Reavaliação em 2026-09-08: a decisão deixou de ser necessária
 
-**Severidade**: crítica. **Status**: corrigido em 2026-09-03. **Registrado em**: 2026-09-03.
+O repro mínimo do bug **não falha mais**, medido nas duas versões de npm que existem nesta máquina:
 
-Materializando um projeto de verdade com `npm run forge`, o `git init` passava e o `npm install`
-morria na largada com `spawn npm ENOENT`. Como todo preset roda `npm install`, nenhum projeto
-conseguia nascer inteiro no Windows, que é o ambiente primário (T-02).
+| npm | Onde | Resultado do repro |
+|---|---|---|
+| 12.0.1 | global, em `%APPDATA%
+pm` | instalou, exit 0 |
+| 11.16.0 | o que vem com o Node, e é o que o runner executa | instalou, exit 0 |
 
-Repro, fora do Forge:
+O `package.json` que o Forge gera continua declarando `vitest@4.1.11`, exatamente o repro, e o
+`npm install` do projeto gerado passou em todas as execuções de `npm run verificar:fase1`.
 
-```js
-spawnSync('npm', ['--version'], { shell: false });      // ENOENT
-spawnSync('npm.cmd', ['--version'], { shell: false });  // EINVAL
+Era bug do resolvedor do npm 10.9.7, e o npm o corrigiu. Nada mudou no Forge.
+
+**Consequência**: a pergunta que estava aberta, `--legacy-peer-deps` no preset ou fallback no
+runner, não precisa mais ser respondida, a menos que o dono queira dar suporte explícito a quem
+ainda está no npm 10.9.7. Como o Forge já exige Node 20 ou maior, e o npm que vem com ele é bem
+mais novo, o custo de não fazer nada é baixo. Fechar isto é decisão do dono; o registro fica aqui
+com a medição.
+
+### R-08, o runner não executava `npm` no Windows
+
+**Severidade**: crítica. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
+
+`server/lib/processo.js` fazia `spawn('npm', args, { shell: false })`. No Windows isso falha com
+`ENOENT`, porque `npm` é `npm.cmd` e o Node não consulta o `PATHEXT` quando o shell está
+desligado. `git` e `node` funcionavam, porque são `.exe`. Resultado: o bloco 7 rodava a fila
+inteira no Linux e não rodava nada na máquina do dono, que é Windows, o que derrubava três itens
+do critério de aceite da Fase 1 sem nenhum teste ficar vermelho.
+
+Duas saídas foram testadas e descartadas: `shell: true` viola o controle C3 do ADR-002, e apontar
+o `spawn` direto para `npm.cmd` falha com `EINVAL`, porque o Node recusa executar `.cmd` e `.bat`
+sem shell desde a correção do CVE-2024-27980.
+
+**Correção**: `server/lib/binarios.js` resolve o executável antes do `spawn`. Para `npm` e `npx`
+executa o próprio Node apontando para o CLI em JavaScript (`npm-cli.js`), que é o que o `.cmd` faz
+por dentro. Para o resto procura no `PATH` respeitando o `PATHEXT` e aceitando só `.com` e `.exe`.
+Fora do Windows nada muda. A resolução roda **depois** de `validarComando`, e por isso a allowlist
+de argumento continua estrita: o caminho absoluto que ela produz é interno, nunca declarado.
+
+**Guarda de regressão**: `server/lib/processo.test.js` executa o `npm` de verdade, e
+`server/modules/runner/requisitos.test.js` exige que a checagem encontre o npm. Sem isso o bug
+volta invisível, que foi exatamente como ele entrou.
+
+### R-09, oito testes verdes no Linux falhavam no Windows
+
+**Severidade**: média. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
+
+O handoff do bloco 7 registrou 435 testes verdes. Na primeira execução em Windows, oito falharam,
+por quatro causas independentes:
+
+1. Seis eram o R-08 acima, com o agravante de que o teste passava o caminho absoluto do arquivo
+   temporário como argumento, e caminho absoluto do Windows tem barra invertida e dois-pontos de
+   unidade, que a allowlist recusa de propósito. Corrigido passando o nome relativo, resolvido
+   pelo `cwd`, sem afrouxar a allowlist.
+2. `server/boot.test.js` usava `RAIZ.pathname`, que em Windows devolve `/C:/...` e produz
+   `C:\C:\Users\...` depois do `path.join`. O código de produção já usava `fileURLToPath`
+   corretamente; era defeito só do teste.
+3. `server/lib/caminhos.test.js` criava symlink, que no Windows exige modo desenvolvedor ou
+   privilégio de administrador e falha com `EPERM`. O caso passou a ser pulado quando o sistema
+   recusa, em vez de falhar.
+4. A captura de saída exigia ordem entre `stdout` e `stderr`. São canos separados e essa ordem
+   nunca foi garantida; no Linux ela só era estável por acaso. O teste passou a exigir ordem
+   dentro de cada stream.
+
+**O que muda na próxima vez**: suíte verde em uma plataforma não diz nada sobre a outra. O Forge é
+ferramenta local que roda em Windows, então Windows é a plataforma principal, não a secundária.
+
+### R-10, `mutationFn` do bloco 7 passa contexto do React Query para o serviço
+
+**Severidade**: baixa, latente. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
+
+`src/features/wizard/etapas/Materializar.jsx` faz `useMutation({ mutationFn: pararRun })`. O React
+Query chama a função com `(variaveis, contexto)`, então `pararRun` recebe um segundo argumento com
+`client`, `meta` e `mutationKey`, que ela não pediu e ignora.
+
+Hoje não causa nada, porque nenhum serviço lê o segundo parâmetro. Vira defeito silencioso no dia
+em que algum ler, por exemplo para receber opções.
+
+**Descoberto** na rodada 3, quando o mesmo padrão em `GavetaIdeias.jsx` fez um teste falhar com
+`toHaveBeenCalledWith('i1')` recebendo dois argumentos. Lá já foi corrigido.
+
+**Correção**: encapsular, `mutationFn: (runId) => pararRun(runId)`, feita na rodada 9.
+
+**Eram três, não uma.** O registro apontava só o `pararRun`. A varredura antes de escrever a spec
+achou também `atualizarSettings` em `FormularioConfig.jsx` e `criarProjeto` em
+`PaginaNovoProjeto.jsx`.
+
+**Guarda de regressão**: `src/services/api.test.js` varre `src/` e falha listando arquivo e linha de
+qualquer `mutationFn` que receba identificador nu. Vista ficando vermelha com o padrão
+reintroduzido de propósito. Ver A-11 em `memory/learnings.md` e o padrão P-09.
+
+### R-11, log de comando de longa duração nunca chega ao banco
+
+**Severidade**: média. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
+
+`server/modules/runner/servico.js` acumula as linhas em `pendentes` e só grava em `command_logs`
+quando junta 50 ou quando o comando termina. Um `npm run dev`, que por definição não termina,
+cospe umas dez linhas e nenhuma é gravada.
+
+O painel não sofre: ele recebe pelo WebSocket, e o transmissor guarda o histórico em memória. O
+que se perde é a persistência. Reiniciar o Forge apaga o log daquele comando, e a tabela
+`command_logs` mente sobre o que aconteceu.
+
+**Descoberto** na prova do critério de aceite da Fase 1, que tentou ler a URL do dev server em
+`command_logs` e encontrou zero linhas para um comando visivelmente rodando.
+
+**Correção**: a fila passou a esvaziar também por tempo, com `INTERVALO_DESPEJO_MS` de um segundo,
+agendado só quando há linha esperando e cancelado ao despejar, sempre com `unref` para não segurar
+o processo vivo. O teto de cinquenta linhas virou `LOTE_MAXIMO` e continua mandando em rajada.
+`encerrarTudo` passou a gravar o que está na fila **antes** de marcar encerrado, porque depois
+disso `gravarComCuidado` recusa escrever e as linhas seriam descartadas.
+
+**O intervalo, e por quê um segundo**: ele não governa a experiência de ninguém. Quem olha o painel
+recebe pelo WebSocket, na hora. O banco serve para depois, e ali um segundo é invisível. Em rajada
+o lote dispara antes e o temporizador nem chega a ser usado.
+
+**Guarda de regressão**: quatro testes em `server/modules/runner/runner.test.js`, sob "log persiste
+sem esperar o comando terminar". Os dois centrais foram vistos ficando vermelhos com a correção
+revertida de propósito.
+
+**Fica em aberto**: `command_logs` cresce sem limite, e agora cresce também para comando que nunca
+termina. Podar ou limitar por run é item próprio, e não urgente.
+
+### R-12, parar um comando deixa o processo real vivo no Windows
+
+**Severidade**: alta. **Status**: corrigido em 2026-09-08. **Registrado em**: 2026-09-08.
+
+`parar()` em `server/lib/processo.js` mata o processo que o Forge criou. No Windows isso não mata
+os filhos dele. Como `npm run dev` é `node npm-cli.js` que cria o `vite`, matar o npm deixa o vite
+rodando, segurando a porta e os arquivos da pasta.
+
+Medido diretamente: filho morto, neto vivo.
+
+```
+pid do npm (filho): 6600
+pids dos netos: [ 8548, 13416 ]
+chamando parar()...
+filho vivo depois do parar: false
+  neto 8548 vivo depois do parar: true
 ```
 
-**Causa**: no Windows o que existe no PATH é o shim `npm.cmd`. O `CreateProcess` só completa nome
-com `.exe`, por isso `npm` dá ENOENT; e desde a correção do CVE-2024-27980 o Node recusa executar
-`.cmd` e `.bat` sem shell, por isso `npm.cmd` dá EINVAL. `git`, `node` e `supabase` são `.exe` e
-sempre funcionaram, o que escondeu o problema.
+**Consequência para quem usa**: o botão Parar do bloco 7 não para o dev server, e fechar o Forge
+também não. O processo fica órfão até a máquina reiniciar. Confirmado no mundo real: o dev server
+de um teste da rodada 2 ainda estava vivo horas depois, ocupando a porta 5173.
 
-**Correção**: `resolverComando()` em `server/lib/processo.js` traduz, só no Windows, `npm` e `npx`
-para `node <npm-cli.js>` / `node <npx-cli.js>`, usando o CLI que mora ao lado do `process.execPath`.
-Continua `spawn` com array de argumentos e `shell: false`; a whitelist de `COMANDOS_PERMITIDOS` não
-muda (C7), porque a tradução acontece depois de `validarComando`. Não encontrando o CLI, devolve o
-comando original, e a falha aparece como falha do comando, com mensagem.
+**Por que não foi corrigido aqui**: matar árvore de processos no Windows pede `taskkill /T`, que
+seria um binário novo executando com privilégio, ou objeto de Job do Windows, que é mudança
+estrutural no runner. As duas mexem no ADR-002 e no controle C3. É decisão do dono, não minha.
 
-**Por que a suíte não pegou**: todos os testes de processo rodavam `node script.js`, que funciona em
-qualquer sistema. Agora existe `executar comandos reais da whitelist`, que roda `npm`, `npx`, `node`
-e `git --version` de verdade na plataforma que está executando o teste.
+**Correção**: `server/lib/arvore.js`. No Windows, `taskkill /T /F /PID`, chamado por `spawn` com
+array de argumentos, solto e sem stdio, para completar mesmo se o Forge sair em seguida. Em POSIX o
+filho passa a nascer com `detached`, liderando o próprio grupo, e o sinal vai para o grupo por
+`process.kill(-pid, sinal)`, mantendo os dois estágios. Vale para o botão Parar, para o timeout e
+para o encerramento do Forge, que passam todos pelo mesmo caminho.
 
-**Efeito colateral bom**: `spawn npm ENOENT` chegava cru na tela. `mensagemDeFalhaAoIniciar()`
-troca ENOENT, EACCES e EINVAL por frase com próxima ação.
+A whitelist **não** foi ampliada. `COMANDOS_PERMITIDOS` limita o que um preset manda executar, e o
+`taskkill` é capacidade do próprio Forge, com binário fixo em código e um argumento só, que é um
+pid que o Forge criou. Mesma forma do abridor de pasta do bloco 8. Proposto como ADR-010.
 
-### R-07, atualização de 2026-09-03: não reproduz com npm 11.16.0
+**Guarda de regressão**: `server/lib/processo.test.js` roda um `npm run dev` de verdade, captura o
+pid do processo que o npm criou, chama `parar` e exige que ele morra. Um teste com pai `node`
+simples **não** serviria: nesse formato o filho morre junto, e o teste passaria mesmo com o defeito.
+Medido antes de escrever, e confirmado revertendo a correção para ver o teste ficar vermelho.
 
-Na validação de ponta a ponta do bloco 8, com Node v24.18.0 e npm 11.16.0, o `npm install` do
-projeto gerado **passou**, sem `--legacy-peer-deps`: `added 53 packages` e `exit 0`, seguido de
-`npm run build` com sucesso. R-07 continua aberto porque é real no npm 10.9.7, mas parece ser bug
-do resolvedor daquela versão, não do template. A decisão do dono (flag no preset ou fallback no
-runner) segue pendente e agora tem uma terceira saída possível: exigir npm 11 nos requisitos do
-preset em vez de afrouxar a resolução de peers.
+**Alternativas descartadas**: grupo de processo com `detached` não existe no Windows; Job Object
+resolveria mas o Node não expõe e exigiria dependência nativa.
 
+### R-13, o runner usa o npm que vem com o Node, não o que está no PATH
+
+**Severidade**: baixa. **Status**: aberto. **Registrado em**: 2026-09-08.
+
+A correção do R-08 resolve o `npm` procurando o `npm-cli.js` ao lado de `process.execPath`. Isso
+acha sempre o npm **empacotado com o Node**, e ignora um npm mais novo que o dono tenha instalado
+globalmente, que é o que responde no terminal dele.
+
+Medido nesta máquina:
+
+| Quem | Versão |
+|---|---|
+| `npm --version` no terminal do dono | 12.0.1, de `%APPDATA%
+pm` |
+| o que o runner do Forge executa | 11.16.0, de `C:\Program Files
+odejs` |
+
+Nada quebra: as duas versões instalam o projeto gerado sem erro. O problema é de surpresa. Quem
+depura uma falha de instalação vai comparar com o npm do terminal e olhar para outra versão, e
+uma correção que o dono ganhou ao atualizar o npm não chega ao Forge.
+
+**Descoberto** na rodada 9, ao reavaliar o R-07 e notar que o repro rodava numa versão e o runner
+noutra.
+
+**Correção candidata**: procurar primeiro o `npm-cli.js` do npm global, em
+`%APPDATA%
+pm
+ode_modules
+pmin`, e só então cair para o empacotado. O caminho do global não
+é fixo em toda instalação, então vale checar `npm_config_prefix` antes de assumir a pasta.
 ### R-02, atualização de 2026-09-03: `npm ci` puro falha nesta máquina
 
 `npm ci` tenta `node-gyp rebuild` do `better-sqlite3` 13.0.3 e morre com

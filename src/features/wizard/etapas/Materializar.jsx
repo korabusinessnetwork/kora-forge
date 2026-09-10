@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { gerarPlano } from '../../../services/plano.js';
 import { materializar, obterMaterializacao, decidirMaterializacao, pararRun } from '../../../services/materializacao.js';
+import { abrirPastaDoProjeto } from '../../../services/projetos.js';
 import { useLogDoRun } from '../../../hooks/useLogDoRun.js';
 import Botao from '../../../components/shared/Botao/Botao.jsx';
 import CampoBooleano from '../../../components/shared/CampoBooleano/CampoBooleano.jsx';
@@ -52,6 +53,10 @@ export default function Materializar({ valor, onChange, projeto }) {
     mutationFn: pararRun,
     onSuccess: () => clienteQuery.invalidateQueries({ queryKey: ['materializacao', projeto.id] }),
   });
+  // Abrir a pasta é capacidade própria do Forge (ADR-010), então passa pelo servidor. A função é
+  // encapsulada em vez de passada direto porque o React Query entrega contexto próprio ao
+  // `mutationFn`, e ele acabaria virando argumento do serviço (R-10).
+  const abrir = useMutation({ mutationFn: () => abrirPastaDoProjeto(projeto.id) });
 
   const dados = materializacao.data ?? null;
   const runId = runEscolhido ?? runIdEmFoco(dados);
@@ -81,7 +86,15 @@ export default function Materializar({ valor, onChange, projeto }) {
         </div>
       ) : null}
 
-      {terminada ? <TelaFinal materializacao={dados} projeto={projeto} /> : null}
+      {terminada ? (
+        <TelaFinal
+          materializacao={dados}
+          projeto={projeto}
+          onAbrir={() => abrir.mutate()}
+          abrindo={abrir.isPending}
+          erroAoAbrir={abrir.error}
+        />
+      ) : null}
 
       {plano.data && !terminada ? <PainelPlano plano={plano.data} /> : null}
 

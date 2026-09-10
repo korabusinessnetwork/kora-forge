@@ -1,6 +1,9 @@
+import { z } from 'zod';
 import { listaProjetosSchema, projetoComBlueprintSchema } from '@shared/schemas/projeto.js';
 import { listaVersoesBlueprintSchema } from '@shared/schemas/blueprint.js';
 import { obter, enviar, alterar, validarContrato } from './api.js';
+
+const aberturaSchema = z.strictObject({ aberto: z.boolean() });
 
 export function montarQueryProjetos({ status, busca } = {}) {
   const params = new URLSearchParams();
@@ -32,4 +35,10 @@ export async function salvarBlueprint(id, payload) {
 
 export async function listarVersoesBlueprint(id) {
   return validarContrato(listaVersoesBlueprintSchema, await obter(`/projects/${encodeURIComponent(id)}/blueprint/versoes`));
+}
+
+// Pede ao servidor para abrir a pasta do projeto no gerenciador de arquivos. Quem sabe o caminho
+// é o servidor: o front manda só o id.
+export async function abrirPastaDoProjeto(id) {
+  return validarContrato(aberturaSchema, await enviar(`/projects/${encodeURIComponent(id)}/abrir`, {}));
 }

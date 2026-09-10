@@ -16,6 +16,17 @@ descartada e consequência de longo prazo mora aqui.
 | [007](adr-007-presets-declarativos.md) | Presets declarativos versionados | Aceito | 2026-09-02 |
 | [008](adr-008-harness-e-painel-de-relatorios.md) | Harness como sistema de operação de build e painel de relatórios | Proposto | 2026-09-02 |
 | [009](adr-009-serializacao-do-design.md) | Serialização do documento de design | Proposto | 2026-09-05 |
+| [010](adr-010-capacidades-proprias-do-forge.md) | Capacidades próprias do Forge, fora da whitelist de preset | Proposto | 2026-09-08 |
+| [011](adr-011-motor-de-design-externo.md) | Motor de design externo opcional, o caso do Open Design | Proposto | 2026-09-09 |
+| [012](adr-012-serializacao-de-layout.md) | Serialização de layout do Studio | Supersedido por ADR-009 | 2026-09-09 |
+
+> **Sobre a numeração do 010 ao 012.** O projeto seguiu por um tempo em duas linhas de trabalho
+> paralelas, e as duas escreveram ADR ao mesmo tempo. Na reconciliação, o ADR-009 desta linha,
+> serialização do documento de design, ficou com o número porque já estava implementado nos blocos
+> 3 e 4 da Fase 2. Os ADRs da outra linha desceram para 010 e 011, e a proposta de serialização de
+> layout virou o 012, marcada como supersedida pelo 009, que decide a mesma questão. Nenhum ADR foi
+> apagado. Specs antigas e o ledger em `specs/_loop.md` guardam a numeração da época, de propósito:
+> são registro histórico, e reescrevê-los seria apagar o caminho percorrido.
 
 ## Como escrever um ADR
 
@@ -33,3 +44,13 @@ descartada e consequência de longo prazo mora aqui.
 | Isolar o runner em container | se surgir necessidade de rodar preset de terceiro |
 | Formato de exportação do Studio para JSX | resolvido na **ADR-009** |
 | Estratégia de migração do blueprint entre versões de preset | Fase 5 |
+| Detectar o editor do dono sem perguntar, para o atalho da tela final abrir o editor e não a pasta | se a detecção se mostrar confiável; ver **ADR-010** |
+
+## Propostos, esperando ratificação
+
+| ADR | O que trava enquanto não é decidido |
+|---|---|
+| [008](adr-008-harness-e-painel-de-relatorios.md) | a Fase 6 inteira |
+| [009](adr-009-serializacao-do-design.md) | nada mais. Já está implementado nos blocos 3 e 4 da Fase 2, e a ratificação é formalidade atrasada |
+| [010](adr-010-capacidades-proprias-do-forge.md) | três capacidades já construídas e em uso seguem sem respaldo escrito: abrir a pasta do projeto, matar a árvore de processos e abrir o browser no fim do boot |
+| [011](adr-011-motor-de-design-externo.md) | nada trava. A decisão é abrir ou fechar uma porta futura. Mesmo aprovado, a implementação segue bloqueada até o spike de `spikes/open-design/SPIKE.md` ser executado de verdade |

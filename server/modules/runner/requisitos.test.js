@@ -45,6 +45,15 @@ describe('checarRequisitos', () => {
     expect(resultado.find((r) => r.bin === 'git').ok).toBe(true);
   });
 
+  // R-08: no Windows o npm é `.cmd` e não era encontrado, o que fazia a checagem acusar ferramenta
+  // ausente numa máquina que tem npm instalado.
+  it('encontra o npm que o preset exige', async () => {
+    const resultado = await checarRequisitos({ requisitos: [{ bin: 'npm', min: '9' }] }, process.cwd());
+    const npm = resultado.find((r) => r.bin === 'npm');
+    expect(npm.ok).toBe(true);
+    expect(npm.encontrada).toMatch(/^\d+\.\d+/);
+  });
+
   it('mínimo acima do instalado marca como ausente, mostrando a versão encontrada', async () => {
     const resultado = await checarRequisitos({ requisitos: [{ bin: 'node', min: '999' }] }, process.cwd());
     const node = resultado.find((r) => r.bin === 'node');

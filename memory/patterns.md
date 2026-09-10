@@ -116,3 +116,22 @@ Duas consequências que valem para toda regra nova:
 - Regra cujo efeito o gerador aplica sozinho é `resolucao: automatica` e nasce resolvida. Regra
   que exige decisão humana nasce aberta. Sem essa separação, um bloqueio que ninguém pode
   resolver travaria a materialização para sempre.
+
+### P-09, Invariante de arquitetura vira teste que varre a árvore
+Regra que vale para o código inteiro, e não para uma função, é provada por um teste que percorre
+os arquivos e falha listando quem quebrou. Sem isso a regra depende de alguém lembrar dela na
+revisão, e o Forge multiplica os próprios padrões em cada projeto que gera.
+
+Três invariantes já são cobertos assim, cada um num arquivo:
+
+- `server/lib/processo.test.js`, "nada de shell no servidor": nenhum arquivo importa de
+  `child_process` algo diferente de `spawn`, e ninguém escreve `shell: true` nem `execSync`.
+- `src/services/logAoVivo.test.js`, "só a camada de serviços abre WebSocket": nenhum arquivo em
+  `src/components/` ou `src/features/` instancia `WebSocket`.
+- `src/services/api.test.js`, "mutationFn nunca recebe a função de serviço nua": a fronteira da
+  camada de serviços é explícita, e biblioteca de tela não passa contexto para dentro dela.
+
+Como escrever um: varra a pasta, ignore os próprios testes, junte os culpados numa lista e afirme
+`expect(problemas).toEqual([])`. A lista vazia é a asserção, e a lista cheia já é o relatório de
+onde consertar. Um teste que só verifica o arquivo certo hoje não serve: o valor está em pegar o
+arquivo que ainda não existe.

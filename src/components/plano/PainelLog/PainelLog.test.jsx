@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import PainelLog, { TETO_DE_LINHAS, limparEscapes } from './PainelLog.jsx';
+import PainelLog, { TETO_DE_LINHAS } from './PainelLog.jsx';
 import { mensagens } from '../../../mensagens.js';
 
 const m = mensagens.log;
@@ -14,24 +14,6 @@ function renderizar(props = {}) {
   const utils = render(<PainelLog comando={comando()} estado="conectado" onParar={onParar} onReconectar={onReconectar} {...props} />);
   return { ...utils, onParar, onReconectar };
 }
-
-// Linha real de um `npm run dev` capturado do produto rodando: no terminal isso vira cor, na
-// página viraria `[32m[1mVITE` no meio da frase.
-describe('limparEscapes', () => {
-  const ESC = String.fromCharCode(27);
-
-  it('tira cor e movimento de cursor, mantendo o texto', () => {
-    expect(limparEscapes(`${ESC}[32m${ESC}[1mVITE${ESC}[22m v8.2.2 pronto`)).toBe('VITE v8.2.2 pronto');
-  });
-
-  it('tira caractere de controle solto sem comer o resto', () => {
-    expect(limparEscapes(`carregando${String.fromCharCode(13)}pronto`)).toBe('carregandopronto');
-  });
-
-  it('linha comum passa intacta, acento e seta inclusive', () => {
-    expect(limparEscapes('  ➜  Local: http://localhost:5173/ (Área)')).toBe('  ➜  Local: http://localhost:5173/ (Área)');
-  });
-});
 
 describe('PainelLog', () => {
   it('sem comando nenhum, o vazio traz a próxima ação em vez de tela em branco', () => {
@@ -85,9 +67,11 @@ describe('PainelLog', () => {
     expect(container.querySelector('script')).toBeNull();
   });
 
-  it('a linha na tela vem sem sequência de escape de terminal', () => {
-    const ESC = String.fromCharCode(27);
-    renderizar({ eventos: [linha(`${ESC}[32mpronto em 309 ms${ESC}[0m`)] });
+  // A limpeza da sequência de escape mora no runner, em `limparAnsi`, e é testada lá. Aqui o
+  // contrato é o oposto e igualmente importante: o painel desenha a linha como ela chegou, sem
+  // uma segunda implementação da mesma regra. Foi ter duas que fez as branches divergirem.
+  it('desenha a linha exatamente como recebeu, sem limpar de novo', () => {
+    renderizar({ eventos: [linha('pronto em 309 ms')] });
     expect(screen.getByText('pronto em 309 ms')).toBeInTheDocument();
   });
 

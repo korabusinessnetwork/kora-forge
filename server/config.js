@@ -16,6 +16,9 @@ const envSchema = z.object({
   FORGE_WORKSPACE: z.string().default(''),
   FORGE_COPILOT: z.enum(['on', 'off']).default('off'),
   FORGE_COPILOT_BUDGET_USD: z.coerce.number().nonnegative().default(5),
+  // Abrir o browser no fim do boot, com o link que carrega o token. Desligue para subir o Forge
+  // sem janela nova, por exemplo em teste ou quando o browser já está aberto no link.
+  FORGE_ABRIR_BROWSER: z.enum(['on', 'off']).default('on'),
 });
 
 // Parser mínimo de KEY=VALUE, sem dependência (restrição T-03).
@@ -66,5 +69,6 @@ export function carregarConfig({ env = process.env, raiz = process.cwd() } = {})
     workspacePadrao: c.FORGE_WORKSPACE || null,
     copilotoLigado: c.FORGE_COPILOT === 'on',
     copilotoTetoUsdPadrao: c.FORGE_COPILOT_BUDGET_USD,
+    abrirBrowser: c.FORGE_ABRIR_BROWSER === 'on',
   });
 }

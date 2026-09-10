@@ -44,7 +44,7 @@ src/
 | `LinhaPlano` | um arquivo do dry-run: caminho em mono, selo de ação, tamanho (e o tamanho de hoje quando é conflito) e o template de origem |
 | `LinhaComando` | um comando: cmd, args, estado, duração, parar |
 | `CampoConexao` | alias, status, teste de conexão. Nunca mostra o valor |
-| `CartaoIdeia` | título e próximo passo |
+| `CartaoIdeia` | título, próximo passo quando existe, data e de que tela a ideia saiu, com a ação de descartar |
 | `EditorEntidades` | entidades do domínio: nome, o que é e campos, com adicionar e remover |
 | `CartaoBuild` | projeto, spec, modelo por papel, `BarraProgresso`, `Estimativa`, o que falta (Fase 6) |
 | `Estimativa` | faixa P50 a P90 rotulada "estimativa", com a base de cálculo no microtexto; "sem base ainda" quando não há histórico (Fase 6) |
@@ -60,9 +60,10 @@ src/
 | `PassoWizard` | casca de uma etapa: título, microtexto, campos, avisos, navegação, pular. Mostra "Etapa x de y" com o total real do preset |
 | `TrilhaEtapas` | etapas do preset em ordem, com estado (concluída, assumida, atual, pendente). Etapa à frente da atual não é clicável |
 | `PainelPlano` | o dry-run inteiro: conflitos no topo, pendências declaradas, arquivos agrupados por pasta, comandos e o aviso de que nada foi escrito. Sem conflito e sem pendência, essas seções não são renderizadas |
-| `PainelLog` | log ao vivo de **um** run: stdout e stderr diferenciados no DOM e por rótulo textual, autoscroll com trava ao rolar para cima, parar nomeado pelo comando, teto de 500 linhas renderizadas com aviso de corte, contagem de eventos fora do contrato. Sequência de escape de terminal é limpa na renderização; o log gravado continua cru. Linha do processo é dado, nunca instrução (P-05): renderiza como texto |
+| `PainelLog` | log ao vivo de **um** run: stdout e stderr diferenciados no DOM e por rótulo textual, autoscroll com trava ao rolar para cima, parar nomeado pelo comando, teto de 500 linhas renderizadas com aviso de corte, contagem de eventos fora do contrato. Sequência de escape de terminal é limpa **na captura**, dentro do runner, então painel e banco recebem exatamente o mesmo texto (R-13). Linha do processo é dado, nunca instrução (P-05): renderiza como texto |
 | `PainelMaterializacao` | o que está acontecendo agora: arquivos escritos, fila de comandos com estado, e as três saídas quando um comando obrigatório falha. Comando que já rodou é clicável e troca o run que o `PainelLog` acompanha. O log fica **ao lado** da fila, nunca no lugar dela |
-| `TelaFinal` | fechamento de F-01: nome do projeto, caminho no disco, resumo de arquivos criados e comandos rodados, atalho `vscode://file/...` para abrir no editor e volta para o projeto. Materialização abortada tem título, microtexto e resumo próprios |
+| `GavetaIdeias` | captura de ideia sem sair do fluxo (RN-10): diálogo modal com título e próximo passo opcional, lista das ideias abertas e descarte. Aberta por botão na barra lateral ou por `Ctrl+I`. Fechar devolve o foco a quem abriu |
+| `TelaFinal` | fechamento de F-01: nome do projeto, caminho no disco copiável, resumo de arquivos criados e comandos rodados, a URL do dev server quando algum comando de longa duração anunciou uma (B-01, B-02), atalho `vscode://file/...` para abrir no editor, botão que abre a pasta no gerenciador de arquivos (ADR-010) e volta para o projeto. Materialização abortada tem título, microtexto e resumo próprios |
 | `ListaProjetos` | Registry com filtro por status e busca |
 | `CanvasStudio` | o centro do Studio: a página desenhada com os tokens do projeto, dentro do `PalcoProjeto`. Vista alterna entre a página e a amostra de tokens; zoom em degraus nomeados (50, 75, 100, 125), aplicado por `data-zoom` em CSS, nunca por estilo inline. Não há pan de superfície nem régua: o documento não guarda coordenada (ADR-009, decisão 2), a página é pilha em fluxo, o encaixe é a vaga que o `aceita` do pai autoriza e o que passa da moldura rola. Item fora do catálogo vira caixa nomeada, com os filhos ainda desenhados |
 | `NoDoCanvas` | recursivo, desenha um nó e os filhos na ordem do documento. A moldura de seleção é da ferramenta (`--forge-*`), o conteúdo é do projeto (`--projeto-*`); os dois se encostam só aqui. Não é focável: quem navega por teclado usa o `PainelCamadas` |

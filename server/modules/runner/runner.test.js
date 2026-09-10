@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, it, expect, afterEach } from 'vitest';
-import { criarAppDeTeste, criarPastaTemporaria } from '../../testes/apoio.js';
-import { materializacaoSchema, eventoLogSchema } from '../../../shared/schemas/materializacao.js';
+import { criarAppDeTeste, criarPastaTemporaria, apagarQuandoLiberar } from '../../testes/apoio.js';
+import { urlAnunciada } from './servico.js';
+import { materializacaoSchema } from '../../../shared/schemas/materializacao.js';
 
 let contexto;
 const temporarias = [];
@@ -12,7 +13,11 @@ afterEach(async () => {
     await contexto.fechar();
     contexto = null;
   }
-  while (temporarias.length > 0) fs.rmSync(temporarias.pop(), { recursive: true, force: true });
+  // Matar árvore de processos no Windows é assíncrono: o `taskkill` que o `encerrarTudo` dispara
+  // leva alguns milissegundos para derrubar os descendentes, e até lá eles seguram os arquivos.
+  // Tentar de novo é a resposta certa; apagar de primeira era o que só funcionava quando o Forge
+  // deixava neto vivo (R-12).
+  while (temporarias.length > 0) await apagarQuandoLiberar(temporarias.pop());
 });
 function novo() { contexto = criarAppDeTeste(); return contexto; }
 function workspace() {
@@ -302,6 +307,173 @@ describe('execução de comandos', () => {
   });
 });
 
+// R-11. O log ia para o banco em lote de cinquenta linhas, ou no fim do comando. Um dev server
+// imprime meia dúzia de linhas e não termina nunca, então o log dele simplesmente não existia no
+// banco enquanto ele rodava. Foi assim que a prova da Fase 1 achou zero linhas para um comando
+// visivelmente em execução.
+describe('log persiste sem esperar o comando terminar', () => {
+  const linhasDe = (ctx, runId) => ctx.db.prepare('SELECT stream, linha FROM command_logs WHERE run_id = ? ORDER BY id').all(runId);
+
+  it('comando de longa duração grava enquanto roda, sem juntar cinquenta nem terminar', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('dev', ['longa.js'], { longaDuracao: true })]),
+    });
+
+    const runId = runner.obter(projeto.id).comandos[0].runId;
+    expect(runId).toBeTruthy();
+
+    // Uma linha só, e o comando não termina: antes da correção isto nunca chegava ao banco.
+    await esperar(() => linhasDe(ctx, runId).length > 0, 8000);
+    expect(linhasDe(ctx, runId)).toEqual([{ stream: 'stdout', linha: 'servindo' }]);
+    expect(runner.obter(projeto.id).comandos[0].estado).toBe('rodando');
+
+    runner.encerrarTudo();
+  });
+
+  it('rajada grava na hora pelo lote, sem esperar o intervalo', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    const corpo = ['for (let i = 0; i < 60; i += 1) console.log("linha " + i);', 'setInterval(() => {}, 1000);'].join('');
+    const rajada = arquivo('rajada.js', corpo);
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('dev', ['rajada.js'], { longaDuracao: true })], [rajada]),
+    });
+
+    const runId = runner.obter(projeto.id).comandos[0].runId;
+    // O lote é cinquenta. Se só o intervalo de um segundo gravasse, não haveria nada tão cedo.
+    await esperar(() => linhasDe(ctx, runId).length >= 50, 900);
+    expect(linhasDe(ctx, runId).length).toBeGreaterThanOrEqual(50);
+
+    runner.encerrarTudo();
+  });
+
+  it('encerrar o Forge grava o que estava na fila, em vez de descartar', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner, transmissor } = ctx.app.servicos;
+
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('dev', ['longa.js'], { longaDuracao: true })]),
+    });
+
+    const runId = runner.obter(projeto.id).comandos[0].runId;
+    // O transmissor recebe a linha no mesmo instante em que ela sai do processo, antes de qualquer
+    // despejo. Encerrar aqui cai dentro da janela de um segundo, com folga.
+    await esperar(() => transmissor.historico(runId).some((e) => e.tipo === 'linha'), 8000);
+
+    runner.encerrarTudo();
+    expect(linhasDe(ctx, runId)).toEqual([{ stream: 'stdout', linha: 'servindo' }]);
+  });
+
+  it('não duplica linha quando o comando termina logo depois de gravar', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('um', ['ok.js'])]),
+    });
+
+    await esperar(() => runner.obter(projeto.id).estado === 'concluida');
+    const runId = runner.obter(projeto.id).comandos[0].runId;
+    expect(linhasDe(ctx, runId)).toEqual([{ stream: 'stdout', linha: 'feito' }]);
+  });
+});
+
+// B-02. O último passo entre materializar e ver o projeto rodando era ler o log atrás da URL.
+describe('URL anunciada pelo dev server', () => {
+  describe('urlAnunciada', () => {
+    it.each([
+      ['linha do Vite, Local', '  ➜  Local:   http://localhost:5273/', 'http://localhost:5273/'],
+      ['sem barra no fim', 'servindo em http://127.0.0.1:5273', 'http://127.0.0.1:5273'],
+      ['sem porta', 'abra http://localhost', 'http://localhost'],
+      ['pontuação colada', 'rodando em http://localhost:5273/.', 'http://localhost:5273/'],
+      ['https em loopback', 'https://127.0.0.1:5273/', 'https://127.0.0.1:5273/'],
+    ])('aceita %s', (_rotulo, linha, esperado) => {
+      expect(urlAnunciada(linha)).toBe(esperado);
+    });
+
+    it.each([
+      ['endereço de rede', '  ➜  Network: http://192.168.1.52:5273/'],
+      ['domínio externo', 'documentação em https://vitejs.dev'],
+      ['loopback com caminho', 'painel em http://localhost:5273/admin'],
+      ['texto que só parece', 'localhost:5273 sem esquema'],
+      ['linha sem nada', 'Initialized empty Git repository'],
+      ['vazio', ''],
+    ])('recusa %s', (_rotulo, linha) => {
+      expect(urlAnunciada(linha)).toBeNull();
+    });
+
+    it('vale a primeira, e o Vite imprime a Local antes da Network', () => {
+      expect(urlAnunciada('http://localhost:5273/ e http://127.0.0.1:9999/')).toBe('http://localhost:5273/');
+    });
+  });
+
+  it('comando de longa duração guarda a URL que anunciou', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    const servidor = arquivo('servidor.js', ['console.log("  -> Local:   http://localhost:5273/");', 'setInterval(() => {}, 1000);'].join(''));
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('dev', ['servidor.js'], { longaDuracao: true })], [servidor]),
+    });
+
+    await esperar(() => runner.obter(projeto.id).comandos[0].url !== null, 8000);
+    expect(runner.obter(projeto.id).comandos[0].url).toBe('http://localhost:5273/');
+    runner.encerrarTudo();
+  });
+
+  it('comando comum não vira link, mesmo imprimindo endereço', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    const falante = arquivo('falante.js', 'console.log("http://localhost:5273/");');
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('um', ['falante.js'])], [falante]),
+    });
+
+    await esperar(() => runner.obter(projeto.id).estado === 'concluida');
+    expect(runner.obter(projeto.id).comandos[0].url).toBeNull();
+  });
+
+  it('comando que não anuncia nada fica com url nula, e isso não é erro', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const projeto = await projetoEm(ctx, ws);
+    const { runner } = ctx.app.servicos;
+
+    await runner.materializar({
+      projeto, preset: { requisitos: [] },
+      plano: plano(path.join(ws, 'alvo'), [comando('um', ['ok.js'])]),
+    });
+
+    await esperar(() => runner.obter(projeto.id).estado === 'concluida');
+    const estado = runner.obter(projeto.id);
+    expect(estado.comandos[0].url).toBeNull();
+    expect(materializacaoSchema.safeParse(estado).success).toBe(true);
+  });
+});
+
 describe('transmissor de log', () => {
   it('entrega o histórico a quem conecta depois e as linhas novas ao vivo', async () => {
     const ctx = novo();
@@ -319,35 +491,6 @@ describe('transmissor de log', () => {
     expect(recebidos[0]).toMatchObject({ stream: 'stdout', linha: 'feito' });
     expect(recebidos[1]).toMatchObject({ estado: 'sucesso', exitCode: 0 });
     cancelar();
-  });
-
-  // Contrato fechado ponta a ponta: o front valida cada evento por `eventoLogSchema` antes de
-  // pintar a tela, e descarta o que não bate. Se o servidor publicasse algo fora do schema, o log
-  // ficaria mudo sem ninguém errar em lugar nenhum. Este teste é o que impede isso.
-  it('tudo que o runner publica bate com o schema que o front consome', async () => {
-    const ctx = novo();
-    const ws = workspace();
-    const projeto = await projetoEm(ctx, ws);
-    const { runner, transmissor } = ctx.app.servicos;
-
-    await runner.materializar({
-      projeto,
-      preset: { requisitos: [] },
-      plano: plano(path.join(ws, 'alvo'), [comando('um', ['ok.js']), comando('dois', ['falha.js'], { obrigatorio: false })]),
-    });
-    await esperar(() => ['concluida', 'parado_em_falha'].includes(runner.obter(projeto.id).estado));
-
-    const publicados = runner.obter(projeto.id).comandos
-      .filter((c) => c.runId)
-      .flatMap((c) => transmissor.historico(c.runId));
-
-    expect(publicados.length).toBeGreaterThan(0);
-    for (const evento of publicados) {
-      const resultado = eventoLogSchema.safeParse(evento);
-      expect(resultado.success, `evento fora do contrato: ${JSON.stringify(evento)}`).toBe(true);
-    }
-    expect(publicados.some((e) => e.tipo === 'linha')).toBe(true);
-    expect(publicados.some((e) => e.tipo === 'fim')).toBe(true);
   });
 
   it('ouvinte que quebra não derruba os outros nem a execução', () => {

@@ -3,6 +3,10 @@ import {
 } from '../../../shared/schemas/projeto.js';
 import { blueprintSchema, listaVersoesBlueprintSchema } from '../../../shared/schemas/blueprint.js';
 import { validar } from '../../lib/validar.js';
+import { abrirPasta } from '../../lib/abrirPasta.js';
+import { z } from 'zod';
+
+const aberturaSchema = z.strictObject({ aberto: z.boolean() });
 
 // Query string vazia equivale a ausente: "?status=" é o padrão, não um erro.
 function limparQuery(query) {
@@ -13,7 +17,7 @@ function limparQuery(query) {
   return limpa;
 }
 
-export default async function rotasProjetos(app, { projetos, presets, regras }) {
+export default async function rotasProjetos(app, { projetos, presets, regras, settings }) {
   app.get('/projects', { config: { schemaSaida: listaProjetosSchema } }, async (request) => {
     const filtro = validar(filtroProjetosSchema, limparQuery(request.query));
     return projetos.listar(filtro);
@@ -41,4 +45,11 @@ export default async function rotasProjetos(app, { projetos, presets, regras }) 
   });
 
   app.get('/projects/:id/blueprint/versoes', { config: { schemaSaida: listaVersoesBlueprintSchema } }, async (request) => projetos.listarVersoes(request.params.id));
+
+  // Última ação do fluxo F-01: chegar na pasta que nasceu, sem digitar caminho. É POST porque tem
+  // efeito no sistema, e o caminho aberto vem do banco, nunca do corpo da requisição.
+  app.post('/projects/:id/abrir', { config: { schemaSaida: aberturaSchema } }, async (request) => {
+    const { projeto } = projetos.obterOuFalhar(request.params.id);
+    return abrirPasta(settings.obter().workspace, projeto.caminhoDisco);
+  });
 }
