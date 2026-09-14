@@ -1,0 +1,82 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+  padding: var(--forge-space-5);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--forge-space-3);
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+  flex: 1 1 280px;
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--forge-text-lg);
+  line-height: var(--forge-leading-lg);
+}
+
+.descricao,
+.estado,
+.resumo {
+  margin: 0;
+  color: var(--forge-text-muted);
+}
+
+.erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+}
+
+.sucesso {
+  margin: 0;
+  color: var(--forge-success);
+}
+
+.falha {
+  margin: 0;
+  color: var(--forge-danger);
+}
+
+.vazio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  padding: var(--forge-space-5);
+  border: 1px dashed var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+  color: var(--forge-text-muted);
+}
+
+.vazio p {
+  margin: 0;
+}
+
+.vazioTitulo {
+  color: var(--forge-text);
+  font-weight: 600;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-3);
+}
