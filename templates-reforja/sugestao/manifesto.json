@@ -1,0 +1,6 @@
+{
+  "id": "reforja-sugestao",
+  "versao": "1.0.0",
+  "descricao": "Pedido de sugestões de melhoria ao modelo gratuito, só com o resumo do diagnóstico.",
+  "maxTokens": 900
+}

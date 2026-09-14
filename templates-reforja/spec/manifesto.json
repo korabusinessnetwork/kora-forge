@@ -1,0 +1,20 @@
+{
+  "id": "reforja-spec",
+  "versao": "1.0.0",
+  "descricao": "Spec de melhoria do próprio Forge, na estrutura do comando /spec.",
+  "vazios": {
+    "descricao": "_a definir_",
+    "sinal": "nenhum",
+    "aDefinir": "_a definir_"
+  },
+  "origens": {
+    "manual": "criada à mão",
+    "diagnostico": "diagnóstico do Forge",
+    "modelo": "sugestão do modelo gratuito, aceita pelo dono"
+  },
+  "prioridades": {
+    "alta": "alta",
+    "media": "média",
+    "baixa": "baixa"
+  }
+}
