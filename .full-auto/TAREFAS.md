@@ -17,7 +17,7 @@ Onda paralela: T08 e T09 em worktrees próprias, T02 continua com o maestro. Con
 
 ## Fase 2 do Studio
 - [x] T01 Bloco 5, etapa Design no wizard | trilha: wizard | depende: nenhum | pronto quando: a etapa design deixa de ser EtapaFutura, leva ao Studio e diz o que acontece depois; pular com o padrão Kora gera exatamente o mesmo plano de hoje, provado por teste de regressão; review sem ressalvas
-- [~] T02 Bloco 6, exportação do design para o gerador | trilha: gerador | depende: T01 | pronto quando: tokens.css sai com os valores do Studio, cada página vira rota e arquivo de esqueleto por template versionado, mesmo documento gera o mesmo plano; review sem ressalvas
+- [x] T02 Bloco 6, exportação do design para o gerador | trilha: gerador | depende: T01 | pronto quando: tokens.css sai com os valores do Studio, cada página vira rota e arquivo de esqueleto por template versionado, mesmo documento gera o mesmo plano; review sem ressalvas
 - [ ] T03 Bloco 7, diff de design em projeto materializado | trilha: diff | depende: T02 | pronto quando: redesenhar projeto materializado gera plano de diff com VisualizadorDiff, e nada é escrito sem aprovação; review sem ressalvas
 
 ## Copiloto, opção gratuita

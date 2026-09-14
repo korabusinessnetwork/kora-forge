@@ -3,6 +3,17 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 13, Fase 2, bloco 6, exportação para o gerador, 2026-09-14
+
+- Spec: `specs/fase2-bloco6-exportacao.md`. Rodada em modo Full Automático (`.full-auto/`).
+- Resultado da review: aprovado sem ressalvas, 33 de 33 critérios. Suíte com 1143 passando e nenhum
+  pulado, build sem erro. Validado com a prova real `npm run verificar:fase2`: projeto desenhado no
+  Studio, materializado, `vite build` do projeto gerado passando e dev server respondendo.
+- Aprendido: o valor padrão de um arquivo parametrizado precisa de fixture congelada byte a byte,
+  senão o hash dos projetos antigos muda sem ninguém perceber; e o teste de marca white-label vale
+  também para comentário de molde.
+- Próximo item recomendado: **bloco 7, diff de design em projeto materializado**.
+
 ## Rodada 12, Fase 2, bloco 5, etapa Design no wizard, 2026-09-14
 
 - Spec: `specs/fase2-bloco5-etapa-design.md`. Rodada em modo Full Automático (`.full-auto/`).

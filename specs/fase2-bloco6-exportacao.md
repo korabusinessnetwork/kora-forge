@@ -166,3 +166,47 @@ montados só por template versionado. Sem design efetivo, o plano sai **byte a b
 Os 33 critérios com sim e evidência na seção 7, hash congelado intacto sem design, projeto gerado
 com design compilando de verdade, `npm test` e `npm run build` verdes, sem TODO novo, sem
 `console.log` e sem regressão no wizard, no Studio e na materialização.
+
+## 7. Auditoria
+
+> Feita depois do build, com a suíte inteira verde (98 arquivos, 1143 testes, nenhum pulado) e `npm run build` sem erro, em Windows 11,
+> e com a prova real `npm run verificar:fase2` (servidor de verdade, materialização, `vite build` e
+> dev server do projeto gerado).
+
+| # | Atende | Evidência |
+|---|---|---|
+| 1 | sim | `design.test.js` → "exportação do design para o plano (bloco 6)" → "sem documento, o hash é o congelado e o tokens.css é o de antes, byte a byte" |
+| 2 | sim | `design.test.js` → "padrão Kora escolhido na etapa Design" → "com documento salvo, gera o hash congelado e os mesmos arquivos de um projeto sem Studio", sem mudança de valor |
+| 3 | sim | "desenho do Studio só com tokens padrão e sem página: o disco é o mesmo, o hash não". A base de comparação é o mesmo blueprint sem documento, porque escolher o Studio já muda os documentos do blueprint |
+| 4 | sim | `shared/valores.test.js` → "o tokens.css do template não tem valor literal em variável editável" |
+| 5 | sim | `shared/valores.test.js` → "uma chave por token…" e "usa os tokens recebidos"; "templates contra o mapa de valores" continua verde nos dois sentidos |
+| 6 | sim | `design.test.js` → "o design vira arquivo no plano: tokens do Studio…" (`#ff0055`) e "um token trocado muda só a linha dele…" |
+| 7 | sim | "um token trocado muda só a linha dele, e o escuro sai só no bloco escuro"; na prova real, item 2, `--cor-fundo: #101418` dentro do bloco escuro |
+| 8 | sim | `design.test.js` → token com caractere inseguro responde 400 com o caminho `tokens.cor.acento`; os padrões passam em todo teste que salva design |
+| 9 | sim | `exportarDesign.test.js` → "gera uma página por id em PascalCase e um App com as rotas na ordem do documento" (`inicio` e `sobre-nos`) |
+| 10 | sim | `design.test.js` → "com página, entra studio-paginas no plano e sai o App.module.css; sem página, fica" |
+| 11 | sim | "todo arquivo gerado é JSX válido", com `transformWithOxc`; na prova real o `vite build` do projeto gerado sai com 0 |
+| 12 | sim | "cada nó vira o fragmento do item, com os filhos dentro e dois espaços por nível" |
+| 13 | sim | "prop ausente usa o padrão do catálogo e prop presente usa o valor do documento" |
+| 14 | sim | "texto com tag e chave sai neutralizado e o arquivo continua compilando" |
+| 15 | sim | "origem executável %j volta ao padrão e vira pendência de valor", com quatro variações de caixa e espaço, mais `vbscript:`; e "endereço comum com javascript no meio não é pendência" |
+| 16 | sim | "nó com tipo fora do catálogo some do arquivo, os irmãos ficam, e vira pendência de catálogo", e no plano "item que saiu do catálogo vira pendência de catálogo no plano, e o resto da página sai" |
+| 17 | sim | "página sem região gera arquivo válido com fragmento vazio" |
+| 18 | sim | "nome de página com quebra de linha não sai do comentário" |
+| 19 | sim | "dois ids que viram o mesmo arquivo sem diferenciar caixa derrubam com FORGE_CONFLICT" |
+| 20 | sim | "mesmo documento, mesma saída" e, no plano, "com o desenho do Studio escolhido, salvar design muda o hash, e o mesmo design gera sempre o mesmo hash" |
+| 21 | sim | `servico.js` põe `studio-paginas` em `usados` só quando `exportado.usaTemplate`, e `usados` entra no insumo do hash; "sem página, não gera nada e não pede o template" e o critério 22 provam o efeito no hash |
+| 22 | sim | "trocar a ordem das páginas muda App e hash; trocar uma prop muda só o arquivo da página" |
+| 23 | sim | o teste virou "o design vira arquivo no plano: tokens do Studio, uma página por rota e App com as rotas (bloco 6)" |
+| 24 | sim | `exportarDesign.js` não importa `fs` nem banco; o teste chama a função direto, sem servidor |
+| 25 | sim | leitura de `exportarDesign.js`: o código só junta linhas já renderizadas (`join('\n')`), recua e monta o nome do componente; todo JSX vem de molde ou fragmento |
+| 26 | sim | todo texto gerado passa por `renderizar()` de `shared/template.js`, que lança `ErroTemplate` com chave sem valor; "molde ausente derruba com o nome do molde" |
+| 27 | sim | "loader de moldes" → "template sem moldes/ continua valendo", "lê os moldes por nome", "recusa moldes/ vazia" e "recusa molde que não é arquivo" |
+| 28 | sim | "pagina.module.css define toda classe que um fragmento usa, e só usa tokens" |
+| 29 | sim | "moldes e CSS nascem white-label: sem cor literal nem marca". O teste pegou "KORA FORGE" no comentário do molde de página, que saiu |
+| 30 | sim | 98 arquivos, 1143 testes, nenhum pulado, `npm run build` sem erro |
+| 31 | sim | `npm run verificar:fase2`: projeto `criar-site` com cabeçalho, seção com título, texto e botão, rodapé e uma segunda página com campo, acento `#d9480f`; materializado de verdade; `tokens.css`, `PaginaInicio.jsx`, `PaginaContato.jsx` e `App.jsx` conferidos no disco; `vite build` com saída 0 e dev server respondendo 200. Feito pelas funções de `src/services/`, as mesmas da interface, e não clicando na tela |
+| 32 | sim | `templates/README.md` (moldes e "Tokens do Studio"), `catalogo/README.md` ("Como o fragmento vira arquivo") e `docs/05_FLUXOS/README.md` (o que sai no disco) |
+| 33 | sim | `docs/09_BACKLOG/fase2.md`: bloco 6 "(entregue)", e os itens de `tokens.css`, rota por página e pular a etapa Design marcados com a evidência |
+
+Resultado: aprovado sem ressalvas, 33 de 33.

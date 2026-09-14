@@ -25,12 +25,12 @@ não desenha.
 ## Critério de aceite da fase inteira
 
 - [ ] Criar um projeto, desenhar no Studio e materializar, sem tocar no terminal
-- [ ] O `tokens.css` do projeto gerado tem os valores escolhidos no Studio, não os do template
-- [ ] Cada página desenhada vira rota e arquivo de esqueleto no projeto gerado
+- [x] O `tokens.css` do projeto gerado tem os valores escolhidos no Studio, não os do template. `npm run verificar:fase2`, item 2, com o arquivo conferido no disco de um projeto materializado
+- [x] Cada página desenhada vira rota e arquivo de esqueleto no projeto gerado. `npm run verificar:fase2`, item 3, com `vite build` do projeto gerado passando
 - [x] Zero elemento no canvas sem componente equivalente no catálogo: a paleta é `ondePodeEntrar()`, a mesma função que a inserção usa
 - [x] O preview do Studio não vaza nenhum estilo para a UI do Forge, e nem o contrário (P-06)
 - [ ] Redesenhar um projeto já materializado gera plano de diff, e nada é escrito sem aprovação
-- [ ] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje. Hash e arquivos provados em `server/modules/design/design.test.js`, "padrão Kora escolhido na etapa Design" (bloco 5); falta revalidar quando o bloco 6 fizer o design mudar arquivos
+- [x] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje. Hash e arquivos provados em `server/modules/design/design.test.js`, "padrão Kora escolhido na etapa Design", e revalidado com o bloco 6 no item 7 de `npm run verificar:fase2`
 - [ ] Tudo funciona com o copiloto desligado
 - [ ] Do clique inicial ao dev server, com design: menos de 15 minutos
 
@@ -97,13 +97,14 @@ Sem UI. A camada que tudo o mais assume.
   resultado de hoje, e isso vira teste de regressão.
 - A etapa diz o que acontece depois, como todas as outras.
 
-### 6. Exportação para o gerador
+### 6. Exportação para o gerador (entregue)
 
 - O documento de design vira entrada do gerador, ao lado do blueprint.
 - `tokens.css` passa a sair com os valores do Studio; sem Studio, sai o default de hoje.
 - Cada página vira rota e um arquivo de esqueleto, montado a partir do template de cada
   componente do catálogo. Nada de string montada solta: template versionado, como sempre.
 - Determinismo continua valendo: mesmo documento, mesmo resultado, na mesma ordem.
+- Entregue: `specs/fase2-bloco6-exportacao.md`, com a auditoria na seção 7.
 
 ### 7. Diff de design em projeto já materializado
 
