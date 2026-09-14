@@ -129,5 +129,10 @@ export function criarServicoCatalogo({ itens = carregarCatalogoBuiltin(), versao
     return listarPendencias(documento, porId, versao);
   }
 
-  return { listar, obter, validarDocumento, pendenciasDe, versao };
+  // Para o gerador, com fragmento. Só o servidor usa (bloco 6).
+  function itensParaGeracao() {
+    return porId;
+  }
+
+  return { listar, obter, validarDocumento, pendenciasDe, itensParaGeracao, versao };
 }

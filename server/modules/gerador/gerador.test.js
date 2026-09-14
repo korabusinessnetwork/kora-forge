@@ -52,9 +52,9 @@ async function projetoPronto(ctx, { ws, nome = 'Site da Kora', blueprint = null 
 const gerarPlano = (ctx, id) => post(ctx, `/api/projects/${id}/plano`);
 
 describe('catálogo de templates', () => {
-  it('carrega os cinco templates com manifesto válido e arquivos', () => {
+  it('carrega os seis templates com manifesto válido e arquivos', () => {
     const templates = carregarTemplatesBuiltin();
-    expect(templates.map((t) => t.id)).toEqual(['camada-de-servicos', 'config-base', 'design-tokens', 'fundacao-kora', 'vite-react']);
+    expect(templates.map((t) => t.id)).toEqual(['camada-de-servicos', 'config-base', 'design-tokens', 'fundacao-kora', 'studio-paginas', 'vite-react']);
     for (const template of templates) {
       expect(template.versao).toBeGreaterThanOrEqual(1);
       expect(template.arquivos.length).toBeGreaterThan(0);

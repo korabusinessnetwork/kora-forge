@@ -1,0 +1,110 @@
+/* Regiões e componentes do catálogo do Studio. Só tokens de src/styles/tokens.css: nenhuma cor,
+   fonte, raio ou espaço literal. Toda classe usada por um fragmento do catálogo está aqui. */
+
+.cabecalho,
+.secao,
+.rodape {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-5) var(--espaco-4);
+}
+
+.cabecalho {
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.rodape {
+  border-top: 1px solid var(--cor-borda);
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-sm);
+  line-height: var(--altura-sm);
+}
+
+.secao[data-espacamento="compacto"] {
+  padding: var(--espaco-3) var(--espaco-4);
+}
+
+.secao[data-espacamento="amplo"] {
+  padding: var(--espaco-8) var(--espaco-4);
+}
+
+.titulo {
+  margin: 0;
+  color: var(--cor-texto);
+}
+
+.texto {
+  margin: 0;
+  color: var(--cor-texto);
+}
+
+.botao {
+  align-self: flex-start;
+  padding: var(--espaco-2) var(--espaco-4);
+  border: 1px solid transparent;
+  border-radius: var(--raio-md);
+  background: var(--cor-acento);
+  color: var(--cor-fundo);
+  cursor: pointer;
+  transition: opacity var(--motion-rapido);
+}
+
+.botao[data-variante="secundario"] {
+  background: var(--cor-superficie);
+  border-color: var(--cor-borda);
+  color: var(--cor-texto);
+}
+
+.botao[data-variante="fantasma"] {
+  background: transparent;
+  color: var(--cor-acento);
+}
+
+.botao:hover {
+  opacity: 0.9;
+}
+
+.imagem {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--raio-md);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+}
+
+.rotulo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  font-weight: 600;
+}
+
+.entrada {
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cor-fundo);
+}
+
+.micro {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-xs);
+  line-height: var(--altura-xs);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-lg);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-1);
+}

@@ -7,6 +7,8 @@ import {
 } from './design.js';
 
 const TOKENS_CSS = fileURLToPath(new URL('../../templates/design-tokens/arquivos/src/styles/tokens.css', import.meta.url));
+// Desde o bloco 6 o template usa {{TOKEN_*}}. Os valores de antes ficam congelados nesta cópia.
+const TOKENS_CSS_PADRAO = fileURLToPath(new URL('../../server/modules/gerador/fixtures/tokens-padrao.css', import.meta.url));
 
 const pagina = (extra = {}) => ({ id: 'inicio', nome: 'Início', rota: '/', regioes: [], ...extra });
 const no = (id, extra = {}) => ({ id, tipo: 'secao', props: {}, filhos: [], ...extra });
@@ -168,15 +170,17 @@ describe('vocabulário dos tokens', () => {
     expect(porCaminho.get('corEscuro.fundo')).toMatchObject({ variavel: '--cor-fundo', escuro: true });
   });
 
-  it('o valor padrão de cada token é o mesmo que está no template hoje', () => {
+  it('o valor padrão de cada token é o mesmo do tokens.css de antes da Fase 2', () => {
+    const padrao = fs.readFileSync(TOKENS_CSS_PADRAO, 'utf8');
     for (const { variavel, valor, escuro } of listarTokens()) {
       if (escuro) continue;
-      expect(css, variavel).toContain(`${variavel}: ${valor};`);
+      expect(padrao, variavel).toContain(`${variavel}: ${valor};`);
     }
   });
 
   it('o bloco de tema escuro do template tem os mesmos valores do grupo corEscuro', () => {
-    const escuro = css.slice(css.indexOf('prefers-color-scheme: dark'));
+    const padrao = fs.readFileSync(TOKENS_CSS_PADRAO, 'utf8');
+    const escuro = padrao.slice(padrao.indexOf('prefers-color-scheme: dark'));
     for (const { variavel, valor } of listarTokens().filter((t) => t.escuro)) {
       expect(escuro, variavel).toContain(`${variavel}: ${valor};`);
     }

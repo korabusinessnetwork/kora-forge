@@ -266,13 +266,25 @@ describe('o design entra no hash do plano', () => {
     expect(redesenhado.hashBlueprint).not.toBe(comDesign.hashBlueprint);
   });
 
-  it('os arquivos do plano ainda não mudam com o design: exportar é o bloco 6', async () => {
+  it('o design vira arquivo no plano: tokens do Studio, uma página por rota e App com as rotas (bloco 6)', async () => {
     const ctx = novo();
     const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
     const antes = await gerarPlano(ctx, projeto.id);
     await post(ctx, `/api/projects/${projeto.id}/design`, documento({ tokens: { cor: { acento: '#ff0055' } } }));
     const depois = await gerarPlano(ctx, projeto.id);
-    expect(depois.arquivos.map((a) => [a.caminho, a.conteudo])).toEqual(antes.arquivos.map((a) => [a.caminho, a.conteudo]));
+    const porCaminho = new Map(depois.arquivos.map((a) => [a.caminho, a]));
+
+    expect(porCaminho.get('src/styles/tokens.css').conteudo).toContain('--cor-acento: #ff0055;');
+    expect(porCaminho.get('src/paginas/PaginaInicio.jsx').template).toBe('studio-paginas');
+    expect(porCaminho.get('src/paginas/PaginaInicio.jsx').conteudo).toContain('Kora');
+    expect(porCaminho.get('src/App.jsx').conteudo).toContain('<Route path="/" element={<PaginaInicio />} />');
+    expect(porCaminho.has('src/App.module.css')).toBe(false);
+    expect(antes.arquivos.some((a) => a.caminho === 'src/App.module.css')).toBe(true);
+
+    // Mesmo documento, mesmo plano.
+    const deNovo = await gerarPlano(ctx, projeto.id);
+    expect(deNovo.arquivos).toEqual(depois.arquivos);
+    expect(deNovo.hashBlueprint).toBe(depois.hashBlueprint);
   });
 
   it('aprovar o plano e depois salvar design faz materializar responder FORGE_PLAN_STALE sem escrever nada', async () => {

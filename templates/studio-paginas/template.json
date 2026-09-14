@@ -1,0 +1,6 @@
+{
+  "id": "studio-paginas",
+  "versao": 1,
+  "descricao": "Páginas desenhadas no Studio: o CSS das regiões e componentes do catálogo e os moldes de página e rotas. Só entra no plano quando o design tem página.",
+  "ordem": 45
+}

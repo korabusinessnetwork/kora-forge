@@ -13,7 +13,15 @@ import { slugSchema } from './preset.js';
 // renderização e no gerador, e o erro que aparece nesse caso não diz nada a ninguém.
 export const PROFUNDIDADE_MAXIMA = 6;
 
-const texto = (padrao) => z.string().trim().min(1).default(padrao);
+// Valor de token vai cru para dentro do tokens.css gerado. Estes caracteres sairiam do valor e
+// virariam regra CSS (`red; } body { display: none`), então são recusados na escrita, com o
+// caminho do token. Aspas, vírgulas e parênteses ficam: fonte e sombra precisam deles.
+const TOKEN_INSEGURO = /[;{}<>\\\r\n]|\/\*|\*\//;
+export const valorDeTokenSeguro = (valor) => !TOKEN_INSEGURO.test(valor);
+
+const texto = (padrao) => z.string().trim().min(1)
+  .refine(valorDeTokenSeguro, 'o valor não pode ter ; { } < > \\, quebra de linha nem comentário: sairia do token e viraria CSS.')
+  .default(padrao);
 
 // Tokens editáveis. `--anel-foco` fica de fora de propósito: é composto de outros dois tokens,
 // então editá-lo direto seria abrir espaço para o arquivo gerado ficar internamente incoerente.
@@ -78,7 +86,9 @@ const SOMBRA_PADRAO = Object.freeze(['0 1px 2px rgba(0, 0, 0, 0.08)', '0 8px 24p
 
 // Escala vira lista, e não objeto de chaves numéricas: a posição no array **é** o número do
 // token (`espaco[0]` é `--espaco-1`), então não existe jeito de a escala ficar com buraco.
-const escala = (padrao) => z.array(z.string().trim().min(1)).length(padrao.length).default([...padrao]);
+const escala = (padrao) => z.array(
+  z.string().trim().min(1).refine(valorDeTokenSeguro, 'o valor não pode ter ; { } < > \\, quebra de linha nem comentário: sairia do token e viraria CSS.'),
+).length(padrao.length).default([...padrao]);
 
 // `prefault` e não `default`: no Zod 4 o valor de `default` volta cru, sem passar pelo schema, e
 // um grupo omitido viraria `{}` em vez de virar os defaults de dentro dele.
