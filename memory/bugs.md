@@ -297,3 +297,49 @@ existindo o prebuild N-API em `prebuilds/win32-x64.node`.
 **Workaround verificado**: `npm ci --ignore-scripts`. O `better-sqlite3` carrega e funciona pelo
 prebuild, e o `forge:init` cria o banco normalmente.
 
+
+### R-14, cinco testes falhavam por relógio, não por defeito
+
+**Severidade**: baixa, mas corrosiva. **Status**: corrigido em 2026-09-14.
+
+Na primeira rodada depois do merge da linha Eficiência, quatro arquivos e cinco testes falharam,
+entre eles `PaginaWizard.test.jsx:246`, em `findByRole` esperando o título da etapa Escopo. As três
+rodadas seguintes, com o mesmo código, passaram 1079 de 1079. A suíte monta 96 arquivos em paralelo,
+cada um com o seu jsdom, e o relatório mostra o custo: `environment` entre 230s e 422s de tempo
+somado. O padrão de `findBy*` e `waitFor` da testing-library é 1s, e sob essa carga 1s não é
+suficiente para uma espera legítima.
+
+O defeito não é do produto e não é do teste: é da configuração da suíte, que cronometrava a máquina
+junto com o código.
+
+**Correção**: `configure({ asyncUtilTimeout: 5000 })` em `src/testes/setup.js` e `testTimeout: 20000`
+no projeto `web` do `vitest.config.js`, porque uma espera de até 5s não cabe no teto padrão de 5s por
+teste. O teto continua existindo para pegar teste travado, que é o que teto de teste deve pegar.
+
+**Segunda causa, achada ao verificar a primeira correção**: no projeto `server`, o teste do timeout
+do R-12 nunca coube no teto. Ele usa `timeoutMs: 4000` de propósito e só então espera até 6s para
+conferir que a árvore de processos morreu, tudo dentro de um teto de 5s, depois de subir um `npm`
+de verdade, que no Windows custa segundos. O teste passava por sorte, não por folga. Teto do projeto
+`server` foi a 30000.
+
+Junto veio o efeito colateral que mascarava a causa: com o processo ainda vivo, o `afterEach`
+apagava a pasta temporária e recebia `EPERM`, derrubando o arquivo de teste inteiro por um motivo
+que não tinha relação com o que estava sendo provado. O `fs.rmSync` ganhou `maxRetries: 10` e
+`retryDelay: 100`, porque no Windows a pasta fica presa por um instante depois da morte do processo.
+
+**Terceira causa, achada na verificação seguinte**: `binário inexistente vira falha com a mensagem
+do sistema` dava ao próprio comando `timeoutMs: 5000`. Sob carga, o runner devolvia `timeout`, um
+terceiro estado que a asserção recusa. Subiu para 30000, e a asserção **não** ganhou `timeout` na
+lista: o teste prova que binário ausente vira falha limpa, e aceitar `timeout` faria um travamento
+de verdade passar despercebido.
+
+**A lição**: "passa quase sempre" escondia três defeitos de natureza diferente, um de carga na suíte
+web e dois de folga mal dimensionada desde que os testes nasceram. Os três só apareceram porque a
+suíte foi rodada várias vezes de propósito, em vez de uma vez e seguir em frente. Quando um teste
+falha por tempo, a pergunta certa é qual é o teto e o que ele deveria estar medindo, não se a
+máquina estava ocupada.
+
+**Por que vale registrar**: falso vermelho é pior que suíte lenta. A memória deste projeto já diz
+que os defeitos sérios apareceram rodando o produto e que merge grande só é seguro com suíte verde
+antes e depois. Uma suíte que falha sozinha destrói as duas coisas, porque ensina a olhar o vermelho
+e seguir em frente.
