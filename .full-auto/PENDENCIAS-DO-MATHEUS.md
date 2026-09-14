@@ -11,14 +11,15 @@ Ordem: da mais importante para a menos importante.
 - **Onde colar o resultado:** n/a
 - **Como confirmar que funcionou:** `/ciclo` aparece na lista de skills.
 
-## P02 Subir o OmniRoute com configuração segura [prioridade: média]
-- **Por quê:** o Forge já sabe falar com ele (T04), mas não instala nem sobe software de terceiros sozinho (D04).
-- **Contorno atual:** Configurações mostra o OmniRoute como "não encontrado em 127.0.0.1:20128", e nada do Forge depende dele.
+## P02 Cadastrar provedores gratuitos no OmniRoute [prioridade: alta]
+- **Por quê:** o OmniRoute já está instalado e o Forge já fala com ele, mas nenhum modelo responde enquanto não houver provedor cadastrado. Chave de provedor é credencial sua (D05 e D07).
+- **Contorno atual:** a seção Modelos gratuitos em Configurações mostra o gateway conectado e avisa quando nenhum modelo da cadeia responde. Nada essencial do Forge depende disso.
 - **Passo a passo:**
-  1. Node 24 já está instalado nesta máquina, e atende o requisito dele.
-  2. `npm install -g omniroute` (confira que o pacote é `omniroute`, do autor `diegosouzapw`; há forks com nome parecido).
-  3. Antes de subir, defina `HOST=127.0.0.1`, uma `INITIAL_PASSWORD` sua no lugar de `CHANGEME`, e gere `JWT_SECRET` e `API_KEY_SECRET`.
-  4. `omniroute` e abra o dashboard em `http://127.0.0.1:20128`.
-  5. Adicione **só provedores com chave oficial de tier gratuito**: Gemini API (Google AI Studio), Groq, Cerebras, OpenRouter com modelos `:free`, Mistral. **Não** conecte Claude Code, Claude Web, Codex, ChatGPT Web, Copilot, Cursor, Kiro nem Antigravity: isso viola os termos desses serviços e pode banir a sua conta.
-- **Onde colar o resultado:** nada. As chaves dos provedores ficam no OmniRoute, não no Forge.
-- **Como confirmar que funcionou:** Configurações do Forge, seção Modelos gratuitos, mostra "conectado" e a lista de modelos; o botão Testar devolve resposta.
+  1. Suba o gateway:  na pasta do Forge. Ele sobe só em 127.0.0.1:20128, com segredos gerados na primeira vez.
+  2. Abra http://127.0.0.1:20128. A senha inicial está em , na linha INITIAL_PASSWORD. Troque a senha no primeiro acesso.
+  3. Crie as chaves gratuitas: Google AI Studio (Gemini API), console.groq.com (Groq), cloud.cerebras.ai (Cerebras), openrouter.ai (use só modelos com :free) e console.mistral.ai (Mistral, plano Experiment).
+  4. Cadastre cada chave em Providers no dashboard do OmniRoute.
+  5. **Não** conecte Claude Code, Claude Web, Codex, ChatGPT Web, Copilot, Cursor, Kiro nem Antigravity: viola os termos desses serviços e pode banir a sua conta.
+- **Onde colar o resultado:** só no dashboard do OmniRoute. O Forge nunca recebe essas chaves.
+- **Como confirmar que funcionou:** em Configurações do Forge, ligue Modelos gratuitos e aperte Testar. A resposta vem com o nome do modelo que respondeu.
+
