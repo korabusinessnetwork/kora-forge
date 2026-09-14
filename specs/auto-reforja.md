@@ -187,3 +187,58 @@ Nenhum arquivo compartilhado é modificado.
 Os 43 critérios em sim, com `npx vitest run` verde, `npm run build` sem erro, nenhum arquivo fora
 da lista de propriedade da frente alterado, e nenhum `console.log` ou marcador pendente nos arquivos
 da frente.
+
+## 7. Auditoria
+
+Revisão critério a critério na worktree da frente T09, contra o código e os testes. Suíte inteira
+`npx vitest run`: 109 arquivos e 1229 testes verdes, 128 deles da frente. `npm run build` sem erro.
+
+| # | Atende | Evidência |
+|---|---|---|
+| 1 | sim | `varredura.js` (`PASTAS_VARRIDAS`, `PASTAS_IGNORADAS`); `varredura.test.js` "lê só as pastas do diagnóstico, ignora as pastas proibidas em qualquer nível e ordena" |
+| 2 | sim | `varredura.test.js` "nunca segue symlink de pasta, e ignora symlink de arquivo com destino fora da raiz", com links reais em pasta temporária |
+| 3 | sim | `varredura.test.js` "não lê arquivo acima do limite de bytes"; `sinais.test.js` "arquivo acima do limite de leitura entra só como grande, com contagem nula" |
+| 4 | sim | `shared/reforja/sinais.js` sem import de `fs`, `CATALOGO_SINAIS` com sete ids; `sinais.test.js` "cada sinal traz o contrato completo" e "limita as evidências e diz quantas ficaram de fora" |
+| 5 | sim | `sinais.test.js` bloco `marcadores-pendentes`, com teste, `testes/` e pasta fora de produto não contando |
+| 6 | sim | `sinais.test.js` "conta a chamada e ignora comentário" |
+| 7 | sim | `sinais.test.js` "acusa .js de server e shared sem teste irmão nem teste da pasta que importe o arquivo" |
+| 8 | sim | `LIMITE_LINHAS = 400` exportado e na tabela de limites do ADR-014; `sinais.test.js` "acusa acima do limite e aceita o limite exato" |
+| 9 | sim | `sinais.test.js` "spec sem seção de auditoria é acusada; _loop.md e subpasta não" e "conta só linha numerada da seção de auditoria cuja coluna de aprovação não diz sim" |
+| 10 | sim | `sinais.test.js` "conta linha de tabela Bloco e Estado que não diz entregue nem provado" |
+| 11 | sim | `sinais.test.js` "ordena por severidade e depois por id; evidência por contagem e depois por arquivo" e "árvore limpa não tem sinal" |
+| 12 | sim | `varredura.test.js` "mesma árvore, mesmo diagnóstico"; `sinais.test.js` "não depende da ordem de entrada" |
+| 13 | sim | `rotas.test.js` "GET /api/reforja/diagnostico varre o repositório do Forge dentro do contrato"; `servico.test.js` "não escreve nada e repete o resultado" |
+| 14 | sim | `shared/reforja/estados.js`; `estados.test.js` "aceita exatamente as transições do ciclo, e nenhuma outra", par a par sobre os seis estados |
+| 15 | sim | `criarItemSchema` com `LIMITES_ITEM`; `servico.test.js` "cria item manual com o contrato completo"; `rotas.test.js` "entrada fora do contrato é FORGE_VALIDATION com o campo apontado" |
+| 16 | sim | `servico.test.js` "cria item do diagnóstico com título, sugestão e prioridade do sinal" e "sinal fora do diagnóstico atual é FORGE_NOT_FOUND" |
+| 17 | sim | `servico.test.js` "não duplica item aberto do mesmo sinal, em qualquer estado aberto" e "com o item anterior descartado ou concluído, cria outro"; `rotas.test.js` 201 e depois 200 com `criado: false` |
+| 18 | sim | `servico.test.js` "transição inválida é FORGE_CONFLICT com de e para", "mesmo estado é idempotente e não emite evento" e "item inexistente é FORGE_NOT_FOUND" |
+| 19 | sim | `rotas.js` sem `DELETE`; `rotas.test.js` "não existe rota para apagar item" |
+| 20 | sim | `servico.test.js` "lista alta primeiro, depois mais antigo primeiro, com a contagem dos seis estados" |
+| 21 | sim | `servico.test.js` e `sugestoes.test.js` conferem o payload exato de cada evento (ids, estados, contagens, versão); `rotas.test.js` confere a sequência gravada em `events` |
+| 22 | sim | `templates-reforja/spec/manifesto.json` validado por `manifestoSpecSchema`; `shared/reforja/spec.js` só chama `renderizar()`; `servico.test.js` "o template versionado passa no manifesto" |
+| 23 | sim | `spec.test.js` "preenche todo placeholder, com lacuna honesta onde o item não tem dado"; `servico.test.js` "cobre as seis seções do /spec" |
+| 24 | sim | `spec.test.js` caminho, traversal e fallback pelo id; `servico.test.js` "título com path traversal não sai de specs/" e "pasta specs apontando para fora da raiz é FORGE_PATH_FORBIDDEN" |
+| 25 | sim | `servico.test.js` "a prévia não escreve, diz o caminho e se existe, e repete o conteúdo"; `rotas.test.js` confere que `specs/` não existe depois da prévia |
+| 26 | sim | `servico.test.js` "arquivo existente sem confirmação é FORGE_CONFLICT e o arquivo fica intacto" e "com sobrescrita confirmada, grava por cima"; arquivo novo gravado com flag `wx` |
+| 27 | sim | `servico.test.js` "gravar ... guarda o caminho e move para especificada" e "item em estado posterior mantém o estado; item descartado não gera spec" |
+| 28 | sim | `sugestoes.test.js` bloco `estadoSugestoes` (sem modelos, contrato ausente, desligado, desconectado, estado que lança) e "desligado ou sem modelos recusa sem chamar completar"; `rotas.test.js` pela API |
+| 29 | sim | `templates-reforja/sugestao/`; `resumo.test.js` "leva só título, severidade e contagens, nunca caminho nem sugestão"; `sugestoes.test.js` confere "DADO NÃO CONFIÁVEL" e ausência de nome e conteúdo de arquivo |
+| 30 | sim | `propostas.test.js`, oito casos: formatos aceitos, lista vazia sem lançar, descarte sem título, cortes e controle, campo extra, máximo e repetido, 20 mil caracteres |
+| 31 | sim | `sugestoes.test.js` "erro de completar vira erro com código estável, sem vazar a mensagem original" e bloco `erroDeModelos`; códigos provisórios registrados no ADR-014 |
+| 32 | sim | `sugestoes.test.js` "devolve propostas sem gravar nada" (backlog segue vazio) e "o texto da resposta nunca vai para evento" |
+| 33 | sim | `src/features/reforja/` com oito subcomponentes em arquivos próprios, cada um com CSS Module; nenhum `style=`; textos em `src/mensagens/reforja.js` |
+| 34 | sim | `PaginaReforja.test.jsx` bloco "estados": carregando, erro com tentar de novo no diagnóstico e no backlog, vazio com a próxima ação; sucesso em `role="status"` nas ações de cada painel |
+| 35 | sim | `CicloDoBacklog.jsx`; teste "mostra as cinco colunas com contagem e o que acontece depois, e as descartadas recolhidas" |
+| 36 | sim | `CartaoItem.jsx` usa `acoesDe`; testes "cada cartão só oferece as ações da máquina de estados" e "descartar pede confirmação na linha, manter cancela, e só confirmar envia" |
+| 37 | sim | `PaginaReforja.jsx` calcula os sinais com item aberto; teste "sinal com item aberto mostra o botão desabilitado; com item descartado, volta a oferecer" |
+| 38 | sim | `PreviaSpec.jsx`; testes "gerar spec abre a prévia sem gravar; gravar só no confirmar" (caminho em `code`), "arquivo existente avisa e só grava com a caixa de substituição marcada" e "fechar a prévia não grava nada" |
+| 39 | sim | `PainelSugestoes.jsx`; testes "indisponível desabilita com o motivo e link para Configurações" (o diagnóstico segue carregando) e "cada motivo tem o seu texto" |
+| 40 | sim | teste "disponível: propostas chegam sem gravar, aceitar cria com origem modelo e dispensar só tira da lista" |
+| 41 | sim | componentes importam só `services/reforja.js`; `src/services/reforja.test.js` confere rotas e contrato (`FORGE_CONTRACT`); `api.test.js` (R-10) e `camadaDeServicos.test.js` verdes |
+| 42 | sim | busca nos arquivos da frente: `console.log` só em fixture montada por partes, marcador só na regex do próprio detector, nenhum travessão |
+| 43 | sim | `npx vitest run`: 109 arquivos, 1229 testes verdes; `npm run build` concluído |
+
+Resultado: 43 de 43 em sim. Correção feita durante a revisão: a fixture de `sinais.test.js` tinha um
+travessão numa célula de tabela e marcadores literais; passou a usar `?` e marcadores montados por
+partes.

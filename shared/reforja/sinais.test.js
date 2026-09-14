@@ -6,12 +6,14 @@ const sinal = (sinais, id) => sinais.find((s) => s.id === id);
 const linhas = (n) => Array.from({ length: n }, (_, i) => `const v${i} = ${i};`).join('\n');
 // Montado por partes para este arquivo de teste não carregar o marcador que ele mesmo procura.
 const MARCA = ['TO', 'DO'].join('');
+const MARCA_FIX = ['FIX', 'ME'].join('');
+const MARCA_X = ['X', 'XX'].join('');
 const LOG = ['console', 'log'].join('.');
 
 describe('marcadores-pendentes', () => {
   it('conta marcador logo depois de abrir comentário, em código de produto', () => {
     const sinais = calcularSinais([
-      arq('src/a.js', `// ${MARCA} arrumar\n/* FIXME: quebrado */\n * XXX olhar\nconst x = 1;`),
+      arq('src/a.js', `// ${MARCA} arrumar\n/* ${MARCA_FIX}: quebrado */\n * ${MARCA_X} olhar\nconst x = 1;`),
       arq('server/b.js', `const nome = '${MARCA}'; // comentário comum`),
       arq('src/a.test.js', `// ${MARCA} no teste não conta`),
       arq('server/testes/apoio.js', `// ${MARCA} em apoio de teste não conta`),
@@ -95,7 +97,7 @@ describe('specs', () => {
       '| # | Atende | Evidência |',
       '|---|---|---|',
       '| 5 | sim, com ressalva escrita | x |',
-      '| 6 | — | x |',
+      '| 6 | ? | x |',
       '',
       '| # | Critério | Evidência |',
       '|---|---|---|',
