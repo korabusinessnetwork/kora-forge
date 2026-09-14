@@ -1,0 +1,24 @@
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+}
+
+.subtitulo {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--forge-text-muted);
+}
+
+.dupla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--forge-space-5);
+  align-items: start;
+}

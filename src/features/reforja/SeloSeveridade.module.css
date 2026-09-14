@@ -1,0 +1,29 @@
+.selo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 var(--forge-space-2);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  background: var(--forge-surface-2);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.alta {
+  color: var(--forge-danger);
+  border-color: var(--forge-danger);
+}
+
+.media {
+  color: var(--forge-warning);
+  border-color: var(--forge-warning);
+}
+
+.baixa {
+  color: var(--forge-text-muted);
+}
