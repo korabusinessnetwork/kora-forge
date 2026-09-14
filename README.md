@@ -24,18 +24,25 @@ menu       etapas     o estado      valida e avisa      prévia      disco + com
 
 ## Estado
 
-Fase 1 em andamento. Blocos 1 a 4 entregues: front React + Vite, API local Fastify em
-`127.0.0.1:7337` com guarda de sessão, SQLite com migrations, envelope `{ data, error, meta }`
-validado por Zod nas duas pontas, tokens `--forge-*`, atoms básicos, presets builtin validados
-por schema, o Registry (criar, abrir, renomear, arquivar, restaurar) e o wizard que preenche o
-blueprint etapa a etapa, o motor de regras determinístico com 16 regras que avisam junto do
-campo que as causou, e o gerador, que transforma blueprint mais templates versionados em um plano
-de arquivos e comandos, e o runner, que aplica esse plano no disco e executa os comandos com
-`spawn` sem shell, log ao vivo e a fila parando quando algo obrigatório falha.
-Entregue também a página **Eficiência** (gasto contra o teto, ranking dos modelos por sucesso por
-dólar, recomendação por etapa e simulador) com o motor determinístico em `shared/eficiencia/` e a
-skill de projeto `low-cost-efficiency` (`/custo`).
-Próximo: bloco 8, telas de fechamento. Spec e auditoria de cada bloco em `specs/`.
+**Fase 1 concluída**, critério de aceite provado por dois caminhos e registrado em
+`docs/09_BACKLOG/fase1-aceite.md`: front React + Vite, API local Fastify em `127.0.0.1:7337` com
+guarda de sessão, SQLite com migrations, envelope `{ data, error, meta }` validado por Zod nas duas
+pontas, tokens `--forge-*`, atoms básicos, presets builtin validados por schema, o Registry (criar,
+abrir, renomear, arquivar, restaurar), o wizard que preenche o blueprint etapa a etapa, o motor de
+regras determinístico com 16 regras que avisam junto do campo que as causou, o gerador, que
+transforma blueprint mais templates versionados em um plano de arquivos e comandos, o runner, que
+aplica esse plano no disco e executa os comandos com `spawn` sem shell, log ao vivo e a fila parando
+quando algo obrigatório falha, as telas de fechamento e a gaveta de ideias.
+
+**Fase 2, o Studio, em andamento**, blocos 1 a 4 entregues: documento de design versionado, painel
+de tokens com preview ao vivo, catálogo de regiões e componentes, e o canvas. Próximo: bloco 5, a
+etapa Design no wizard.
+
+Fora das fases, entregue a página **Eficiência** (gasto contra o teto, ranking dos modelos por
+sucesso por dólar, recomendação por etapa e simulador) com o motor determinístico em
+`shared/eficiencia/` e a skill de projeto `low-cost-efficiency` (`/custo`).
+
+Estado bloco a bloco em `docs/09_BACKLOG/`. Spec e auditoria de cada bloco em `specs/`.
 Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeração.
 
 ## Mapa
@@ -45,7 +52,7 @@ Para entender o produto, comece por `docs/00_VISAO/README.md` e siga a numeraç�
 | `CLAUDE.md` | Constituição do projeto, leia antes de qualquer mudança |
 | `memory/` | Governança: identidade, decisões, padrões, aprendizados, restrições, bugs |
 | `docs/00` a `docs/11` | Documentação em ordem de leitura, de visão até segurança |
-| `docs/08_DECISOES/` | ADRs, sete decisões já registradas |
+| `docs/08_DECISOES/` | ADRs, doze decisões já registradas |
 | `presets/` | Os menus, em JSON |
 | `regras/` | O catálogo do motor determinístico, uma regra por arquivo |
 | `templates/` | O que o gerador escreve, um template por pasta |

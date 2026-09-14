@@ -19,7 +19,12 @@ function vivo(pid) {
   }
 }
 afterEach(() => {
-  while (temporarias.length > 0) fs.rmSync(temporarias.pop(), { recursive: true, force: true });
+  // `maxRetries` porque no Windows a pasta continua presa por um instante depois que o processo
+  // morre, e apagar na hora devolve EPERM. Sem a repetição, a limpeza falha e derruba o arquivo de
+  // teste inteiro por um motivo que não tem nada a ver com o que estava sendo provado.
+  while (temporarias.length > 0) {
+    fs.rmSync(temporarias.pop(), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
 });
 
 // Script auxiliar em pasta temporária. O argumento é o nome relativo, resolvido pelo `cwd`, e não
@@ -185,7 +190,11 @@ describe('executar', () => {
 
   it('binário inexistente vira falha com a mensagem do sistema, sem derrubar o Forge', async () => {
     const { pasta } = script('');
-    const { terminou } = executar({ cmd: 'supabase', args: ['--version'], cwd: pasta, timeoutMs: 5000 });
+    // 30s, e não 5s, porque o que este teste prova é que binário ausente vira falha limpa, nunca
+    // queda do Forge. Com a folga curta, a máquina sob carga devolvia `timeout`, um terceiro estado
+    // que a asserção recusa de propósito: aceitar `timeout` aqui faria um travamento de verdade
+    // passar despercebido. `sucesso` continua na lista porque a máquina pode ter o supabase.
+    const { terminou } = executar({ cmd: 'supabase', args: ['--version'], cwd: pasta, timeoutMs: 30000 });
     const resultado = await terminou;
     expect(['falha', 'sucesso']).toContain(resultado.estado);
   });
