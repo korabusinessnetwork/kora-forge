@@ -27,3 +27,9 @@ Uma entrada por decisão. Ele revisa no final e pode reverter qualquer uma.
 - **O que não fiz sozinho:** instalar e subir o OmniRoute na máquina. É software de terceiros que embute client IDs OAuth extraídos das CLIs oficiais, escuta em `0.0.0.0` com senha padrão `CHANGEME` segundo a própria documentação, e o pacote 3.8.47 chegou a quebrar no boot. Rodar isso é decisão dele, com o passo a passo seguro em P02. Os testes do adaptador usam um servidor falso compatível com OpenAI.
 - **Segredo:** sem cofre ainda (Fase 3), o Forge não guarda chave nenhuma do OmniRoute. O caminho documentado é OmniRoute em `127.0.0.1` sem exigir chave, que só é aceitável porque não sai da máquina. A chave do OmniRoute passa a ser suportada quando o cofre existir.
 - **Como reverter:** remover o módulo `provedores` e a seção em Configurações; o ADR fica como registro.
+
+## D05 Autorização para instalar, e o que continua com o Matheus
+- **Contexto:** durante o bloco 5 o Matheus escreveu "pode instalar tudo ta autorizado".
+- **Decisão:** a autorização revoga a parte "não instala sozinho" da D04. Na T04 eu instalo o OmniRoute nesta máquina, configurado para `HOST=127.0.0.1` e com segredos gerados aleatoriamente num arquivo de ambiente fora do repositório. Continuam com o Matheus: definir a senha do dashboard que ele vai usar, criar contas e colar chaves de provedores, porque isso é credencial pessoal. A regra da categoria B (contas de assinatura) segue valendo, porque viola termos de serviço e a autorização não muda isso.
+- **Alternativas consideradas:** continuar sem instalar (ignoraria a autorização); conectar provedores eu mesmo (exige credencial dele).
+- **Como reverter:** `npm uninstall -g omniroute` e apagar a pasta de dados dele.
