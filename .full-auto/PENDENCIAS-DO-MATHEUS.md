@@ -15,8 +15,8 @@ Ordem: da mais importante para a menos importante.
 - **Por quê:** o OmniRoute já está instalado e o Forge já fala com ele, mas nenhum modelo responde enquanto não houver provedor cadastrado. Chave de provedor é credencial sua (D05 e D07).
 - **Contorno atual:** a seção Modelos gratuitos em Configurações mostra o gateway conectado e avisa quando nenhum modelo da cadeia responde. Nada essencial do Forge depende disso.
 - **Passo a passo:**
-  1. Suba o gateway:  na pasta do Forge. Ele sobe só em 127.0.0.1:20128, com segredos gerados na primeira vez.
-  2. Abra http://127.0.0.1:20128. A senha inicial está em , na linha INITIAL_PASSWORD. Troque a senha no primeiro acesso.
+  1. Suba o gateway: `npm run omniroute` na pasta do Forge. Ele sobe só em 127.0.0.1:20128, com segredos gerados na primeira vez.
+  2. Abra http://127.0.0.1:20128. A senha inicial está em `~/.kora-forge/omniroute/omniroute.env`, na linha INITIAL_PASSWORD. Troque a senha no primeiro acesso.
   3. Crie as chaves gratuitas: Google AI Studio (Gemini API), console.groq.com (Groq), cloud.cerebras.ai (Cerebras), openrouter.ai (use só modelos com :free) e console.mistral.ai (Mistral, plano Experiment).
   4. Cadastre cada chave em Providers no dashboard do OmniRoute.
   5. **Não** conecte Claude Code, Claude Web, Codex, ChatGPT Web, Copilot, Cursor, Kiro nem Antigravity: viola os termos desses serviços e pode banir a sua conta.
