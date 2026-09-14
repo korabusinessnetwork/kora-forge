@@ -449,3 +449,35 @@ determinístico, sem LLM no meio.
 O handoff `DESIGN.md` que o desenho previa **não foi adotado**: existia para alimentar o motor. A
 ideia de o projeto gerado sair com um contrato de design legível pelo Claude Code continua boa, mas
 se voltar, volta pelo próprio mérito e com spec própria.
+
+### 2026-09-14, a terceira linha paralela, Eficiência, entrou na main
+Faltava mesclar `claude/low-cost-efficiency-skill-sbzo1k`, que saiu dos blocos 2 e 3 da Fase 1 e
+nunca voltou: painel Eficiência, motor de custo em `shared/eficiencia/`, módulo
+`server/modules/eficiencia/` e a skill de projeto `low-cost-efficiency`. Quatro conflitos, todos
+adição paralela, resolvidos por união; as únicas correções manuais foram `server/app.js`, onde a
+união criaria um segundo `app.decorate('servicos', …)` apagando os serviços da Fase 2 e um
+`rotasProjetos` registrado duas vezes, e o parágrafo de estado do README.
+
+As três entradas de decisão da branch foram preservadas na íntegra, seguindo a regra 3 da
+reconciliação de 2026-09-10 (documentação e memória viram união, nada é apagado). A lição daquela
+reconciliação valeu de novo, e ao contrário: desta vez o que o git auto-mergeou sem conflito
+(`mensagens.js`, `LayoutApp`, `Selo`, `schema.sql`) estava correto, e o perigo estava dentro de um
+conflito marcado, onde "aceitar os dois lados" teria quebrado a aplicação em silêncio. Verificado
+com 1079 testes e build verdes.
+O catálogo de modelos e preços vive em `shared/eficiencia/catalogo-modelos.json` (versão, data,
+fonte) e os perfis de recomendação por intenção em `shared/eficiencia/perfis.json`. Motivo: o
+Forge roda offline (T-01) e a recomendação precisa reproduzir (princípio nº 2); preço buscado na
+hora muda a resposta sem ninguém decidir. Atualização é edição de JSON com `versao` nova, teste
+verde e entrada aqui.
+
+### 2026-09-03, eficiência mede sucessos por dólar, não preço por token
+O painel Eficiência ranqueia modelos por sucessos por dólar relativo ao melhor (100), com aviso
+de amostra pequena abaixo de 5 chamadas. Motivo: modelo barato que falha na validação custa a
+chamada, a escalada e o fallback; custo por tarefa concluída é o número que decide. O custo de
+cada chamada é calculado no servidor pelo catálogo, nunca aceito do cliente.
+
+### 2026-09-03, o copiloto nunca usa o Fable 5.1
+Nenhum perfil recomenda nem escala para `claude-fable-5-1`; o teste do motor bloqueia. Motivo:
+cinco vezes o preço do Sonnet 5 para enriquecer texto curto, dentro de um teto de 5 USD por mês.
+Padrão Kora é Sonnet 5; Haiku 4.5 em nomeação; Opus 5 em esforço baixo só na revisão de
+blueprint de aplicação web e API, onde o erro vai para o disco.
