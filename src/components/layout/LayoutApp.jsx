@@ -36,6 +36,7 @@ export default function LayoutApp() {
         <nav className={estilos.nav} aria-label={mensagens.app.navegacao}>
           <NavLink to="/" end className={classeLink}>{mensagens.menu.projetos}</NavLink>
           <NavLink to="/eficiencia" className={classeLink}>{mensagens.menu.eficiencia}</NavLink>
+          <NavLink to="/reforja" className={classeLink}>{mensagens.menu.reforja}</NavLink>
           <NavLink to="/config" className={classeLink}>{mensagens.menu.config}</NavLink>
         </nav>
         <div className={estilos.rodape}>

@@ -1,5 +1,8 @@
 // Todo texto de UI vive aqui. Interface em português, sem i18n na Fase 1, mas com as strings
 // já extraídas para não pagar refatoração depois (memory/decisions.md).
+import { mensagensModelos } from './mensagens/modelos.js';
+import { mensagensReforja } from './mensagens/reforja.js';
+
 export const mensagens = {
   app: {
     nome: 'KORA FORGE',
@@ -10,6 +13,7 @@ export const mensagens = {
   menu: {
     projetos: 'Projetos',
     eficiencia: 'Eficiência',
+    reforja: 'Auto-Reforja',
     config: 'Configurações',
     ideias: 'Ideias',
   },
@@ -726,4 +730,7 @@ export const mensagens = {
       },
     },
   },
+  // Frentes paralelas têm arquivo próprio de textos, para nunca editarem o mesmo arquivo (D08).
+  modelos: mensagensModelos,
+  reforja: mensagensReforja,
 };

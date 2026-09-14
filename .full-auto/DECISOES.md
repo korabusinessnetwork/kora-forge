@@ -33,3 +33,24 @@ Uma entrada por decisão. Ele revisa no final e pode reverter qualquer uma.
 - **Decisão:** a autorização revoga a parte "não instala sozinho" da D04. Na T04 eu instalo o OmniRoute nesta máquina, configurado para `HOST=127.0.0.1` e com segredos gerados aleatoriamente num arquivo de ambiente fora do repositório. Continuam com o Matheus: definir a senha do dashboard que ele vai usar, criar contas e colar chaves de provedores, porque isso é credencial pessoal. A regra da categoria B (contas de assinatura) segue valendo, porque viola termos de serviço e a autorização não muda isso.
 - **Alternativas consideradas:** continuar sem instalar (ignoraria a autorização); conectar provedores eu mesmo (exige credencial dele).
 - **Como reverter:** `npm uninstall -g omniroute` e apagar a pasta de dados dele.
+
+## D06 Repriorização: modelos gratuitos e Auto-Reforja antes do resto da Fase 2
+- **Contexto:** no meio do bloco 6 o Matheus pediu, com prioridade, (1) conectar ao sistema as APIs gratuitas de melhor eficiência e (2) uma página de Auto-Reforja, onde o Forge melhora a própria forja, tudo em paralelo.
+- **Decisão:** a T04 vira a T08, maior. A Auto-Reforja é a T09. As duas rodam em worktrees próprias ao mesmo tempo. O bloco 6 foi salvo em checkpoint (b79055b, suíte verde) e continua com o maestro durante a onda, porque mexe só em `gerador/` e `templates/`, que nenhuma frente toca. Os blocos 7 e o fechamento vêm depois.
+- **Por quê:** é o pedido explícito, e as três trilhas não dividem arquivo.
+- **Como reverter:** reordenar TAREFAS.md.
+
+## D07 Chave de provedor fica no gateway local, não no Forge
+- **Contexto:** Gemini, Groq, Cerebras, OpenRouter e Mistral exigem chave. A constituição proíbe chave em `.env`, no SQLite em claro e no front, e o cofre (ADR-006) é da Fase 3.
+- **Decisão:** nesta rodada o Forge fala com **um** gateway compatível com OpenAI em loopback, o OmniRoute, e as chaves dos provedores ficam no próprio OmniRoute, cadastradas pelo Matheus no dashboard dele. O Forge não recebe, não guarda e não transmite chave de provedor. Conexão direta a cada provedor, com chave no cofre, entra quando o cofre existir.
+- **Alternativas consideradas:** construir o cofre agora (antecipa a Fase 3 inteira e atrasa o pedido principal); chave em `.env` (proibido).
+- **Por quê:** entrega o acesso gratuito já, sem abrir exceção de segurança.
+- **Como reverter:** implementar o cofre e um adaptador direto por provedor atrás do mesmo contrato `completar()`.
+
+## D08 Contratos da onda paralela
+- **Arquivos compartilhados, só o maestro:** `server/app.js`, `src/App.jsx`, `src/mensagens.js`, `src/components/layout/LayoutApp.jsx`, `src/features/config/PaginaConfig.jsx`, `docs/04_MODELAGEM/schema.sql`, `server/db/migrations/`, `package.json`, lockfile, `docs/08_DECISOES/README.md`, `.full-auto/`. O andaime (stubs, rota `/reforja`, link no menu, migração `reforge_items`) foi commitado antes do fan-out.
+- **Textos:** cada frente tem arquivo próprio de mensagens (`src/mensagens/modelos.js`, `src/mensagens/reforja.js`), espalhado em `mensagens.modelos` e `mensagens.reforja`. Assim ninguém edita o mesmo arquivo, e toda string continua centralizada sob `mensagens`.
+- **Frente modelos (T08), dona de:** `server/modules/modelos/`, `server/modules/eficiencia/`, `shared/eficiencia/`, `shared/schemas/modelos.js`, `shared/schemas/eficiencia.js`, `src/features/config/SecaoModelosGratuitos.*`, `src/features/eficiencia/`, `src/services/modelos.js`, `src/services/eficiencia.js`, `src/mensagens/modelos.js`, `docs/08_DECISOES/adr-013-*`. Configuração guardada em chaves próprias `modelos.*` na tabela `settings`, sem migração.
+- **Frente reforja (T09), dona de:** `server/modules/reforja/`, `shared/schemas/reforja.js`, `shared/reforja/`, `templates-reforja/`, `src/features/reforja/`, `src/services/reforja.js`, `src/mensagens/reforja.js`, `docs/08_DECISOES/adr-014-*`, `docs/05_FLUXOS/` só num arquivo novo dela.
+- **Assinaturas:** `criarServicoModelos({ db, registrarEvento, eficiencia, fetch? })` e `criarServicoReforja({ db, registrarEvento, modelos, raizForge? })`. Rotas: plugin default `(app, { modelos })` e `(app, { reforja })`, todas com `schemaSaida`.
+- **Contrato que a T09 consome e a T08 cumpre:** `modelos.estado()` devolve `{ ligado: boolean, conectado: boolean, modelos: string[] }` sem lançar; `modelos.completar({ intencao, mensagens: [{ papel: 'sistema'|'usuario', texto }], maxTokens? })` devolve `{ texto, modelo, duracaoMs }` ou lança `ErroForge` com `FORGE_MODELOS_DESLIGADO` ou `FORGE_MODELOS_INDISPONIVEL`. A T09 testa com um `modelos` falso.

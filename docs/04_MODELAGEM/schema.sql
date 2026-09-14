@@ -188,3 +188,19 @@ CREATE TABLE ideas (
                 CHECK (estado IN ('aberta','virou_projeto','descartada')),
   criado_em     TEXT NOT NULL
 );
+
+-- Auto-Reforja (ADR-014): melhorias do próprio Forge. Descartar, nunca apagar.
+CREATE TABLE reforge_items (
+  id            TEXT PRIMARY KEY,
+  titulo        TEXT NOT NULL,
+  descricao     TEXT,
+  origem        TEXT NOT NULL CHECK (origem IN ('manual','diagnostico','modelo')),  -- manual | diagnostico | modelo
+  sinal         TEXT,                  -- id do sinal do diagnóstico que originou o item
+  estado        TEXT NOT NULL DEFAULT 'proposta'
+                CHECK (estado IN ('proposta','especificada','em_construcao','em_revisao','concluida','descartada')),
+  prioridade    TEXT NOT NULL DEFAULT 'media' CHECK (prioridade IN ('alta','media','baixa')),
+  spec_caminho  TEXT,                  -- specs/reforja-<slug>.md, relativo à raiz do Forge
+  criado_em     TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+CREATE INDEX idx_reforge_items_estado ON reforge_items(estado, prioridade);

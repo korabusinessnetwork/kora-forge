@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { obterSettings } from '../../services/settings.js';
 import Botao from '../../components/shared/Botao/Botao.jsx';
 import FormularioConfig from './FormularioConfig.jsx';
+import SecaoModelosGratuitos from './SecaoModelosGratuitos.jsx';
 import { mensagens } from '../../mensagens.js';
 import estilos from './PaginaConfig.module.css';
 
@@ -21,6 +22,8 @@ export default function PaginaConfig() {
       ) : null}
 
       {consulta.data ? <FormularioConfig inicial={consulta.data} /> : null}
+
+      <SecaoModelosGratuitos />
     </section>
   );
 }
