@@ -483,3 +483,113 @@ describe('item que saiu do catálogo vira pendência, nunca documento corrompido
     expect(designOuNadaSchema.safeParse({ design }).success).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Bloco 6: o design efetivo vira arquivo no plano.
+// ---------------------------------------------------------------------------
+
+const TOKENS_PADRAO_CSS = fs.readFileSync(new URL('../gerador/fixtures/tokens-padrao.css', import.meta.url), 'utf8');
+const conteudoDe = (plano, caminho) => plano.arquivos.find((a) => a.caminho === caminho)?.conteudo;
+const normalizarEol = (texto) => texto.replace(/\r\n/g, '\n');
+// A cópia congelada é o template de antes, então ainda tem as duas chaves que não são token.
+const tokensPadraoDe = (nome) => normalizarEol(TOKENS_PADRAO_CSS).replace('{{PROJETO}}', nome).replace('{{WHITE_LABEL}}', 'Não');
+
+describe('exportação do design para o plano (bloco 6)', () => {
+  it('sem documento, o hash é o congelado e o tokens.css é o de antes, byte a byte', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, workspace());
+    const plano = await gerarPlano(ctx, projeto.id);
+    expect(plano.hashBlueprint).toBe(HASH_CONGELADO_SEM_DESIGN);
+    expect(normalizarEol(conteudoDe(plano, 'src/styles/tokens.css'))).toBe(tokensPadraoDe('Site da Kora'));
+  });
+
+  it('desenho do Studio só com tokens padrão e sem página: o disco é o mesmo, o hash não', async () => {
+    const ctx = novo();
+    // Mesmo blueprint, com o desenho do Studio escolhido e sem documento: designEfetivo é null.
+    const semStudio = await projetoPronto(ctx, workspace(), 'Site da Kora', { comDesenho: true });
+    const referencia = await gerarPlano(ctx, semStudio.id);
+    await contexto.fechar();
+
+    const outro = novo();
+    const projeto = await projetoPronto(outro, workspace(), 'Site da Kora', { comDesenho: true });
+    await post(outro, `/api/projects/${projeto.id}/design`, documento({ paginas: [] }));
+    const plano = await gerarPlano(outro, projeto.id);
+    expect(plano.hashBlueprint).not.toBe(referencia.hashBlueprint);
+    expect(plano.arquivos.map((a) => [a.caminho, a.conteudo])).toEqual(referencia.arquivos.map((a) => [a.caminho, a.conteudo]));
+  });
+
+  it('um token trocado muda só a linha dele, e o escuro sai só no bloco escuro', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento({ paginas: [], tokens: { cor: { acento: '#ff0055' }, corEscuro: { fundo: '#000001' } } }));
+    const css = normalizarEol(conteudoDe(await gerarPlano(ctx, projeto.id), 'src/styles/tokens.css')).split('\n');
+    const padrao = tokensPadraoDe('Site da Kora').split('\n');
+    expect(css).toHaveLength(padrao.length);
+    const diferentes = css.map((linha, i) => [linha, padrao[i]]).filter(([a, b]) => a !== b).map(([a]) => a.trim());
+    expect(diferentes).toEqual(['--cor-acento: #ff0055;', '--cor-fundo: #000001;']);
+    const inicioEscuro = css.findIndex((linha) => linha.includes('prefers-color-scheme: dark'));
+    expect(css.findIndex((linha) => linha.includes('#000001'))).toBeGreaterThan(inicioEscuro);
+  });
+
+  it.each([';', '{', '}', '<', '>', '\\', '\n', '/*', '*/'])('token com %j é recusado na escrita com o caminho do token', async (perigo) => {
+    const ctx = novo();
+    const projeto = await criar(ctx);
+    const r = await post(ctx, `/api/projects/${projeto.id}/design`, documento({ tokens: { cor: { acento: `red${perigo}x` } } }));
+    expect(r.statusCode).toBe(400);
+    expect(r.json().error.detalhe.issues.map((issue) => issue.caminho)).toContain('tokens.cor.acento');
+  });
+
+  it('com página, entra studio-paginas no plano e sai o App.module.css; sem página, fica', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento({
+      paginas: [
+        { id: 'inicio', nome: 'Início', rota: '/', regioes: [] },
+        { id: 'sobre-nos', nome: 'Sobre nós', rota: '/sobre-nos', regioes: [] },
+      ],
+    }));
+    const plano = await gerarPlano(ctx, projeto.id);
+    const caminhos = plano.arquivos.map((a) => a.caminho);
+    expect(caminhos).toEqual(expect.arrayContaining(['src/paginas/PaginaInicio.jsx', 'src/paginas/PaginaSobreNos.jsx', 'src/paginas/pagina.module.css', 'src/App.jsx']));
+    expect(caminhos).not.toContain('src/App.module.css');
+    expect([...caminhos].sort()).toEqual(caminhos);
+    const app = conteudoDe(plano, 'src/App.jsx');
+    expect(app.indexOf('PaginaInicio />')).toBeLessThan(app.indexOf('PaginaSobreNos />'));
+  });
+
+  it('trocar a ordem das páginas muda App e hash; trocar uma prop muda só o arquivo da página', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
+    const paginaA = (texto) => ({ id: 'inicio', nome: 'Início', rota: '/', regioes: [{ id: 'topo', tipo: 'secao', props: {}, filhos: [{ id: 't', tipo: 'titulo', props: { texto }, filhos: [] }] }] });
+    const paginaB = { id: 'contato', nome: 'Contato', rota: '/contato', regioes: [] };
+
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento({ paginas: [paginaA('Um'), paginaB] }));
+    const base = await gerarPlano(ctx, projeto.id);
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento({ paginas: [paginaB, paginaA('Um')] }));
+    const invertida = await gerarPlano(ctx, projeto.id);
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento({ paginas: [paginaA('Dois'), paginaB] }));
+    const outraProp = await gerarPlano(ctx, projeto.id);
+
+    const diferencas = (a, b) => a.arquivos.filter((arquivo, i) => arquivo.conteudo !== b.arquivos[i].conteudo).map((arquivo) => arquivo.caminho);
+    expect(invertida.hashBlueprint).not.toBe(base.hashBlueprint);
+    expect(diferencas(invertida, base)).toEqual(['src/App.jsx']);
+    expect(outraProp.hashBlueprint).not.toBe(base.hashBlueprint);
+    expect(diferencas(outraProp, base)).toEqual(['src/paginas/PaginaInicio.jsx']);
+  });
+
+  it('item que saiu do catálogo vira pendência de catálogo no plano, e o resto da página sai', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
+    ctx.db.prepare(`
+      INSERT INTO design_documents (id, project_id, versao, tokens_json, paginas_json, criado_em)
+      VALUES (?, ?, 1, ?, ?, ?)
+    `).run('doc-antigo', projeto.id, JSON.stringify(documento().tokens), JSON.stringify({
+      catalogo: { versao: 1 },
+      paginas: [paginaCom([noDe('secao', { filhos: [noDe('carrossel', { id: 'antigo-1' }), noDe('texto', { props: { conteudo: 'Fica' } })] })])],
+    }), new Date().toISOString());
+
+    const plano = await gerarPlano(ctx, projeto.id);
+    expect(plano.pendencias.filter((p) => p.tipo !== 'template')).toEqual([expect.objectContaining({ tipo: 'catalogo', item: 'inicio/antigo-1' })]);
+    expect(conteudoDe(plano, 'src/paginas/PaginaInicio.jsx')).toContain('Fica');
+  });
+});

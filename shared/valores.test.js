@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
-import { montarValores, CHAVES_DE_VALOR, A_DEFINIR, pastaDeDados } from './valores.js';
+import { montarValores, CHAVES_DE_VALOR, A_DEFINIR, pastaDeDados, chaveDoToken } from './valores.js';
+import { listarTokens, TOKENS_PADRAO, TOKENS_DERIVADOS } from './schemas/design.js';
 import { chavesUsadas } from './template.js';
 import { montarContexto } from './contexto.js';
 
@@ -100,5 +101,35 @@ describe('templates contra o mapa de valores', () => {
     const usadas = new Set(arquivosDeTemplate().flatMap((arquivo) => chavesUsadas(arquivo.conteudo)));
     const orfas = CHAVES_DE_VALOR.filter((chave) => !usadas.has(chave));
     expect(orfas, `chaves no mapa que nenhum template usa: ${orfas.join(', ')}`).toEqual([]);
+  });
+});
+
+describe('tokens no mapa de valores (bloco 6)', () => {
+  const TOKENS_CSS = path.join(PASTA_TEMPLATES, 'design-tokens/arquivos/src/styles/tokens.css');
+
+  it('uma chave por token, derivada da variável, com o valor padrão quando nada é passado', () => {
+    const valores = valoresDe();
+    for (const entrada of listarTokens()) {
+      expect(valores[chaveDoToken(entrada)], entrada.caminho).toBe(entrada.valor);
+    }
+    expect(chaveDoToken({ variavel: '--cor-texto-secundario' })).toBe('TOKEN_COR_TEXTO_SECUNDARIO');
+    expect(chaveDoToken({ variavel: '--cor-fundo', escuro: true })).toBe('TOKEN_ESCURO_COR_FUNDO');
+  });
+
+  it('usa os tokens recebidos', () => {
+    const tokens = { ...TOKENS_PADRAO, cor: { ...TOKENS_PADRAO.cor, acento: '#ff0055' }, espaco: ['1px', '2px', '3px', '4px', '5px', '6px', '7px', '8px'] };
+    const valores = montarValores(montarContexto({ projeto, preset, blueprint: { payload: { respostas: {} } } }), { ...opcoes, tokens });
+    expect(valores.TOKEN_COR_ACENTO).toBe('#ff0055');
+    expect(valores.TOKEN_ESPACO_8).toBe('8px');
+    expect(valores.TOKEN_COR_FUNDO).toBe(TOKENS_PADRAO.cor.fundo);
+  });
+
+  it('o tokens.css do template não tem valor literal em variável editável', () => {
+    const css = fs.readFileSync(TOKENS_CSS, 'utf8');
+    const literais = [...css.matchAll(/^\s*(--[a-z0-9-]+):\s*([^;]+);/gm)]
+      .filter(([, variavel, valor]) => !TOKENS_DERIVADOS.includes(variavel) && !/^\{\{TOKEN_[A-Z0-9_]+\}\}$/.test(valor.trim()))
+      .map(([linha]) => linha.trim());
+    // `0ms` do bloco de movimento reduzido é regra de acessibilidade, não token editável.
+    expect(literais.filter((linha) => !linha.endsWith(': 0ms;'))).toEqual([]);
   });
 });
