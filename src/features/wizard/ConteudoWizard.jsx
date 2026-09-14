@@ -16,6 +16,7 @@ import Dados from './etapas/Dados.jsx';
 import Seguranca from './etapas/Seguranca.jsx';
 import Fundacao from './etapas/Fundacao.jsx';
 import Materializar from './etapas/Materializar.jsx';
+import Design from './etapas/Design.jsx';
 import EtapaFutura from './etapas/EtapaFutura.jsx';
 import { mensagens } from '../../mensagens.js';
 import estilos from './PaginaWizard.module.css';
@@ -32,6 +33,12 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa, aval
   const [assumidas, setAssumidas] = useState(blueprint.payload.assumidas);
   const [erroNome, setErroNome] = useState(null);
   const [erroBloqueio, setErroBloqueio] = useState(null);
+  // A escolha da etapa Design é derivada do estado da etapa: concluída é o desenho do Studio, e
+  // qualquer outra coisa (assumida ou ainda sem resposta) abre com o padrão Kora. Trocar só a
+  // escolha não salva nada; ela vira estado da etapa ao avançar.
+  const [escolhaDesign, setEscolhaDesign] = useState(() => (
+    blueprint.payload.etapasConcluidas.includes('design') && !blueprint.payload.assumidas.includes('design') ? 'studio' : 'padrao'
+  ));
 
   const etapas = preset.etapas;
   const indice = etapas.indexOf(etapa);
@@ -113,6 +120,12 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa, aval
       return;
     }
     setErroBloqueio(null);
+    // Avançar com o padrão Kora é aceitar o default, o mesmo que Pular. É isso que deixa o documento
+    // salvo no Studio fora do plano (shared/designEfetivo.js).
+    if (etapa === 'design' && escolhaDesign === 'padrao') {
+      pular();
+      return;
+    }
     const completa = etapaEstaCompleta(etapa, respostas);
     const novasConcluidas = completa ? [...semDuplicar(concluidas, etapa), etapa] : semDuplicar(concluidas, etapa);
     const seguinte = proximaEtapa(etapas, etapa);
@@ -125,6 +138,7 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa, aval
   }
 
   function pular() {
+    if (etapa === 'design') setEscolhaDesign('padrao');
     const seguinte = proximaEtapa(etapas, etapa);
     comitar({
       etapaDestino: seguinte ?? etapa,
@@ -163,7 +177,9 @@ export default function ConteudoWizard({ projeto, blueprint, preset, etapa, aval
         onAvancar={avancar}
         onPular={pular}
       >
-        {Componente ? (
+        {etapa === 'design' ? (
+          <Design projeto={projeto} escolha={escolhaDesign} onEscolher={setEscolhaDesign} />
+        ) : Componente ? (
           <Componente
             valor={valor}
             onChange={(novo) => setRespostas({ ...respostas, [etapa]: novo })}

@@ -560,3 +560,40 @@ describe('propriedades da página', () => {
     expect(await screen.findByText(m.propriedades.semSelecao)).toBeInTheDocument();
   });
 });
+
+// Bloco 5. O Studio sabe se foi aberto pela etapa Design e se o padrão Kora está escolhido.
+describe('ligação com a etapa Design do wizard', () => {
+  const renderizarEm = (rota) => renderizarComProvedores(
+    <Routes><Route path="/projetos/:id/studio" element={<PaginaStudio />} /></Routes>,
+    { rota },
+  );
+  const comEtapa = (payload) => ({ ...projeto(), blueprint: { versao: 1, ativo: true, payload: { etapasConcluidas: [], assumidas: [], ...payload } } });
+
+  it('aberto pela etapa, o voltar leva de volta ao wizard', async () => {
+    renderizarEm('/projetos/p1/studio?origem=wizard');
+    const link = await screen.findByRole('link', { name: m.voltarAoWizard });
+    expect(link).toHaveAttribute('href', '/projetos/p1/wizard/design');
+    expect(screen.queryByRole('link', { name: m.voltar })).toBeNull();
+  });
+
+  it('sem origem, ou com outra origem, o voltar continua levando ao projeto', async () => {
+    renderizarEm('/projetos/p1/studio?origem=qualquer');
+    expect(await screen.findByRole('link', { name: m.voltar })).toHaveAttribute('href', '/projetos/p1');
+    expect(screen.queryByRole('link', { name: m.voltarAoWizard })).toBeNull();
+  });
+
+  it('com o padrão Kora escolhido, avisa que o desenho não entra no projeto', async () => {
+    obterProjeto.mockResolvedValue(comEtapa({ assumidas: ['design'] }));
+    renderizar();
+    expect(await screen.findByText(m.padraoEscolhido.titulo)).toBeInTheDocument();
+    expect(screen.getByText(m.padraoEscolhido.texto)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: m.padraoEscolhido.link })).toHaveAttribute('href', '/projetos/p1/wizard/design');
+  });
+
+  it('com o desenho do Studio escolhido, o aviso não aparece', async () => {
+    obterProjeto.mockResolvedValue(comEtapa({ etapasConcluidas: ['design'] }));
+    renderizar();
+    await screen.findByRole('heading', { level: 1 });
+    expect(screen.queryByText(m.padraoEscolhido.titulo)).toBeNull();
+  });
+});

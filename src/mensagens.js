@@ -434,6 +434,12 @@ export const mensagens = {
       titulo: 'Projeto arquivado',
       texto: 'Dá para ver os tokens, mas não para salvar. Restaure o projeto na página dele para voltar a editar.',
     },
+    voltarAoWizard: 'Voltar ao wizard',
+    padraoEscolhido: {
+      titulo: 'O projeto está com o padrão Kora',
+      texto: 'Na etapa Design do wizard foi escolhido o padrão Kora. O que você salvar aqui fica guardado, mas só entra no projeto quando a etapa estiver com o seu desenho.',
+      link: 'Ir para a etapa Design',
+    },
     tokens: {
       padraoKora: 'Usar o padrão Kora',
       padraoKoraMicro: 'Volta todos os tokens ao padrão do Forge. O que estiver salvo só muda quando você salvar de novo.',
@@ -703,10 +709,18 @@ export const mensagens = {
       },
       design: {
         titulo: 'Design',
-        micro: 'Os tokens do projeto viram o tokens.css que o gerador escreve. Continuar sem mexer sai com o padrão Kora.',
+        micro: 'Escolha de onde vem o visual do projeto. Com o padrão Kora, ele sai com o tema do Forge; com o seu desenho, sai com os tokens e as páginas salvos no Studio.',
+        origem: { rotulo: 'De onde vem o design', micro: 'Dá para trocar depois, voltando a esta etapa. O desenho salvo nunca é apagado pela escolha.' },
+        opcoes: { padrao: 'Usar o padrão Kora', studio: 'Usar o meu desenho do Studio' },
+        carregando: 'Conferindo se já existe um desenho salvo…',
+        erro: 'Não deu para conferir o desenho salvo. A escolha continua valendo.',
+        semDesenho: 'Ainda não há desenho salvo no Studio.',
+        comDesenho: (paginas, versao) => `Há um desenho salvo: ${paginas === 1 ? '1 página' : `${paginas} páginas`}, versão ${versao}.`,
+        avisoSemDesenho: 'Enquanto nada for salvo no Studio, o projeto sai com o padrão Kora.',
+        avisoGuardado: 'O desenho salvo fica guardado, mas não entra no projeto enquanto o padrão Kora estiver escolhido.',
+        abrirStudio: 'Abrir o Studio',
       },
       futura: {
-        design: { titulo: 'Design', micro: 'O design do projeto se edita no Studio, depois que a pasta existir.', texto: 'Aqui o projeto sai com o tema padrão do menu. Depois de materializar, o Studio abre pela página do projeto, e é lá que tokens e páginas são desenhados. Continuar marca esta etapa como assumida.' },
         apis: { titulo: 'APIs e integrações', micro: 'O API Hub e o cofre de segredos chegam na Fase 3.', texto: 'Por enquanto nenhuma chave é conectada. Continuar marca esta etapa como assumida.' },
         continuar: 'Continuar',
       },

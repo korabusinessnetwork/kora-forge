@@ -13,6 +13,7 @@ import { ErroForge } from '../../lib/erro.js';
 import { formatarIssues } from '../../lib/validar.js';
 import { resolverNoWorkspace, inspecionar } from '../../lib/caminhos.js';
 import { compararTexto } from '../../../shared/ordenar.js';
+import { designEfetivo } from '../../../shared/designEfetivo.js';
 
 export const PASTA_TEMPLATES_BUILTIN = fileURLToPath(new URL('../../../templates/', import.meta.url));
 const TIMEOUT_PADRAO_MS = 600000;
@@ -95,7 +96,9 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
     });
   }
 
-  function gerarPlano({ projeto, preset, blueprint, design = null, workspace }) {
+  function gerarPlano({ projeto, preset, blueprint, design: registroDesign = null, workspace }) {
+    // As rotas passam o documento salvo; quem decide se ele vale é a escolha da etapa Design.
+    const design = designEfetivo(blueprint.payload, registroDesign);
     if (projeto.status === 'arquivado') throw erroCampo('projeto', 'Projeto arquivado. Restaure antes de gerar o plano.');
     if (!workspace) throw erroCampo('workspace', 'Configure o workspace em Configurações antes de gerar o plano. É a pasta onde os projetos nascem.');
     if (!fs.existsSync(workspace)) throw erroCampo('workspace', 'A pasta do workspace não existe mais. Confira o caminho em Configurações.');
@@ -161,7 +164,9 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
     //
     // A chave só entra quando existe documento, e nunca como `design: null`. Projeto sem Studio
     // precisa gerar o mesmo hash de antes da Fase 2, byte a byte: um `null` no insumo mudaria o
-    // hash de todo projeto que nunca abriu o Studio, e a Fase 1 regrediria em silêncio.
+    // hash de todo projeto que nunca abriu o Studio, e a Fase 1 regrediria em silêncio. Pelo mesmo
+    // motivo, `design` aqui já é o efetivo: com o padrão Kora escolhido, o documento salvo não
+    // entra, e o plano sai idêntico ao de quem nunca desenhou.
     const insumo = {
       blueprint: blueprint.payload,
       preset: { id: preset.id, versao: preset.versao },

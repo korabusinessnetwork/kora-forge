@@ -49,11 +49,15 @@ const documento = (extra = {}) => ({
 });
 
 // A versão do preset vem do projeto criado, nunca cravada aqui (mesma razão do gerador.test.js).
-const blueprintSite = (projeto) => ({
+// Sem opção, a etapa Design fica assumida: é o padrão Kora, e o blueprint da Fase 1 que o hash
+// congelado mede. `comDesenho` escolhe o desenho do Studio, que é a etapa concluída (bloco 5).
+const blueprintSite = (projeto, { comDesenho = false } = {}) => ({
   preset: { id: projeto.presetId, versao: projeto.presetVersao },
   etapaAtual: 'materializar',
-  etapasConcluidas: ['identidade', 'escopo', 'seguranca', 'fundacao', 'materializar'],
-  assumidas: ['design'],
+  etapasConcluidas: comDesenho
+    ? ['identidade', 'escopo', 'design', 'seguranca', 'fundacao', 'materializar']
+    : ['identidade', 'escopo', 'seguranca', 'fundacao', 'materializar'],
+  assumidas: comDesenho ? [] : ['design'],
   respostas: {
     identidade: { nome: 'Site da Kora', essencia: 'A casa digital da Kora.', problema: 'Não temos onde apontar.', valor: 'Presença própria.' },
     escopo: { publico: 'clientes', personas: ['dono de restaurante'], ahaMoment: 'ver o site no ar', naoObjetivos: ['não é blog'] },
@@ -64,10 +68,10 @@ const blueprintSite = (projeto) => ({
   },
 });
 
-async function projetoPronto(ctx, ws, nome = 'Site da Kora') {
+async function projetoPronto(ctx, ws, nome = 'Site da Kora', opcoes = {}) {
   await patch(ctx, '/api/settings', { workspace: ws });
   const projeto = await criar(ctx, nome);
-  const salvo = await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintSite(projeto));
+  const salvo = await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintSite(projeto, opcoes));
   expect(salvo.statusCode).toBe(200);
   return projeto;
 }
@@ -247,9 +251,9 @@ describe('o design entra no hash do plano', () => {
     expect(primeiro.hashBlueprint).toBe('sha256:175a2bf0d3df9f7513ac3f69cd13c2beedad33fca9073cb2b4c70a9c64edb7db');
   });
 
-  it('salvar design muda o hash, e o mesmo design gera sempre o mesmo hash', async () => {
+  it('com o desenho do Studio escolhido, salvar design muda o hash, e o mesmo design gera sempre o mesmo hash', async () => {
     const ctx = novo();
-    const projeto = await projetoPronto(ctx, workspace());
+    const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
     const semDesign = await gerarPlano(ctx, projeto.id);
 
     await post(ctx, `/api/projects/${projeto.id}/design`, documento());
@@ -264,7 +268,7 @@ describe('o design entra no hash do plano', () => {
 
   it('os arquivos do plano ainda não mudam com o design: exportar é o bloco 6', async () => {
     const ctx = novo();
-    const projeto = await projetoPronto(ctx, workspace());
+    const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
     const antes = await gerarPlano(ctx, projeto.id);
     await post(ctx, `/api/projects/${projeto.id}/design`, documento({ tokens: { cor: { acento: '#ff0055' } } }));
     const depois = await gerarPlano(ctx, projeto.id);
@@ -274,7 +278,7 @@ describe('o design entra no hash do plano', () => {
   it('aprovar o plano e depois salvar design faz materializar responder FORGE_PLAN_STALE sem escrever nada', async () => {
     const ctx = novo();
     const ws = workspace();
-    const projeto = await projetoPronto(ctx, ws);
+    const projeto = await projetoPronto(ctx, ws, undefined, { comDesenho: true });
     const plano = await gerarPlano(ctx, projeto.id);
 
     await post(ctx, `/api/projects/${projeto.id}/design`, documento());
@@ -282,6 +286,52 @@ describe('o design entra no hash do plano', () => {
     expect(r.statusCode).toBe(409);
     expect(r.json().error.codigo).toBe('FORGE_PLAN_STALE');
     expect(fs.existsSync(plano.raiz)).toBe(false);
+  });
+});
+
+// Bloco 5. Assumir o padrão Kora na etapa Design tem que dar o plano de quem nunca abriu o Studio,
+// mesmo com um desenho salvo antes da decisão. É o critério "pular a etapa Design continua
+// funcionando" da Fase 2, medido contra o mesmo hash congelado da Fase 1.
+const HASH_CONGELADO_SEM_DESIGN = 'sha256:175a2bf0d3df9f7513ac3f69cd13c2beedad33fca9073cb2b4c70a9c64edb7db';
+
+describe('padrão Kora escolhido na etapa Design', () => {
+  it('com documento salvo, gera o hash congelado e os mesmos arquivos de um projeto sem Studio', async () => {
+    const ctx = novo();
+    const ws = workspace();
+    const semStudio = await projetoPronto(ctx, ws, 'Site da Kora');
+    const referencia = await gerarPlano(ctx, semStudio.id);
+    await contexto.fechar();
+
+    const outro = novo();
+    const comDesenho = await projetoPronto(outro, workspace(), 'Site da Kora');
+    const salvo = await post(outro, `/api/projects/${comDesenho.id}/design`, documento({ tokens: { cor: { acento: '#ff0055' } } }));
+    expect(salvo.statusCode).toBe(200);
+    const plano = await gerarPlano(outro, comDesenho.id);
+
+    expect(plano.hashBlueprint).toBe(HASH_CONGELADO_SEM_DESIGN);
+    expect(plano.arquivos.map((a) => [a.caminho, a.conteudo])).toEqual(referencia.arquivos.map((a) => [a.caminho, a.conteudo]));
+  });
+
+  it('trocar o documento salvo não invalida o plano aprovado', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, workspace());
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento());
+    const antes = await gerarPlano(ctx, projeto.id);
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento({ tokens: { cor: { acento: '#00aa55' } } }));
+    expect((await gerarPlano(ctx, projeto.id)).hashBlueprint).toBe(antes.hashBlueprint);
+  });
+
+  it('voltar a escolher o desenho do Studio traz o documento de volta, com o mesmo hash de antes', async () => {
+    const ctx = novo();
+    const projeto = await projetoPronto(ctx, workspace(), undefined, { comDesenho: true });
+    await post(ctx, `/api/projects/${projeto.id}/design`, documento());
+    const comDesenho = await gerarPlano(ctx, projeto.id);
+
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintSite(projeto));
+    expect((await gerarPlano(ctx, projeto.id)).hashBlueprint).toBe(HASH_CONGELADO_SEM_DESIGN);
+
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintSite(projeto, { comDesenho: true }));
+    expect((await gerarPlano(ctx, projeto.id)).hashBlueprint).toBe(comDesenho.hashBlueprint);
   });
 });
 

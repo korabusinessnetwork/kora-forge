@@ -18,8 +18,8 @@ não desenha.
 | 2, painel de tokens com preview | **entregue** | [`fase2-bloco2-painel-de-tokens.md`](../../specs/fase2-bloco2-painel-de-tokens.md) |
 | 3, catálogo de regiões e componentes | **entregue** | [`fase2-bloco3-catalogo.md`](../../specs/fase2-bloco3-catalogo.md) |
 | 4, canvas | **entregue** | [`fase2-bloco4-canvas.md`](../../specs/fase2-bloco4-canvas.md) |
-| 5, etapa Design no wizard | próximo | |
-| 6, exportação para o gerador | a fazer | |
+| 5, etapa Design no wizard | **entregue** | [`fase2-bloco5-etapa-design.md`](../../specs/fase2-bloco5-etapa-design.md) |
+| 6, exportação para o gerador | próximo | |
 | 7, diff de design em projeto materializado | a fazer | |
 
 ## Critério de aceite da fase inteira
@@ -30,7 +30,7 @@ não desenha.
 - [x] Zero elemento no canvas sem componente equivalente no catálogo: a paleta é `ondePodeEntrar()`, a mesma função que a inserção usa
 - [x] O preview do Studio não vaza nenhum estilo para a UI do Forge, e nem o contrário (P-06)
 - [ ] Redesenhar um projeto já materializado gera plano de diff, e nada é escrito sem aprovação
-- [ ] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje
+- [ ] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje. Hash e arquivos provados em `server/modules/design/design.test.js`, "padrão Kora escolhido na etapa Design" (bloco 5); falta revalidar quando o bloco 6 fizer o design mudar arquivos
 - [ ] Tudo funciona com o copiloto desligado
 - [ ] Do clique inicial ao dev server, com design: menos de 15 minutos
 

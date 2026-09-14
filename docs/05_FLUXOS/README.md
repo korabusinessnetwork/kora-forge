@@ -94,14 +94,23 @@ A chave nunca volta para o front. Projeto que usa a conexão recebe `.env.exampl
 ## F-05, Studio
 
 ```
-Etapa Design → Studio abre com os tokens default do preset
-             → editar tokens (cor, tipografia, raio, espaçamento), preview ao vivo
-             → criar páginas, arrastar regiões e componentes do design system
-             → salvar  → vira design_document versionado no blueprint
-             → gerador transforma em tokens.css, rotas e esqueleto de JSX
+Etapa Design → pergunta: de onde vem o design?
+             ├─ "Usar o padrão Kora" (primeira, marcada)  → Avançar ou Pular: etapa assumida
+             └─ "Usar o meu desenho do Studio"            → Avançar: etapa concluída
+             → link "Abrir o Studio" (volta para a etapa pelo "Voltar ao wizard")
+
+Studio → abre com os tokens do documento salvo, ou os do padrão Kora
+       → editar tokens (cor, tipografia, raio, espaçamento), preview ao vivo
+       → criar páginas e inserir regiões e componentes do catálogo, movendo por botão ou teclado
+       → salvar  → vira design_document versionado (n+1 ativo)
+       → gerador transforma em tokens.css, rotas e esqueleto de JSX (bloco 6)
 ```
 
-Sair sem salvar mantém o default e marca a etapa como assumida.
+A escolha é o estado da etapa, sem campo novo no blueprint. Com o padrão Kora escolhido, o
+documento salvo fica guardado mas não entra no plano nem no hash (`shared/designEfetivo.js`), e o
+projeto sai idêntico ao de quem nunca abriu o Studio. Com o desenho do Studio escolhido e nada
+salvo, o projeto também sai com o padrão, e a etapa avisa. Sair do Studio sem salvar não muda nada
+no projeto.
 
 ## F-06, Copiloto (quando ligado)
 

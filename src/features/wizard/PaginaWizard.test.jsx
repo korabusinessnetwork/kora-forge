@@ -12,6 +12,8 @@ vi.mock('../../services/regras.js', () => ({ avaliarRegras: vi.fn(), decidirSobr
 vi.mock('../../services/plano.js', () => ({ gerarPlano: vi.fn() }));
 vi.mock('../../services/materializacao.js', () => ({ materializar: vi.fn(), obterMaterializacao: vi.fn(), decidirMaterializacao: vi.fn(), pararRun: vi.fn() }));
 vi.mock('../../services/logDeRun.js', () => ({ assinarLogDoRun: vi.fn(() => () => {}), urlDoRun: vi.fn(), MARCADOR_DE_TOKEN: 'forge-token' }));
+vi.mock('../../services/design.js', () => ({ obterDesign: vi.fn() }));
+import { obterDesign } from '../../services/design.js';
 import { obterProjeto, salvarBlueprint, atualizarProjeto } from '../../services/projetos.js';
 import { obterPreset } from '../../services/presets.js';
 import { avaliarRegras, decidirSobreHit } from '../../services/regras.js';
@@ -68,6 +70,7 @@ beforeEach(() => {
   avaliarRegras.mockReset();
   decidirSobreHit.mockReset();
   obterPreset.mockResolvedValue(preset);
+  obterDesign.mockReset().mockResolvedValue(null);
   avaliarRegras.mockResolvedValue({ hits: [], bloqueios: 0, podeMaterializar: true });
   gerarPlano.mockReset();
   materializar.mockReset();
@@ -223,13 +226,127 @@ describe('trilha e volta', () => {
     expect(await screen.findByRole('heading', { level: 1, name: m.passos.identidade.titulo })).toBeInTheDocument();
   });
 
-  it('etapa futura só oferece continuar e é marcada como assumida', async () => {
-    obterProjeto.mockResolvedValue({ projeto: projeto(), blueprint: blueprint({ etapaAtual: 'design' }) });
+});
+
+// Bloco 5. A escolha da etapa Design é o estado da etapa: assumida é o padrão Kora, concluída é o
+// desenho do Studio.
+describe('etapa Design', () => {
+  const md = m.passos.design;
+  const registro = (paginas = 2, versao = 3) => ({
+    versao, ativo: true, criadoEm: '2026-09-14T00:00:00.000Z', pendencias: [],
+    payload: { catalogo: { versao: 1 }, tokens: {}, paginas: Array.from({ length: paginas }, (_, i) => ({ id: `p${i}`, nome: `P${i}`, rota: `/${i}`, regioes: [] })) },
+  });
+  const naEtapa = (payload = {}) => {
+    obterProjeto.mockResolvedValue({ projeto: projeto(), blueprint: blueprint({ etapaAtual: 'design', ...payload }) });
     renderizar('/projetos/p1/wizard/design');
-    expect(await screen.findByText(m.passos.futura.design.texto)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: m.pular }));
+  };
+  const escolha = () => screen.getByLabelText(md.origem.rotulo);
+
+  it('mostra a pergunta com o padrão Kora primeiro e selecionado, e não o texto de etapa futura', async () => {
+    naEtapa();
+    expect(await screen.findByRole('heading', { level: 1, name: md.titulo })).toBeInTheDocument();
+    const opcoes = within(escolha()).getAllByRole('option');
+    expect(opcoes[0]).toHaveValue('padrao');
+    expect(opcoes[0]).toHaveTextContent(mensagens.selecao.padraoKora);
+    expect(escolha()).toHaveValue('padrao');
+    expect(screen.getByText(md.micro)).toBeInTheDocument();
+  });
+
+  it('abre com a escolha que o blueprint guarda', async () => {
+    naEtapa({ etapasConcluidas: ['identidade', 'design'] });
+    expect(await screen.findByLabelText(md.origem.rotulo)).toHaveValue('studio');
+  });
+
+  it('assumida abre com o padrão Kora', async () => {
+    naEtapa({ assumidas: ['design'] });
+    expect(await screen.findByLabelText(md.origem.rotulo)).toHaveValue('padrao');
+  });
+
+  it('avançar com o padrão Kora assume a etapa, igual a pular', async () => {
+    naEtapa({ etapasConcluidas: ['design'] });
+    fireEvent.change(await screen.findByLabelText(md.origem.rotulo), { target: { value: 'padrao' } });
+    fireEvent.click(screen.getByRole('button', { name: m.avancar }));
+    await waitFor(() => expect(salvarBlueprint).toHaveBeenCalledTimes(1));
+    const payload = salvarBlueprint.mock.calls[0][1];
+    expect(payload.assumidas).toEqual(['design']);
+    expect(payload.etapasConcluidas).not.toContain('design');
+    expect(payload.etapaAtual).toBe('seguranca');
+  });
+
+  it('avançar com o desenho do Studio conclui a etapa', async () => {
+    naEtapa({ assumidas: ['design'] });
+    fireEvent.change(await screen.findByLabelText(md.origem.rotulo), { target: { value: 'studio' } });
+    fireEvent.click(screen.getByRole('button', { name: m.avancar }));
+    await waitFor(() => expect(salvarBlueprint).toHaveBeenCalledTimes(1));
+    const payload = salvarBlueprint.mock.calls[0][1];
+    expect(payload.etapasConcluidas).toEqual(['design']);
+    expect(payload.assumidas).toEqual([]);
+  });
+
+  it('pular continua visível e assume a etapa', async () => {
+    naEtapa({ etapasConcluidas: ['design'] });
+    fireEvent.click(await screen.findByRole('button', { name: m.pular }));
     await waitFor(() => expect(salvarBlueprint).toHaveBeenCalledTimes(1));
     expect(salvarBlueprint.mock.calls[0][1].assumidas).toEqual(['design']);
+    expect(salvarBlueprint.mock.calls[0][1].etapasConcluidas).toEqual([]);
+  });
+
+  // Voltar grava a etapa em que a pessoa está (etapaAtual), como em todo o wizard; o que não pode
+  // ir junto é a escolha, que só vira estado da etapa ao avançar.
+  it('trocar só a escolha e voltar não grava a escolha', async () => {
+    naEtapa({ assumidas: ['design'] });
+    fireEvent.change(await screen.findByLabelText(md.origem.rotulo), { target: { value: 'studio' } });
+    fireEvent.click(screen.getByRole('button', { name: m.voltar }));
+    expect(await screen.findByRole('heading', { level: 1, name: m.passos.escopo.titulo })).toBeInTheDocument();
+    for (const [, payload] of salvarBlueprint.mock.calls) {
+      expect(payload.assumidas).toEqual(['design']);
+      expect(payload.etapasConcluidas).toEqual([]);
+    }
+  });
+
+  it('sem desenho salvo diz isso, e com o Studio escolhido avisa que sai o padrão', async () => {
+    naEtapa({ etapasConcluidas: ['design'] });
+    expect(await screen.findByText(md.semDesenho)).toBeInTheDocument();
+    expect(screen.getByText(md.avisoSemDesenho)).toBeInTheDocument();
+    expect(screen.queryByText(md.avisoGuardado)).toBeNull();
+  });
+
+  it('com desenho salvo diz páginas e versão, e com o padrão avisa que fica guardado', async () => {
+    obterDesign.mockResolvedValue(registro(2, 3));
+    naEtapa();
+    expect(await screen.findByText(md.comDesenho(2, 3))).toBeInTheDocument();
+    expect(screen.getByText(md.avisoGuardado)).toBeInTheDocument();
+    fireEvent.change(escolha(), { target: { value: 'studio' } });
+    expect(screen.queryByText(md.avisoGuardado)).toBeNull();
+    expect(screen.queryByText(md.avisoSemDesenho)).toBeNull();
+  });
+
+  it('o link abre o Studio marcando a origem', async () => {
+    naEtapa();
+    expect(await screen.findByRole('link', { name: md.abrirStudio })).toHaveAttribute('href', '/projetos/p1/studio?origem=wizard');
+  });
+
+  it('erro ao consultar o desenho aparece, tenta de novo, e não impede avançar', async () => {
+    obterDesign.mockRejectedValueOnce(new ErroApi('FORGE_OFFLINE', 'A API local não respondeu.')).mockResolvedValue(null);
+    naEtapa();
+    expect(await screen.findByText(md.erro)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: mensagens.estados.tentarDeNovo }));
+    expect(await screen.findByText(md.semDesenho)).toBeInTheDocument();
+  });
+
+  it('com erro na consulta, avançar funciona', async () => {
+    obterDesign.mockRejectedValue(new ErroApi('FORGE_OFFLINE', 'A API local não respondeu.'));
+    naEtapa();
+    await screen.findByText(md.erro);
+    fireEvent.click(screen.getByRole('button', { name: m.avancar }));
+    await waitFor(() => expect(salvarBlueprint).toHaveBeenCalledTimes(1));
+    expect(salvarBlueprint.mock.calls[0][1].assumidas).toEqual(['design']);
+  });
+
+  it('carregando o desenho tem estado visível', async () => {
+    obterDesign.mockReturnValue(new Promise(() => {}));
+    naEtapa();
+    expect(await screen.findByText(md.carregando)).toBeInTheDocument();
   });
 });
 

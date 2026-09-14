@@ -3,6 +3,16 @@
 Uma seção por rodada, mais recente no topo. O ciclo é `spec → build → review → aprender`, descrito
 no CLAUDE.md e no ADR-008.
 
+## Rodada 12, Fase 2, bloco 5, etapa Design no wizard, 2026-09-14
+
+- Spec: `specs/fase2-bloco5-etapa-design.md`. Rodada em modo Full Automático (`.full-auto/`).
+- Resultado da review: aprovado sem ressalvas, 33 de 33 critérios. Suíte com 1101 passando e nenhum
+  pulado, build sem erro. Validado no produto real: as duas escolhas gravadas no blueprint e o hash
+  do plano igual ao de antes com o padrão Kora, mesmo com desenho salvo.
+- Aprendido: a escolha de uma etapa pode ser o par concluída/assumida, sem campo novo, quando um
+  campo novo mudaria a serialização e com ela todo hash já gravado.
+- Próximo item recomendado: **bloco 6, exportação para o gerador**.
+
 ## Rodada 11 — ADR-010, serialização de layout do Studio — 2026-09-09
 
 - Spec: `specs/adr-serializacao-de-layout.md`. ADR em

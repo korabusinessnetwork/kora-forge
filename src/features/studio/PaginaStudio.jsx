@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { documentoDesignSchema } from '@shared/schemas/design.js';
 import { saoIguais } from '@shared/serializar.js';
@@ -27,6 +27,9 @@ export const DOCUMENTO_PADRAO = Object.freeze(documentoDesignSchema.parse({}));
 
 export default function PaginaStudio() {
   const { id } = useParams();
+  // Aberto pela etapa Design, o voltar leva de volta a ela. Só o valor exato conta.
+  const [parametros] = useSearchParams();
+  const veioDoWizard = parametros.get('origem') === 'wizard';
   const clienteQuery = useQueryClient();
   const projeto = useQuery({ queryKey: ['projeto', id], queryFn: () => obterProjeto(id) });
   const design = useQuery({ queryKey: ['design', id], queryFn: () => obterDesign(id) });
@@ -109,6 +112,8 @@ export default function PaginaStudio() {
   }
 
   const arquivado = projeto.data.projeto.status === 'arquivado';
+  const padraoEscolhido = Boolean(projeto.data.blueprint?.payload?.assumidas?.includes('design'));
+  const etapaDesign = `/projetos/${id}/wizard/design`;
   const mudou = !saoIguais(documento, salvo);
   const erroSalvar = salvar.isError ? (salvar.error?.detalhe?.issues ?? [{ mensagem: salvar.error?.message ?? m.erroSalvar }]) : null;
 
@@ -127,9 +132,19 @@ export default function PaginaStudio() {
       <LayoutStudio
         cabecalho={(
           <header className={estilos.cabecalho}>
-            <p className={estilos.voltar}><Link to={`/projetos/${id}`}>{m.voltar}</Link></p>
+            <p className={estilos.voltar}>
+              {veioDoWizard ? <Link to={etapaDesign}>{m.voltarAoWizard}</Link> : <Link to={`/projetos/${id}`}>{m.voltar}</Link>}
+            </p>
             <h1 id="titulo-studio">{m.titulo}, {projeto.data.projeto.nome}</h1>
             <p className={estilos.micro}>{m.micro}</p>
+
+            {padraoEscolhido ? (
+              <div role="status" className={estilos.aviso}>
+                <strong>{m.padraoEscolhido.titulo}</strong>
+                <p>{m.padraoEscolhido.texto}</p>
+                <p><Link to={etapaDesign}>{m.padraoEscolhido.link}</Link></p>
+              </div>
+            ) : null}
 
             {arquivado ? (
               <div role="status" className={estilos.aviso}>
