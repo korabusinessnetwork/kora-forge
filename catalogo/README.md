@@ -49,6 +49,16 @@ Valor de prop é dado, nunca código: passa por `escaparValorJsx()` de `shared/j
 entrar no fragmento. O motor continua sendo o `renderizar()` de `shared/template.js`, que só troca
 chave por valor, sem condicional, sem laço, sem `eval`.
 
+## Como o fragmento vira arquivo
+
+`server/modules/gerador/exportarDesign.js` percorre cada página na ordem do documento e renderiza o
+fragmento de cada nó com as props (o padrão do item quando a prop não veio), com os filhos
+renderizados e recuados dois espaços dentro de `{{FILHOS}}`. As regiões entram no molde
+`pagina.jsx` do template `studio-paginas`. Nó cujo tipo saiu do catálogo não gera código e vira
+pendência `catalogo` no plano; prop que começa com `javascript:` ou `vbscript:` volta ao padrão e
+vira pendência `valor`. As classes `estilos.*` dos fragmentos são definidas em
+`templates/studio-paginas/arquivos/src/paginas/pagina.module.css`, e um teste cruza as duas coisas.
+
 Nenhum item traz marca, cor, nome ou regra de cliente: todo projeto gerado nasce white-label, e um
 teste varre os fragmentos atrás disso.
 

@@ -103,8 +103,13 @@ Studio → abre com os tokens do documento salvo, ou os do padrão Kora
        → editar tokens (cor, tipografia, raio, espaçamento), preview ao vivo
        → criar páginas e inserir regiões e componentes do catálogo, movendo por botão ou teclado
        → salvar  → vira design_document versionado (n+1 ativo)
-       → gerador transforma em tokens.css, rotas e esqueleto de JSX (bloco 6)
+       → gerador transforma em tokens.css, rotas e esqueleto de JSX
 ```
+
+O que sai no disco com o desenho do Studio escolhido: `src/styles/tokens.css` com os valores do
+documento; se houver página, uma `src/paginas/Pagina<Id>.jsx` por página, `src/paginas/pagina.module.css`
+e `src/App.jsx` com uma rota por página, na ordem do desenho, sem `src/App.module.css`. Item que
+saiu do catálogo e valor inseguro aparecem como pendência no plano, antes de aprovar.
 
 A escolha é o estado da etapa, sem campo novo no blueprint. Com o padrão Kora escolhido, o
 documento salvo fica guardado mas não entra no plano nem no hash (`shared/designEfetivo.js`), e o
