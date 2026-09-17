@@ -10,6 +10,7 @@ import PaginaStudio from './features/studio/PaginaStudio.jsx';
 import PaginaConfig from './features/config/PaginaConfig.jsx';
 import PaginaEficiencia from './features/eficiencia/PaginaEficiencia.jsx';
 import PaginaReforja from './features/reforja/PaginaReforja.jsx';
+import PaginaApis from './features/apis/PaginaApis.jsx';
 import { obterToken } from './services/sessao.js';
 
 const clienteQuery = new QueryClient({
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="projetos/:id/studio" element={<PaginaStudio />} />
             <Route path="eficiencia" element={<PaginaEficiencia />} />
             <Route path="reforja" element={<PaginaReforja />} />
+            <Route path="apis" element={<PaginaApis />} />
             <Route path="config" element={<PaginaConfig />} />
           </Route>
         </Routes>

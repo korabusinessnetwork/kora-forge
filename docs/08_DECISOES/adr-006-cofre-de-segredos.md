@@ -50,7 +50,8 @@ indisponível.
 
 ### Positivas
 - Chave em repouso fica cifrada, com custo de implementação baixo e sem dependência nova
-- A separação entre `api_connections` (sem segredo) e `vault_entries` (segredo cifrado) torna difícil vazar por acidente, porque a rota que responde ao front nunca toca a segunda tabela
+- A separação entre `api_connections` (sem segredo, no SQLite) e `vault.bin` (segredos cifrados,
+  fora do banco) torna difícil vazar por acidente, porque a rota que responde ao front nunca toca o cofre
 - Cofre opcional mantém o produto usável para quem não quiser lidar com isso
 
 ### Negativas e trade-offs
@@ -62,4 +63,4 @@ indisponível.
 
 - scrypt com parâmetros documentados no código, versionados junto do formato do arquivo
 - Formato do `vault.bin` carrega versão, para permitir migração de algoritmo depois
-- Teste obrigatório: garantir que nenhuma rota da API local serializa `vault_entries`
+- Teste obrigatório: garantir que nenhuma rota da API local serializa segredo ou material do `vault.bin`

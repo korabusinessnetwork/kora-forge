@@ -28,8 +28,8 @@ Bloqueio pendente no motor de regras impede chegar na etapa 9.
 ### Estado da implementação (Fase 1, blocos 4 e 8)
 
 O wizard já conduz as etapas que o preset liga, com trilha, navegação, pular e retomada exata.
-As etapas 4 (Design) e 6 (APIs) existem no preset e mostram uma tela de espera que só marca a
-etapa como assumida, porque Studio e API Hub chegam nas fases 2 e 3. A etapa 9 mostra o plano,
+As etapas 4 (Design) e 6 (APIs) existem no preset. Design já conduz ao Studio; APIs conduz ao API
+Hub, onde a pessoa cria/destranca o cofre e cadastra conexões. A etapa 9 mostra o plano,
 executa e fecha.
 
 Regra de versionamento: cada avanço, volta ou salto pela trilha grava uma versão nova do
@@ -79,16 +79,16 @@ contra o que existe no disco, nunca uma sobrescrita cega.
 ## F-04, Conectar uma API
 
 ```
-API Hub → escolher modelo (Supabase, Stripe, Anthropic, WhatsApp, ...)
+API Hub → informar provedor e tipo da API (pago ou gratuito)
         → dar um alias  ("supabase-pessoal")
         → destrancar o cofre, se estiver trancado
         → colar a chave  (campo mascarado, valor vai direto para o cofre)
-        → teste de conexão
-             sucesso → status ativa
-             falha   → status invalida, com o motivo, sem expor a chave no erro
+        → opcionalmente informa a URL de teste, cabeçalho e prefixo usados pelo provedor
+        → aperta "Testar conexão" quando quiser; o Forge envia a chave só nessa chamada e mostra
+          apenas sucesso, recusa ou indisponibilidade
 ```
 
-A chave nunca volta para o front. Projeto que usa a conexão recebe `.env.example` com o
+A chave nunca volta para o front, log ou evento; ela também nunca entra na URL de teste. Projeto que usa a conexão receberá `.env.example` com o
 **nome** da variável e uma instrução de onde pegar o valor.
 
 ## F-05, Studio

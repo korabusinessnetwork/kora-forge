@@ -109,18 +109,6 @@ CREATE TABLE api_connections (
   atualizado_em TEXT NOT NULL
 );
 
--- Segredo isolado. Acessível apenas pelo módulo Cofre. Nunca serializado para o front.
-CREATE TABLE vault_entries (
-  id            TEXT PRIMARY KEY,
-  connection_id TEXT NOT NULL REFERENCES api_connections(id) ON DELETE CASCADE,
-  chave         TEXT NOT NULL,         -- nome da variável, ex.: SUPABASE_ANON_KEY
-  nonce         BLOB NOT NULL,
-  ciphertext    BLOB NOT NULL,
-  tag           BLOB NOT NULL,
-  criado_em     TEXT NOT NULL,
-  UNIQUE (connection_id, chave)
-);
-
 CREATE TABLE project_connections (
   project_id    TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   connection_id TEXT NOT NULL REFERENCES api_connections(id) ON DELETE CASCADE,

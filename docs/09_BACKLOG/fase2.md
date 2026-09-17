@@ -20,7 +20,7 @@ não desenha.
 | 4, canvas | **entregue** | [`fase2-bloco4-canvas.md`](../../specs/fase2-bloco4-canvas.md) |
 | 5, etapa Design no wizard | **entregue** | [`fase2-bloco5-etapa-design.md`](../../specs/fase2-bloco5-etapa-design.md) |
 | 6, exportação para o gerador | próximo | |
-| 7, diff de design em projeto materializado | a fazer | |
+| 7, diff de design em projeto materializado | **entregue** | [`fase2-bloco7-diff-design.md`](../../specs/fase2-bloco7-diff-design.md) |
 
 ## Critério de aceite da fase inteira
 
@@ -29,7 +29,7 @@ não desenha.
 - [x] Cada página desenhada vira rota e arquivo de esqueleto no projeto gerado. `npm run verificar:fase2`, item 3, com `vite build` do projeto gerado passando
 - [x] Zero elemento no canvas sem componente equivalente no catálogo: a paleta é `ondePodeEntrar()`, a mesma função que a inserção usa
 - [x] O preview do Studio não vaza nenhum estilo para a UI do Forge, e nem o contrário (P-06)
-- [ ] Redesenhar um projeto já materializado gera plano de diff, e nada é escrito sem aprovação
+- [x] Redesenhar um projeto já materializado gera plano de diff, e nada é escrito sem aprovação. `VisualizadorDiff` mostra o texto atual e proposto em cada conflito do dry-run; a aplicação segue recebendo somente o hash.
 - [x] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje. Hash e arquivos provados em `server/modules/design/design.test.js`, "padrão Kora escolhido na etapa Design", e revalidado com o bloco 6 no item 7 de `npm run verificar:fase2`
 - [ ] Tudo funciona com o copiloto desligado
 - [ ] Do clique inicial ao dev server, com design: menos de 15 minutos
@@ -106,11 +106,12 @@ Sem UI. A camada que tudo o mais assume.
 - Determinismo continua valendo: mesmo documento, mesmo resultado, na mesma ordem.
 - Entregue: `specs/fase2-bloco6-exportacao.md`, com a auditoria na seção 7.
 
-### 7. Diff de design em projeto já materializado
+### 7. Diff de design em projeto já materializado (entregue)
 
 - Redesenhar um projeto que já nasceu gera plano de diff, e nada é escrito sem aprovação.
 - É aqui que entra o `VisualizadorDiff`, adiado da Fase 1 justamente por não ter caso de uso
   antes deste bloco: até agora todo conflito era pasta nova, sem conflito nenhum.
+- Entregue: `specs/fase2-bloco7-diff-design.md`.
 
 ## Ordem e paralelismo
 

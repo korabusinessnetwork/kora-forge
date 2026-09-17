@@ -72,7 +72,7 @@ src/
 | `PainelPropriedades` | os campos vêm do catálogo, não de lista escrita à mão: item novo com prop nova aparece sozinho, com rótulo e microtexto que o item declarou. Página tem nome e rota, com rota inválida e rota repetida avisadas junto do campo. Item fora do catálogo não ganha formulário inventado: mostra o que está gravado e oferece remover |
 | `PainelTokens` | edita os tokens do documento de design, agrupados, cada campo com microtexto e default visível. Cor tem seletor e campo de texto ligados ao mesmo token, para escolher ou colar o hex exato. "Usar o padrão Kora" no topo e por grupo. Os campos são derivados de `listarTokens()`, então token novo no schema aparece no painel |
 | `PreviewProjeto` | a amostra dos tokens em uso: título, texto secundário, botão, cartão, campo e um trecho em mono. Serve para ajustar token sem precisar montar página. O isolamento mora no `PalcoProjeto`, que este componente e o `CanvasStudio` compartilham |
-| `VisualizadorDiff` | diff de arquivo em conflito, lado a lado. **Adiado para a Fase 2**: na Fase 1 o conflito é declarado no `PainelPlano` como ação de sobrescrever, com os dois tamanhos, sem diff linha a linha |
+| `VisualizadorDiff` | diff de arquivo em conflito, por linhas, fechado por padrão dentro do dry-run. O painel mostra apenas texto, nunca HTML bruto; a aprovação continua sendo pelo hash do plano |
 | `GaleriaModelosApi` | catálogo de modelos de integração |
 | `PainelRelatorios` | todos os builds ao mesmo tempo, com `CartaoBuild` por projeto, filtro por estado e aba por modelo com `LinhaModelo` (Fase 6) |
 

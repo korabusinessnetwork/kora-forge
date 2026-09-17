@@ -19,7 +19,7 @@ presets ──┐
           │        ├──< command_runs ──< command_logs
           │        ├──< rule_hits >── rules
           │        ├──< copilot_calls
-          │        └──< project_connections >── api_connections ──< vault_entries
+          │        └──< project_connections >── api_connections
           │                                            │
           └── api_templates ───────────────────────────┘
 
@@ -36,7 +36,7 @@ settings (chave-valor)
 | `design_documents` | Saída do Studio: tokens, páginas e hierarquia, versionado. Projeto **sem** documento é estado normal, e quer dizer "usei o padrão Kora" |
 | `api_templates` | Modelos de integração (Supabase, Stripe, WhatsApp, Anthropic, etc.) |
 | `api_connections` | Uma conexão configurada pelo usuário. **Nunca guarda o segredo** |
-| `vault_entries` | O segredo criptografado, ligado à conexão. AES-256-GCM |
+| `vault.bin` | Arquivo local separado que guarda os segredos cifrados. Não faz parte do SQLite |
 | `project_connections` | Quais conexões um projeto usa |
 | `rules` | Catálogo de regras determinísticas, versionado |
 | `rule_hits` | Cada disparo de regra em um projeto, com o estado final |
@@ -53,7 +53,7 @@ settings (chave-valor)
 1.1. `design_documents` **não tem coluna `ativo`**, e não precisa: a versão ativa é sempre a de
    maior número. Um estado a menos é um estado a menos para dessincronizar.
 2. `api_connections.status` só vira `ativa` depois de um teste de conexão bem-sucedido.
-3. `vault_entries` nunca é lido por rota que responda ao front. Só o módulo Cofre acessa.
+3. `vault.bin` nunca é lido por rota que responda ao front. Só o módulo Cofre acessa.
 4. `command_runs.cwd` é sempre validado contra o workspace antes de gravar.
 5. `events` é append-only. Nunca é atualizado nem apagado.
 6. Um `rule_hit` por par projeto e regra, garantido por índice único. Reavaliar atualiza o registro, nunca duplica.

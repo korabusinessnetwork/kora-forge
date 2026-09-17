@@ -198,11 +198,16 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
         const stat = inspecionar(raiz, absoluto);
         let acao = 'criar';
         let tamanhoAtual = null;
+        let conteudoAtual = null;
         if (stat?.isFile()) {
           tamanhoAtual = stat.size;
-          acao = fs.readFileSync(absoluto, 'utf8') === conteudo ? 'pular' : 'sobrescrever';
+          conteudoAtual = fs.readFileSync(absoluto, 'utf8');
+          acao = conteudoAtual === conteudo ? 'pular' : 'sobrescrever';
+          // O arquivo só vai para a UI quando há algo para revisar. Criar e pular não expõem
+          // conteúdo do disco nem aumentam o payload do dry-run sem necessidade.
+          if (acao !== 'sobrescrever') conteudoAtual = null;
         }
-        return { caminho: destino, acao, tamanho: tamanhoEm(conteudo), tamanhoAtual, template, conteudo };
+        return { caminho: destino, acao, tamanho: tamanhoEm(conteudo), tamanhoAtual, conteudoAtual, template, conteudo };
       });
 
     // Insumo do hash. O documento de design entra aqui porque redesenhar tem que invalidar plano

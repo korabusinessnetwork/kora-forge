@@ -14,6 +14,7 @@ export const mensagens = {
     projetos: 'Projetos',
     eficiencia: 'Eficiência',
     reforja: 'Auto-Reforja',
+    apis: 'APIs',
     config: 'Configurações',
     ideias: 'Ideias',
   },
@@ -145,6 +146,14 @@ export const mensagens = {
       micro: 'Quando o consumo bate o teto, o copiloto desliga sozinho.',
       invalido: 'Informe um número maior ou igual a zero.',
     },
+  },
+  apis: {
+    titulo: 'APIs e integrações', micro: 'Conecte qualquer provedor. A chave fica cifrada no seu computador e nunca aparece novamente.', erroCarregar: 'Não deu para confirmar a sessão do cofre. Reabra o Forge pelo link mais recente do terminal e tente de novo.',
+    criarCofre: 'Criar cofre', criarMicro: 'A senha mestre protege as chaves. Se você perdê-la, não há recuperação.',
+    senha: 'Senha mestre', senhaMicro: 'Use ao menos 12 caracteres. Ela não é salva.', confirmacao: 'Confirmar senha mestre', confirmacaoMicro: 'Repita a senha para evitar bloqueio por erro de digitação.',
+    destrancar: 'Destrancar cofre', destrancarMicro: 'O cofre fica trancado toda vez que o Forge é aberto.',
+    nova: 'Conectar uma API', novaMicro: 'Provedor pago ou gratuito: você define o tipo e os dados da conexão.',
+    alias: 'Nome da conexão', aliasMicro: 'Só para você reconhecer esta chave depois.', provedor: 'Provedor', provedorMicro: 'A empresa ou serviço que oferece a API.', tipo: 'Tipo de API', tipoMicro: 'Ex.: IA, pagamentos, banco de dados ou mensagens.', endpoint: 'Endpoint (opcional)', endpointMicro: 'URL base, quando o provedor usa uma diferente.', urlTeste: 'URL para testar (opcional)', urlTesteMicro: 'A rota segura que confirma a chave. HTTPS é exigido, exceto localhost.', cabecalhoChave: 'Cabeçalho da chave', cabecalhoChaveMicro: 'Ex.: Authorization, x-api-key ou apikey. A chave nunca vai na URL.', prefixoChave: 'Prefixo da chave', prefixoChaveMicro: 'Ex.: "Bearer ". Deixe vazio se o provedor não usar prefixo.', chave: 'API key', chaveMicro: 'Vai direto para o cofre cifrado e não volta para esta tela.', conectar: 'Guardar conexão', conexoes: 'Conexões guardadas', vazio: 'Nenhuma conexão guardada ainda.', testar: 'Testar conexão', semTeste: 'Sem URL de teste', status: (estado) => ({ pendente: 'Ainda não testada', ativa: 'Conectada', invalida: 'Não conectou' }[estado] ?? estado),
   },
   campo: {
     padrao: 'Padrão',
@@ -725,7 +734,7 @@ export const mensagens = {
         abrirStudio: 'Abrir o Studio',
       },
       futura: {
-        apis: { titulo: 'APIs e integrações', micro: 'O API Hub e o cofre de segredos chegam na Fase 3.', texto: 'Por enquanto nenhuma chave é conectada. Continuar marca esta etapa como assumida.' },
+        apis: { titulo: 'APIs e integrações', micro: 'Conecte suas chaves no API Hub. Você pode voltar aqui depois de criar uma conexão.', texto: 'As conexões ficam no cofre local e não entram no blueprint. Continuar marca esta etapa como assumida.' },
         continuar: 'Continuar',
       },
     },

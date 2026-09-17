@@ -58,6 +58,12 @@ geral com resultado diferente. Este arquivo é o registro leve. O pesado vive em
 
 ## Decisões leves
 
+### 2026-09-17, segredos vivem em vault.bin separado
+O cofre da Fase 3 persiste os segredos somente em `~/.kora-forge/vault.bin`, cifrado e separado do
+SQLite; `api_connections` conserva apenas alias, provedor e status. Motivo: evitar que backup,
+consulta ou exportação comum do banco carregue credenciais por acidente. A tabela `vault_entries`
+do schema inicial será removida antes de o cofre ser disponibilizado.
+
 ### 2026-09-02, nome do produto
 KORA FORGE, com slug `kora-forge`. Motivo: segue o padrão de nomeação das ventures da
 Kora e "forja" descreve a função (matéria-prima entra, peça pronta sai). Nome é

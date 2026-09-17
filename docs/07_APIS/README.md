@@ -77,11 +77,13 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | WS | `/ws/runs/:runId` | log ao vivo. Envia o histórico já gravado ao conectar. O browser não permite header customizado no handshake, então o token vai no subprotocolo (`forge-token, <token>`), e a mesma guarda das rotas se aplica |
 | POST | `/runs/:runId/parar` | encerra processo em execução |
 | GET | `/api-templates` | catálogo de modelos de integração |
+| GET | `/vault` | estado do cofre: ausente, trancado ou destrancado |
+| POST | `/vault` | cria o cofre com senha mestre e confirmação; retorna só o estado |
+| POST | `/vault/destrancar` | destranca o cofre para a sessão atual; retorna só o estado |
 | GET | `/connections` | conexões, **sem segredo** |
-| POST | `/connections` | cria conexão, o segredo vai direto para o cofre |
-| POST | `/connections/:id/testar` | testa e atualiza o status |
+| POST | `/connections` | cria conexão genérica (`alias`, `provedor`, `tipo`, `endpoint?`, `urlTeste?`, `cabecalhoChave`, `prefixoChave`, `chave`); a chave vai direto para o cofre |
+| POST | `/connections/:id/testar` | testa manualmente a conexão e atualiza o status; aceita HTTPS, ou HTTP apenas em localhost, recusa redirect e não serializa a resposta externa |
 | DELETE | `/connections/:id` | remove conexão e o segredo |
-| POST | `/vault/destrancar` | destranca o cofre com a senha mestre |
 | POST | `/copilot/sugerir` | sugestão do copiloto. `403 FORGE_COPILOT_DISABLED` se desligado |
 | GET | `/ideas` / POST `/ideas` | gaveta de ideias |
 | GET | `/events` | log de eventos, com filtro |

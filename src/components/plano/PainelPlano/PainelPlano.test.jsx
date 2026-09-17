@@ -4,7 +4,7 @@ import PainelPlano, { agruparPorPasta } from './PainelPlano.jsx';
 import { mensagens } from '../../../mensagens.js';
 
 const m = mensagens.plano;
-const arquivo = (caminho, acao = 'criar', extra = {}) => ({ caminho, acao, tamanho: 1024, tamanhoAtual: acao === 'criar' ? null : 512, template: 'fundacao-kora', conteudo: 'x', ...extra });
+const arquivo = (caminho, acao = 'criar', extra = {}) => ({ caminho, acao, tamanho: 1024, tamanhoAtual: acao === 'criar' ? null : 512, conteudoAtual: acao === 'sobrescrever' ? 'antes' : null, template: 'fundacao-kora', conteudo: 'x', ...extra });
 
 const plano = (extra = {}) => ({
   hashBlueprint: `sha256:${'a'.repeat(64)}`,
@@ -60,6 +60,7 @@ describe('PainelPlano', () => {
     expect(secaoConflitos.compareDocumentPosition(secaoArquivos) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByText(m.conflitoExplicacao)).toBeInTheDocument();
     expect(screen.getAllByText('.gitignore')).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Ver diferenças' })).toBeInTheDocument();
   });
 
   it('pendências aparecem com o motivo, em vez de sumirem', () => {

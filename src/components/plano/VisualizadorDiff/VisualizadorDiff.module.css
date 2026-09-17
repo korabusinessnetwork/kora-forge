@@ -1,0 +1,32 @@
+.bloco {
+  margin-top: var(--forge-space-2);
+}
+
+.diff {
+  max-height: 24rem;
+  overflow: auto;
+  margin: var(--forge-space-2) 0 0;
+  padding: var(--forge-space-3);
+  border-radius: var(--forge-radius-sm);
+  background: var(--forge-surface-2);
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  white-space: pre;
+}
+
+.diff code {
+  display: block;
+}
+
+.removida {
+  color: var(--forge-danger);
+}
+
+.adicionada {
+  color: var(--forge-success);
+}
+
+.igual {
+  color: var(--forge-text-muted);
+}

@@ -9,6 +9,8 @@ export const arquivoPlanoSchema = z.strictObject({
   acao: z.enum(ACOES_ARQUIVO),
   tamanho: z.number().int().nonnegative(),
   tamanhoAtual: z.number().int().nonnegative().nullable(),
+  // Só existe para conflito no dry-run autenticado. Nunca vira entrada do runner.
+  conteudoAtual: z.string().nullable(),
   template: z.string().min(1),
   conteudo: z.string(),
 });

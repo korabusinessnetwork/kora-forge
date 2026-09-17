@@ -21,6 +21,8 @@ import { criarTransmissor } from './lib/transmissor.js';
 import { criarServicoEficiencia } from './modules/eficiencia/servico.js';
 import { criarServicoModelos } from './modules/modelos/servico.js';
 import { criarServicoReforja } from './modules/reforja/servico.js';
+import { criarServicoCofre } from './modules/cofre/servico.js';
+import { criarServicoConexoes } from './modules/conexoes/servico.js';
 import rotasHealth from './modules/health/rotas.js';
 import rotasSettings from './modules/settings/rotas.js';
 import rotasPresets from './modules/presets/rotas.js';
@@ -34,6 +36,8 @@ import rotasIdeias from './modules/ideias/rotas.js';
 import rotasEficiencia from './modules/eficiencia/rotas.js';
 import rotasModelos from './modules/modelos/rotas.js';
 import rotasReforja from './modules/reforja/rotas.js';
+import rotasCofre from './modules/cofre/rotas.js';
+import rotasConexoes from './modules/conexoes/rotas.js';
 
 // Nunca logar segredo (C6): o token e headers de autorização saem redigidos.
 const CAMINHOS_REDIGIDOS = ['req.headers["x-forge-token"]', 'req.headers.authorization', 'req.headers.cookie'];
@@ -96,7 +100,9 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
   const eficiencia = criarServicoEficiencia({ db, settings, registrarEvento });
   const modelos = criarServicoModelos({ db, registrarEvento, eficiencia });
   const reforja = criarServicoReforja({ db, registrarEvento, modelos });
-  app.decorate('servicos', { settings, presets, projetos, regras, catalogo, design, gerador, runner, transmissor, registrarEvento, ideias, eficiencia, modelos, reforja });
+  const cofre = criarServicoCofre({ home: config.home });
+  const conexoes = criarServicoConexoes({ db, cofre, registrarEvento });
+  app.decorate('servicos', { settings, presets, projetos, regras, catalogo, design, gerador, runner, transmissor, registrarEvento, ideias, eficiencia, modelos, reforja, cofre, conexoes });
   app.addHook('onClose', async () => runner.encerrarTudo());
 
   app.register(fastifyWebsocket);
@@ -132,7 +138,7 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
       return envelopeDeErro(request, erro);
     });
 
-    instancia.register(rotasHealth, { versao, home: config.home, settings });
+    instancia.register(rotasHealth, { versao, home: config.home, settings, cofre });
     instancia.register(rotasSettings, { settings });
     instancia.register(rotasPresets, { presets });
     instancia.register(rotasProjetos, { projetos, presets, regras, settings });
@@ -145,6 +151,8 @@ export function construirApp({ db, tokenSessao, config, versao, logger = false, 
     instancia.register(rotasEficiencia, { eficiencia });
     instancia.register(rotasModelos, { modelos });
     instancia.register(rotasReforja, { reforja });
+    instancia.register(rotasCofre, { cofre });
+    instancia.register(rotasConexoes, { conexoes });
     for (const plugin of pluginsApi) instancia.register(plugin);
   }, { prefix: '/api' });
 
