@@ -6,7 +6,11 @@ import PaginaRegistry from './features/registry/PaginaRegistry.jsx';
 import PaginaNovoProjeto from './features/registry/PaginaNovoProjeto.jsx';
 import PaginaProjeto from './features/registry/PaginaProjeto.jsx';
 import PaginaWizard from './features/wizard/PaginaWizard.jsx';
+import PaginaStudio from './features/studio/PaginaStudio.jsx';
 import PaginaConfig from './features/config/PaginaConfig.jsx';
+import PaginaEficiencia from './features/eficiencia/PaginaEficiencia.jsx';
+import PaginaReforja from './features/reforja/PaginaReforja.jsx';
+import PaginaApis from './features/apis/PaginaApis.jsx';
 import { obterToken } from './services/sessao.js';
 
 const clienteQuery = new QueryClient({
@@ -28,6 +32,10 @@ export default function App() {
             <Route path="projetos/:id" element={<PaginaProjeto />} />
             <Route path="projetos/:id/wizard" element={<PaginaWizard />} />
             <Route path="projetos/:id/wizard/:etapa" element={<PaginaWizard />} />
+            <Route path="projetos/:id/studio" element={<PaginaStudio />} />
+            <Route path="eficiencia" element={<PaginaEficiencia />} />
+            <Route path="reforja" element={<PaginaReforja />} />
+            <Route path="apis" element={<PaginaApis />} />
             <Route path="config" element={<PaginaConfig />} />
           </Route>
         </Routes>

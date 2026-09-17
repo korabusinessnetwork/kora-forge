@@ -3,20 +3,39 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, afterEach } from 'vitest';
-import { executar, parar, validarComando, ambienteMinimo } from './processo.js';
+import { executar, parar, validarComando, ambienteMinimo, limparAnsi } from './processo.js';
 
 const temporarias = [];
+
+const processoDoTeste = process.pid;
+
+// Processo existe? `kill` com sinal 0 não mata, só pergunta.
+function vivo(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
 afterEach(() => {
-  while (temporarias.length > 0) fs.rmSync(temporarias.pop(), { recursive: true, force: true });
+  // `maxRetries` porque no Windows a pasta continua presa por um instante depois que o processo
+  // morre, e apagar na hora devolve EPERM. Sem a repetição, a limpeza falha e derruba o arquivo de
+  // teste inteiro por um motivo que não tem nada a ver com o que estava sendo provado.
+  while (temporarias.length > 0) {
+    fs.rmSync(temporarias.pop(), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+  }
 });
 
-// Script auxiliar em pasta temporária: o caminho passa pela allowlist de argumento, e assim dá
-// para testar processo de verdade sem afrouxar a regra que protege o runner.
+// Script auxiliar em pasta temporária. O argumento é o nome relativo, resolvido pelo `cwd`, e não
+// o caminho absoluto: caminho absoluto do Windows tem barra invertida e dois-pontos de unidade, que
+// a allowlist de argumento recusa de propósito. Testar com nome relativo prova o runner sem
+// afrouxar a regra que o protege.
 function script(corpo) {
   const pasta = fs.mkdtempSync(path.join(os.tmpdir(), 'kora-forge-proc-'));
   temporarias.push(pasta);
-  const arquivo = path.join(pasta, 'script.js');
-  fs.writeFileSync(arquivo, corpo);
+  const arquivo = 'script.js';
+  fs.writeFileSync(path.join(pasta, arquivo), corpo);
   return { pasta, arquivo };
 }
 
@@ -46,6 +65,49 @@ describe('validarComando', () => {
     for (const args of [['init'], ['install'], ['run', 'dev'], ['run', 'db:migrate'], ['--version']]) {
       expect(() => validarComando({ cmd: 'npm', args })).not.toThrow();
     }
+  });
+});
+
+describe('limparAnsi', () => {
+  const ESC = String.fromCharCode(27);
+
+  it('tira a cor e deixa o texto', () => {
+    expect(limparAnsi(`${ESC}[32mverde${ESC}[39m`)).toBe('verde');
+  });
+
+  // O caso que motivou a limpeza: o Vite parte o número da porta com sequência de cor no meio, e
+  // sem limpar ninguém acha a URL do projeto que acabou de nascer.
+  it('remonta a URL que o Vite quebra com cor no meio do número', () => {
+    expect(limparAnsi(`${ESC}[36mhttp://localhost:${ESC}[1m5175${ESC}[22m/${ESC}[39m`)).toBe('http://localhost:5175/');
+  });
+
+  // Guarda contra edição que coma o caractere de escape do arquivo: sem ele a expressão passaria a
+  // comer colchete de texto comum, e este teste fica vermelho na hora.
+  it('não encosta em colchete de texto comum', () => {
+    expect(limparAnsi('array[0] e um [aviso] normal')).toBe('array[0] e um [aviso] normal');
+    expect(limparAnsi('npm WARN [deprecated] pacote@1.0.0')).toBe('npm WARN [deprecated] pacote@1.0.0');
+  });
+
+  it('texto sem sequência nenhuma passa intacto', () => {
+    expect(limparAnsi('Initialized empty Git repository in C:/dev/x/.git/')).toBe('Initialized empty Git repository in C:/dev/x/.git/');
+    expect(limparAnsi('')).toBe('');
+  });
+
+  // Os três casos abaixo vieram do `PainelLog`, que limpava por conta própria na renderização. Na
+  // reconciliação das duas linhas de trabalho a limpeza passou a existir num lugar só, aqui, e a
+  // cobertura que só existia lá veio junto para não se perder.
+  it('tira sequência de título de janela, do escape até o BEL', () => {
+    const BEL = String.fromCharCode(7);
+    expect(limparAnsi(`${ESC}]0;npm run dev${BEL}servidor no ar`)).toBe('servidor no ar');
+  });
+
+  it('tira caractere de controle solto sem comer o resto', () => {
+    expect(limparAnsi(`carregando${String.fromCharCode(13)}pronto`)).toBe('carregandopronto');
+  });
+
+  it('acento, seta e emoji passam intactos', () => {
+    expect(limparAnsi('  ➜  Local: http://localhost:5173/ (Área)')).toBe('  ➜  Local: http://localhost:5173/ (Área)');
+    expect(limparAnsi('✓ instalação concluída')).toBe('✓ instalação concluída');
   });
 });
 
@@ -83,7 +145,12 @@ describe('executar', () => {
     const { terminou } = executar({ cmd: 'node', args: [arquivo], cwd: pasta, timeoutMs: 15000, onLinha: (stream, linha) => linhas.push([stream, linha]) });
     const resultado = await terminou;
     expect(resultado).toEqual({ estado: 'sucesso', exitCode: 0, erro: null });
-    expect(linhas).toEqual([['stdout', 'linha 1'], ['stdout', 'linha 2'], ['stderr', 'erro 1']]);
+    // A ordem é garantida dentro de cada stream, nunca entre os dois: stdout e stderr são canos
+    // separados, e quem chega primeiro depende do sistema operacional.
+    const so = (stream) => linhas.filter(([nome]) => nome === stream).map(([, linha]) => linha);
+    expect(so('stdout')).toEqual(['linha 1', 'linha 2']);
+    expect(so('stderr')).toEqual(['erro 1']);
+    expect(linhas).toHaveLength(3);
   });
 
   it('exit code diferente de zero vira falha com o código', async () => {
@@ -123,7 +190,11 @@ describe('executar', () => {
 
   it('binário inexistente vira falha com a mensagem do sistema, sem derrubar o Forge', async () => {
     const { pasta } = script('');
-    const { terminou } = executar({ cmd: 'supabase', args: ['--version'], cwd: pasta, timeoutMs: 5000 });
+    // 30s, e não 5s, porque o que este teste prova é que binário ausente vira falha limpa, nunca
+    // queda do Forge. Com a folga curta, a máquina sob carga devolvia `timeout`, um terceiro estado
+    // que a asserção recusa de propósito: aceitar `timeout` aqui faria um travamento de verdade
+    // passar despercebido. `sucesso` continua na lista porque a máquina pode ter o supabase.
+    const { terminou } = executar({ cmd: 'supabase', args: ['--version'], cwd: pasta, timeoutMs: 30000 });
     const resultado = await terminou;
     expect(['falha', 'sucesso']).toContain(resultado.estado);
   });
@@ -136,6 +207,74 @@ describe('executar', () => {
     const resultado = await terminou;
     expect(resultado.estado).toBe('cancelado');
     expect(parar(processo)).toBe(false);
+  });
+
+  // R-12. O teste acima usa um script folha, sem filhos, que era justamente o único caso que a
+  // implementação antiga atendia. Aqui vale a forma que quebrava de verdade: `npm run dev`, com o
+  // npm criando o processo que interessa. Medido antes de escrever este teste: matando só o
+  // processo direto, o npm morre e o servidor sobrevive, segurando porta e arquivos. Com um pai
+  // `node` simples o neto morre junto, e por isso um teste sintético não serviria de guarda.
+  it('parar mata também o processo que o npm criou', async () => {
+    const { pasta } = script('');
+    fs.writeFileSync(path.join(pasta, 'package.json'), JSON.stringify({
+      name: 'cenario-r12', version: '1.0.0', private: true, scripts: { dev: 'node servidor.js' },
+    }));
+    fs.writeFileSync(path.join(pasta, 'servidor.js'), 'console.log(process.pid);setInterval(() => {}, 1000);');
+
+    let servidor = null;
+    const { processo, terminou } = executar({
+      cmd: 'npm', args: ['run', 'dev'], cwd: pasta, timeoutMs: 60000, longaDuracao: true,
+      onLinha: (_stream, linha) => {
+        const numero = Number(linha.trim());
+        if (Number.isInteger(numero) && numero > 0 && numero !== processoDoTeste) servidor = numero;
+      },
+    });
+
+    for (let i = 0; i < 100 && servidor === null; i += 1) await new Promise((r) => setTimeout(r, 100));
+    expect(servidor).not.toBeNull();
+    expect(vivo(servidor)).toBe(true);
+
+    expect(parar(processo)).toBe(true);
+    expect((await terminou).estado).toBe('cancelado');
+
+    // O taskkill é assíncrono: a morte pode chegar um instante depois da do processo direto.
+    for (let i = 0; i < 60 && vivo(servidor); i += 1) await new Promise((r) => setTimeout(r, 100));
+    expect(vivo(servidor)).toBe(false);
+  });
+
+  // O timeout usa o mesmo caminho do parar. Sem isso, comando que estoura o tempo deixaria filho
+  // trabalhando enquanto o Forge diz que encerrou.
+  it('timeout também mata o processo que o npm criou', async () => {
+    const { pasta } = script('');
+    fs.writeFileSync(path.join(pasta, 'package.json'), JSON.stringify({
+      name: 'cenario-timeout', version: '1.0.0', private: true, scripts: { dev: 'node servidor.js' },
+    }));
+    fs.writeFileSync(path.join(pasta, 'servidor.js'), 'console.log(process.pid);setInterval(() => {}, 1000);');
+
+    let servidor = null;
+    const { terminou } = executar({
+      cmd: 'npm', args: ['run', 'dev'], cwd: pasta, timeoutMs: 4000,
+      onLinha: (_stream, linha) => {
+        const numero = Number(linha.trim());
+        if (Number.isInteger(numero) && numero > 0 && numero !== processoDoTeste) servidor = numero;
+      },
+    });
+
+    expect((await terminou).estado).toBe('timeout');
+    expect(servidor).not.toBeNull();
+    for (let i = 0; i < 60 && vivo(servidor); i += 1) await new Promise((r) => setTimeout(r, 100));
+    expect(vivo(servidor)).toBe(false);
+  });
+
+  // R-08. No Windows `npm` é um `.cmd`, e `spawn` sem shell não executa `.cmd`. O bug só apareceu
+  // rodando na máquina do dono, nunca em teste, então o teste passa a existir: ele roda o npm de
+  // verdade, que é a única forma de provar que o runner ainda funciona nas duas plataformas.
+  it('executa o npm de verdade, na plataforma em que está rodando', async () => {
+    let saida = '';
+    const { terminou } = executar({ cmd: 'npm', args: ['--version'], cwd: process.cwd(), timeoutMs: 60000, onLinha: (_s, linha) => { saida += linha; } });
+    const resultado = await terminou;
+    expect(resultado.estado).toBe('sucesso');
+    expect(saida.trim()).toMatch(/^\d+\.\d+\.\d+/);
   });
 
   it('valida o comando antes de qualquer spawn', () => {

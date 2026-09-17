@@ -1,0 +1,100 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+  padding: var(--forge-space-5);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--forge-text-lg);
+  line-height: var(--forge-leading-lg);
+}
+
+.descricao,
+.motivo,
+.detalhe {
+  margin: 0;
+  color: var(--forge-text-muted);
+}
+
+.detalhe {
+  font-size: var(--forge-text-sm);
+}
+
+.acao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--forge-space-3);
+}
+
+.link {
+  color: var(--forge-accent);
+}
+
+.erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+}
+
+.sucesso {
+  margin: 0;
+  color: var(--forge-success);
+}
+
+.falha {
+  margin: 0;
+  color: var(--forge-danger);
+}
+
+.resultado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.proposta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  padding: var(--forge-space-3);
+  background: var(--forge-surface-2);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-md);
+}
+
+.tituloProposta {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--forge-space-2);
+}

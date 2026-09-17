@@ -42,3 +42,19 @@ export function criarAppDeTeste({ pluginsApi = [], config: extra = {}, pastaDist
   };
   return { app, db, home, config, cabecalhos, fechar };
 }
+
+// Apagar pasta que um processo ainda segura dá EPERM no Windows, e o processo do runner morre
+// alguns milissegundos depois do pedido, porque matar árvore é assíncrono (R-12). As retentativas
+// síncronas do `fs.rmSync` não cedem tempo ao sistema; esperar de verdade entre as tentativas cede.
+export async function apagarQuandoLiberar(caminho, tentativas = 30, esperaMs = 100) {
+  for (let i = 0; i < tentativas; i += 1) {
+    try {
+      fs.rmSync(caminho, { recursive: true, force: true });
+      return true;
+    } catch (erro) {
+      if (i === tentativas - 1) throw erro;
+      await new Promise((resolver) => setTimeout(resolver, esperaMs));
+    }
+  }
+  return false;
+}

@@ -26,8 +26,16 @@ Construir o **Studio**, um editor visual embutido, com escopo deliberadamente es
 - Exporta: `tokens.css`, lista de páginas e rotas, e o esqueleto de layout de cada página
 - Layout exportado é estrutura (regiões, componentes, hierarquia), não pixel-perfect
 
-Implementação com DOM absoluto, zoom e pan, sem canvas 2D. Motivo: o que é DOM exporta
-para JSX quase um para um, e o preview é o componente real, não um desenho dele.
+Implementação em DOM, sem canvas 2D. Motivo: o que é DOM exporta para JSX quase um para
+um, e o preview é o componente real, não um desenho dele.
+
+> **Nota de 2026-09-05, bloco 4 da Fase 2.** Este ADR dizia "DOM absoluto, zoom e pan". O
+> **ADR-009**, decisão 2, fechou depois que o documento de design **não guarda coordenada**:
+> mover um componente é reordenar um array. As duas frases não convivem, e a que vale é a do
+> ADR-009, que é mais nova e é o contrato do documento. O que foi construído: a página é pilha
+> em fluxo, não posicionamento absoluto; o encaixe é a vaga na árvore que o `aceita` do pai
+> autoriza; o pan é rolagem; o zoom são degraus nomeados. Régua e grade de pixel não existem,
+> porque não existe posição livre para medir.
 
 ## Alternativas Consideradas
 

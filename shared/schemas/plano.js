@@ -9,6 +9,8 @@ export const arquivoPlanoSchema = z.strictObject({
   acao: z.enum(ACOES_ARQUIVO),
   tamanho: z.number().int().nonnegative(),
   tamanhoAtual: z.number().int().nonnegative().nullable(),
+  // Só existe para conflito no dry-run autenticado. Nunca vira entrada do runner.
+  conteudoAtual: z.string().nullable(),
   template: z.string().min(1),
   conteudo: z.string(),
 });
@@ -22,8 +24,13 @@ export const comandoPlanoSchema = z.strictObject({
   timeoutMs: z.number().int().positive(),
 });
 
+// `template`: o preset pede e o Forge não tem. `catalogo`: um nó do design usa item que saiu do
+// catálogo (ADR-009, decisão 4). `valor`: uma prop do design foi trocada pelo padrão porque o valor
+// não era seguro para o arquivo gerado. Nas três, o plano segue e diz o que ficou de fora.
+export const TIPOS_DE_PENDENCIA = Object.freeze(['template', 'catalogo', 'valor']);
+
 export const pendenciaSchema = z.strictObject({
-  tipo: z.enum(['template']),
+  tipo: z.enum(TIPOS_DE_PENDENCIA),
   item: z.string().min(1),
   motivo: z.string().min(1),
 });

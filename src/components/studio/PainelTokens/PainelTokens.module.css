@@ -1,0 +1,101 @@
+/* Painel de tokens. UI da ferramenta: só --forge-* (P-06). */
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-5);
+}
+
+.topo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+  align-items: flex-start;
+  padding-bottom: var(--forge-space-4);
+  border-bottom: 1px solid var(--forge-border);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forge-space-3);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--forge-text-muted);
+}
+
+.micro {
+  margin: 0;
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-3);
+}
+
+.cor {
+  display: flex;
+  gap: var(--forge-space-2);
+  align-items: center;
+}
+
+.seletor {
+  width: 40px;
+  min-height: 32px;
+  padding: 2px;
+  background: var(--forge-bg);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  cursor: pointer;
+}
+
+.seletor:focus-visible {
+  box-shadow: var(--forge-focus-ring);
+  outline: none;
+}
+
+.texto {
+  flex: 1;
+  min-height: 32px;
+  padding: 0 var(--forge-space-3);
+  background: var(--forge-bg);
+  color: var(--forge-text);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  font-family: var(--forge-font-mono);
+  font-size: var(--forge-text-sm);
+  transition: border-color var(--forge-motion-fast);
+}
+
+.texto:focus-visible {
+  border-color: var(--forge-accent);
+}
+
+.texto[aria-invalid="true"] {
+  border-color: var(--forge-danger);
+}
+
+.nota {
+  margin: 0;
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+  color: var(--forge-text-muted);
+}

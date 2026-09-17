@@ -1,0 +1,8 @@
+.pagina,.form,.lista { display: flex; flex-direction: column; gap: var(--forge-space-4); }
+.pagina { max-width: 640px; }
+.form,.lista { padding: var(--forge-space-4); border: 1px solid var(--forge-border); border-radius: var(--forge-radius-md); background: var(--forge-surface); }
+.micro { color: var(--forge-text-muted); font-size: var(--forge-text-sm); line-height: var(--forge-leading-sm); }
+.erro { color: var(--forge-danger); }
+.lista ul { margin: 0; padding-left: var(--forge-space-4); }
+.lista li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--forge-space-2); margin-bottom: var(--forge-space-2); }
+.semTeste { color: var(--forge-text-muted); font-size: var(--forge-text-sm); }

@@ -2,7 +2,7 @@
   "id": "criar-aplicacao-web",
   "nome": "Criar Aplicação Web",
   "descricao": "SaaS multi-tenant no padrão Kora: React, Vite, Supabase com RLS, auth e white-label.",
-  "versao": 1,
+  "versao": 2,
   "categoria": "aplicacao",
   "icone": "layers",
   "etapas": ["identidade", "escopo", "arquitetura", "design", "dados", "apis", "seguranca", "fundacao", "materializar"],
@@ -32,7 +32,7 @@
   ],
   "skills": ["fundacao-de-projeto", "loop-spec-build-review", "oop-refactor"],
   "mcps": ["playwright", "chrome-devtools", "supabase"],
-  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }],
+  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }, { "bin": "npm", "min": "11" }],
   "comandos": [
     { "id": "git-init", "cmd": "git", "args": ["init"], "obrigatorio": true },
     { "id": "install", "cmd": "npm", "args": ["install"], "obrigatorio": true, "timeout_ms": 600000 },

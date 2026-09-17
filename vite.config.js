@@ -17,7 +17,10 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       proxy: {
-        '/api': { target: `http://127.0.0.1:${portaApi}`, changeOrigin: true },
+        // `ws: true` nao e detalhe: sem ele o Vite nao encaminha o handshake de upgrade, e o
+        // log ao vivo (`/api/ws/runs/:runId`) fica mudo em `npm run forge`, que e o unico jeito
+        // de usar o produto em desenvolvimento. `vite.config.test.js` guarda esta linha.
+        '/api': { target: `http://127.0.0.1:${portaApi}`, changeOrigin: true, ws: true },
       },
     },
     preview: { host: '127.0.0.1' },

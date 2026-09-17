@@ -2,7 +2,7 @@
   "id": "criar-site",
   "nome": "Criar Site",
   "descricao": "Site institucional ou landing page. Sem auth, sem banco. Foco em design, performance e SEO.",
-  "versao": 1,
+  "versao": 2,
   "categoria": "site",
   "icone": "globe",
   "etapas": ["identidade", "escopo", "design", "seguranca", "fundacao", "materializar"],
@@ -20,7 +20,7 @@
   "regras_extras": ["ux-tem-ui-exige-design-system", "seo-meta-obrigatorio"],
   "skills": ["fundacao-de-projeto", "business-fundamentos-iman-gadzhi"],
   "mcps": ["playwright", "chrome-devtools"],
-  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }],
+  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }, { "bin": "npm", "min": "11" }],
   "comandos": [
     { "id": "git-init", "cmd": "git", "args": ["init"], "obrigatorio": true },
     { "id": "install", "cmd": "npm", "args": ["install"], "obrigatorio": true, "timeout_ms": 600000 },

@@ -1,0 +1,30 @@
+{
+  "id": "secao",
+  "versao": 1,
+  "papel": "regiao",
+  "nome": "Seção",
+  "descricao": "Um bloco de conteúdo da página. A maior parte do desenho vive dentro de seções.",
+  "microtexto": "Vira um <section> na ordem em que aparece na página.",
+  "props": [
+    {
+      "id": "espacamento",
+      "tipo": "opcao",
+      "rotulo": "Espaçamento",
+      "padrao": "normal",
+      "microtexto": "Quanto respiro a seção tem em volta do conteúdo.",
+      "opcoes": [
+        "compacto",
+        "normal",
+        "amplo"
+      ]
+    }
+  ],
+  "aceita": [
+    "titulo",
+    "texto",
+    "botao",
+    "imagem",
+    "campo",
+    "cartao"
+  ]
+}

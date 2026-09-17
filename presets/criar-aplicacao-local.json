@@ -2,7 +2,7 @@
   "id": "criar-aplicacao-local",
   "nome": "Criar Aplicação Local",
   "descricao": "Aplicação que roda na máquina, sem nuvem: front local, backend Node e SQLite. É o preset que o próprio Forge usaria.",
-  "versao": 1,
+  "versao": 2,
   "categoria": "aplicacao",
   "icone": "hard-drive",
   "etapas": ["identidade", "escopo", "arquitetura", "design", "dados", "seguranca", "fundacao", "materializar"],
@@ -34,7 +34,7 @@
   ],
   "skills": ["fundacao-de-projeto", "loop-spec-build-review", "oop-refactor"],
   "mcps": ["playwright", "chrome-devtools"],
-  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }],
+  "requisitos": [{ "bin": "node", "min": "20" }, { "bin": "git" }, { "bin": "npm", "min": "11" }],
   "comandos": [
     { "id": "git-init", "cmd": "git", "args": ["init"], "obrigatorio": true },
     { "id": "install", "cmd": "npm", "args": ["install"], "obrigatorio": true, "timeout_ms": 600000 },

@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { z } from 'zod';
 import { obter, alterar, ErroApi, validarContrato } from './api.js';
@@ -85,5 +87,40 @@ describe('camada de serviços', () => {
       expect(erro.codigo).toBe('FORGE_CONTRACT');
       expect(erro.detalhe.issues[0].caminho).toBe('a');
     }
+  });
+});
+
+// R-10. O React Query chama `mutationFn` com `(variaveis, contexto)`. Entregar a função de serviço
+// nua faz o contexto, com `client`, `meta` e `mutationKey`, chegar como segundo argumento de quem
+// nunca pediu. Hoje nenhum serviço lê esse parâmetro, então o defeito é silencioso; vira barulho no
+// dia em que um passar a aceitar opções, que é a forma que `requisitar` já usa.
+//
+// Varredura no espírito do P-09: a regra vale para o código inteiro, e o teste diz quem quebrou.
+describe('mutationFn nunca recebe a função de serviço nua', () => {
+  const ENCAPSULADA = /^(\(|async\b|function\b)/;
+  const DECLARACAO = /\bmutationFn\s*:\s*(.+)$/;
+
+  it('toda mutationFn é função encapsulada', () => {
+    const raiz = path.join(process.cwd(), 'src');
+    const problemas = [];
+
+    const caminhar = (pasta) => {
+      for (const entrada of fs.readdirSync(pasta, { withFileTypes: true })) {
+        const caminho = path.join(pasta, entrada.name);
+        if (entrada.isDirectory()) { caminhar(caminho); continue; }
+        if (!/\.jsx?$/.test(entrada.name) || /\.test\.jsx?$/.test(entrada.name)) continue;
+
+        const linhas = fs.readFileSync(caminho, 'utf8').split('\n');
+        linhas.forEach((linha, indice) => {
+          const valor = DECLARACAO.exec(linha)?.[1]?.trim();
+          // Encapsulada começa com `(`, com `async` ou com `function`. Identificador nu não.
+          if (!valor || ENCAPSULADA.test(valor)) return;
+          problemas.push(`${path.relative(raiz, caminho)}:${indice + 1}  mutationFn: ${valor}`);
+        });
+      }
+    };
+
+    caminhar(raiz);
+    expect(problemas).toEqual([]);
   });
 });

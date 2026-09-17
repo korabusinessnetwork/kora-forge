@@ -60,8 +60,8 @@
 
 | Pergunta | Resposta |
 |---|---|
-| Identidade visual | `[ASSUMIDO]` Tema escuro por padrão com alternância para claro, densidade alta de informação, estética de ferramenta de trabalho. Revisar na Fase 2. |
-| Referências | `[ASSUMIDO]` Linear, Raycast e Vercel Dashboard como tom, sem cópia visual. |
+| Identidade visual | Tema escuro por padrão com alternância para claro, densidade alta de informação, estética de ferramenta de trabalho. **Confirmado pelo dono em 2026-09-05**, antes da Fase 2. |
+| Referências | Linear, Raycast e Vercel Dashboard como tom, sem cópia visual. **Confirmado pelo dono em 2026-09-05.** |
 | Contexto de uso | Desktop, Windows, teclado e mouse, sessões longas. Não precisa ser responsivo para mobile. |
 
 ## Resumo de 5 linhas (confirmado antes de gerar os arquivos)

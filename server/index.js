@@ -9,6 +9,7 @@ import { carregarPresetsBuiltin, sincronizarPresets } from './modules/presets/se
 import { carregarRegrasBuiltin, sincronizarRegras } from './modules/regras/servico.js';
 import { carregarTemplatesBuiltin } from './modules/gerador/servico.js';
 import { construirApp } from './app.js';
+import { abrirNoBrowser, apagarPaginaDeAbertura, esperarPorta } from './lib/abrirNoBrowser.js';
 
 const RAIZ = fileURLToPath(new URL('../', import.meta.url));
 // --dev (npm run forge): o front vem do Vite, dist/ é ignorado mesmo que exista um build antigo.
@@ -17,6 +18,8 @@ const MODO_DEV = process.argv.includes('--dev');
 async function iniciar() {
   const config = carregarConfig({ raiz: RAIZ });
   prepararHome(config.home);
+  // Sobra de um boot anterior que morreu antes de limpar. O token dela já está morto, mas some.
+  apagarPaginaDeAbertura(config.home);
   const db = abrirBanco(path.join(config.home, 'forge.db'));
   const migradas = migrar(db);
   const presets = sincronizarPresets(db, carregarPresetsBuiltin());
@@ -47,8 +50,20 @@ async function iniciar() {
   console.log(`  ${url}`);
   console.log('');
 
+  if (config.abrirBrowser) {
+    // Quando o front vem do Vite, ele sobe em paralelo e quase sempre depois da API. Abrir antes
+    // disso levaria o usuário a uma porta morta.
+    const pronto = servindoFront ? true : await esperarPorta(config.portaDev);
+    if (pronto) {
+      abrirNoBrowser(url, { home: config.home });
+    } else {
+      console.log('O dev server não respondeu a tempo. Abra o link acima quando ele subir.');
+    }
+  }
+
   const encerrar = async () => {
     // onClose do app mata os processos filhos: dev server não fica órfão.
+    apagarPaginaDeAbertura(config.home);
     await app.close();
     db.close();
     process.exit(0);

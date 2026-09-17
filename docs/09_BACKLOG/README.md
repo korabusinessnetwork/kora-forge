@@ -1,6 +1,6 @@
 # 09, Backlog
 
-Detalhe da Fase 1 em `mvp.md`.
+Detalhe da Fase 1 em `mvp.md`, entregue. Detalhe da Fase 2 em `fase2.md`, em andamento.
 
 ## Regras
 
@@ -21,6 +21,8 @@ Detalhe da Fase 1 em `mvp.md`.
 
 ## Fase 2, Studio
 
+Quebrada em sete blocos em `fase2.md`, com critério de aceite da fase e ordem de construção.
+
 - Canvas com zoom, pan e snap
 - Painel de tokens com preview ao vivo
 - Biblioteca de regiões e componentes espelhando o design system do projeto
@@ -30,9 +32,11 @@ Detalhe da Fase 1 em `mvp.md`.
 
 ## Fase 3, API Hub e cofre
 
-- Cofre AES-256-GCM com senha mestre (ADR-006)
+- [x] Cofre AES-256-GCM com senha mestre, arquivo local separado e conexão genérica (bloco 1,
+  [`fase3-bloco1-cofre-anthropic.md`](../../specs/fase3-bloco1-cofre-anthropic.md))
+- [x] Teste manual por conexão genérica, com URL, cabeçalho e prefixo definidos pela pessoa (bloco 2,
+  [`fase3-bloco2-teste-de-conexao.md`](../../specs/fase3-bloco2-teste-de-conexao.md))
 - Modelos: Supabase, Anthropic, Stripe, Mercado Pago, WhatsApp Cloud API, Resend
-- Teste de conexão por modelo, obrigatório
 - Geração de `.env.example` e do cliente na camada de serviços
 - Teste que garante que nenhuma rota serializa segredo
 

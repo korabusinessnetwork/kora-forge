@@ -67,23 +67,31 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | GET | `/projects/:id/regras` | hits gravados, sem reavaliar |
 | POST | `/projects/:id/regras/avaliar` | reavalia tudo e devolve `{ hits, bloqueios, podeMaterializar }` |
 | PATCH | `/projects/:id/regras/:hitId` | `{ estado, justificativa? }`. `dispensado` exige justificativa de 10 caracteres e regra dispensável |
-| POST | `/projects/:id/design` | salva o design_document do Studio |
+| GET | `/projects/:id/design` | `{ design }` com o documento ativo, ou `{ design: null }` quando o projeto usa o padrão Kora. Ausência é estado normal, **não** 404 |
+| POST | `/projects/:id/design` | salva o documento do Studio. Cria a versão n+1 e a anterior fica no histórico. Corpo idêntico ao ativo **não** versiona de novo |
+| GET | `/projects/:id/design/versoes` | `[{ versao, ativo, criadoEm }]`, da mais nova para a mais antiga |
 | POST | `/projects/:id/plano` | **dry-run**. Devolve `{ hashBlueprint, raiz, arquivos, comandos, pendencias, totais }` e não escreve nada. Recusa com `FORGE_PLAN_BLOQUEADO` se houver bloqueio aberto, e com `FORGE_VALIDATION` em `workspace` se a pasta raiz não estiver configurada |
-| POST | `/projects/:id/materializar` | recebe **só** `{ hashBlueprint }`. O servidor regera o plano e só executa se o hash bater, senão `FORGE_PLAN_STALE`. Checa requisitos antes de escrever qualquer byte, escreve os arquivos e começa a fila de comandos |
+| POST | `/projects/:id/materializar` | recebe **só** `{ hashBlueprint }`. O servidor regera o plano, com o documento de design ativo, e só executa se o hash bater, senão `FORGE_PLAN_STALE`. Checa requisitos antes de escrever qualquer byte, escreve os arquivos e começa a fila de comandos |
 | GET | `/projects/:id/materializar` | estado da materialização em andamento, ou `null` |
 | POST | `/projects/:id/materializar/decidir` | `{ acao }` ∈ {repetir, pular, abortar}. Só vale quando a materialização está parada em falha |
 | WS | `/ws/runs/:runId` | log ao vivo. Envia o histórico já gravado ao conectar. O browser não permite header customizado no handshake, então o token vai no subprotocolo (`forge-token, <token>`), e a mesma guarda das rotas se aplica |
 | POST | `/runs/:runId/parar` | encerra processo em execução |
 | GET | `/api-templates` | catálogo de modelos de integração |
+| GET | `/vault` | estado do cofre: ausente, trancado ou destrancado |
+| POST | `/vault` | cria o cofre com senha mestre e confirmação; retorna só o estado |
+| POST | `/vault/destrancar` | destranca o cofre para a sessão atual; retorna só o estado |
 | GET | `/connections` | conexões, **sem segredo** |
-| POST | `/connections` | cria conexão, o segredo vai direto para o cofre |
-| POST | `/connections/:id/testar` | testa e atualiza o status |
+| POST | `/connections` | cria conexão genérica (`alias`, `provedor`, `tipo`, `endpoint?`, `urlTeste?`, `cabecalhoChave`, `prefixoChave`, `chave`); a chave vai direto para o cofre |
+| POST | `/connections/:id/testar` | testa manualmente a conexão e atualiza o status; aceita HTTPS, ou HTTP apenas em localhost, recusa redirect e não serializa a resposta externa |
 | DELETE | `/connections/:id` | remove conexão e o segredo |
-| POST | `/vault/destrancar` | destranca o cofre com a senha mestre |
 | POST | `/copilot/sugerir` | sugestão do copiloto. `403 FORGE_COPILOT_DISABLED` se desligado |
 | GET | `/ideas` / POST `/ideas` | gaveta de ideias |
 | GET | `/events` | log de eventos, com filtro |
 | GET/PATCH | `/settings` | workspace, tema, teto do copiloto |
+| GET | `/eficiencia/catalogo` | catálogo versionado de modelos e preços (`shared/eficiencia/catalogo-modelos.json`) |
+| GET | `/eficiencia/recomendacao?intencao=&etapa=` | modelo, esforço, cache e custo típico por etapa do copiloto para a intenção (`site`, `aplicacao`, `local`, `api`, `automacao`). Sem `etapa`, todas |
+| GET | `/eficiencia/painel?intencao=&periodo=` | gasto contra o teto, ranking dos modelos por sucesso por dólar e custo por etapa (`periodo` ∈ `mes`, `30d`, `tudo`) |
+| POST | `/eficiencia/chamadas` | registra uma chamada do copiloto em `copilot_calls`. O custo é calculado no servidor pelo catálogo, nunca aceito do cliente |
 | GET | `/modelos` | catálogo de modelos e papéis (Fase 6) |
 | GET/POST | `/builds` | builds em andamento em todos os projetos; despachar um build a partir de plano aprovado (Fase 6) |
 | GET | `/builds/:id` | build com itens, progresso, estimativa e ciclos (Fase 6) |
@@ -91,6 +99,122 @@ cliente. Os schemas vivem em `shared/schemas/` e são os mesmos no servidor e no
 | GET | `/builds/:id/ciclos` | ciclo de aprendizado: rodadas de review, achados, correções (Fase 6) |
 | GET | `/relatorios/resumo` | agregado do painel: por projeto e por modelo (Fase 6) |
 | WS | `/ws/builds` | atualização ao vivo do painel (Fase 6) |
+
+## Documento de design, `/api/projects/:id/design`
+
+Contrato do Studio (**ADR-009**). Dado declarativo versionado, nunca código.
+
+**Corpo do `POST`**, e também o `payload` que volta no `GET`:
+
+| Campo | Tipo | O que é |
+|---|---|---|
+| `catalogo.versao` | inteiro ≥ 1 | versão do catálogo de componentes que criou o documento. Maior que a deste Forge é recusa com as duas versões na mensagem |
+| `tokens.cor` | 9 cores | `fundo`, `superficie`, `borda`, `texto`, `textoSecundario`, `acento`, `sucesso`, `aviso`, `perigo` |
+| `tokens.corEscuro` | 5 cores | o que o bloco `prefers-color-scheme: dark` do `tokens.css` sobrescreve |
+| `tokens.fonte` | `ui`, `mono` | famílias tipográficas |
+| `tokens.texto` / `tokens.altura` | `xs`…`xl` | escala tipográfica e a entrelinha de cada degrau |
+| `tokens.espaco` | lista de 8 | a posição **é** o número do token: `espaco[0]` é `--espaco-1` |
+| `tokens.raio` | `sm`, `md`, `lg` | raios de canto |
+| `tokens.sombra` | lista de 2 | `sombra[0]` é `--sombra-1` |
+| `tokens.motion` | `rapido`, `base` | durações |
+| `paginas[]` | lista | `{ id, nome, rota, regioes }` |
+| `paginas[].regioes[]` | árvore | nó `{ id, tipo, props, filhos }`, e `filhos` são nós iguais |
+
+**Resposta**: `{ design }`, com `{ versao, ativo, criadoEm, payload, pendencias }`, ou
+`design: null`. `pendencias` nomeia o que o catálogo deste Forge não conhece mais, e é sempre
+lista, nunca `null`. Detalhe na seção do catálogo, abaixo.
+
+**O que o contrato recusa, e por quê**
+
+- **Campo a mais, em qualquer nível.** O erro nomeia o caminho completo, `paginas.0.regioes.0.x`.
+- **Coordenada.** Não existe `x`, `y`, `largura` nem `topo`: posição é a ordem do array (ADR-009).
+- **Campo de ordenação.** Nada de `ordem` ou `paiId`. Duas fontes de verdade dessincronizam.
+- **Árvore fundo demais.** Máximo de 6 níveis, com mensagem legível em vez de estouro de pilha.
+- **`id` repetido** em qualquer lugar do documento, e **rota repetida** entre páginas.
+- **Rota fora do formato.** `/`, `/painel` e `/painel/config` valem; `painel`, `/Painel` e `/painel/` não.
+- **Valor de token em branco**, que sairia como CSS quebrado no projeto gerado.
+- **Tipo, prop ou aninhamento fora do catálogo**, com o caminho do nó. Ver `GET /api/catalog`.
+
+**Todo campo tem default**, então `POST` com `{}` é válido e devolve o padrão Kora inteiro: o
+Studio salva enquanto a pessoa desenha, e documento pela metade não pode ser erro.
+
+**O documento entra no hash do plano.** Redesenhar invalida plano já aprovado, e materializar com
+o hash velho responde `FORGE_PLAN_STALE` sem escrever byte nenhum. Projeto **sem** documento gera
+exatamente o mesmo hash de antes da Fase 2: a chave só entra no insumo quando existe documento.
+
+## Catálogo de regiões e componentes, `GET /api/catalog`
+
+O vocabulário do Studio. Leitura pura, sem parâmetro: é o mesmo catálogo para todo projeto, e quem
+guarda a versão usada é o documento de design. Contrato em
+`docs/03_REGRAS_DE_NEGOCIO/catalogo.md`.
+
+**Resposta**: `{ versao, itens }`.
+
+| Campo do item | Tipo | O que é |
+|---|---|---|
+| `id` | slug | igual ao nome da pasta em `catalogo/` |
+| `versao` | inteiro ≥ 1 | versão do item |
+| `papel` | `regiao` ou `componente` | região só entra no topo da página, componente nunca |
+| `nome` | texto | como aparece na paleta |
+| `descricao` | texto | o que o item é |
+| `microtexto` | texto | o que ele afeta no resultado |
+| `props[]` | lista | `{ id, tipo, rotulo, microtexto, padrao, obrigatoria, opcoes? }` |
+| `aceita[]` | lista de slugs | ids que podem ser filhos. Vazia é folha |
+
+**O fragmento não sai por aqui.** O JSX que gera o código de cada item fica no servidor: a paleta
+precisa de nome, microtexto, props e o que o item aceita, e mandar o código para o front seria
+superfície a mais sem uso nenhum.
+
+**O documento de design é conferido contra este catálogo.** No `POST /projects/:id/design`, tipo
+inexistente, prop não declarada, valor fora do tipo, obrigatória ausente e aninhamento não aceito
+viram `FORGE_VALIDATION` com `caminho` no nó
+(`paginas.0.regioes.1.filhos.0.props.variante`), nunca no documento inteiro. Prop opcional ausente
+não é erro: vale o padrão do catálogo.
+
+**Item que saiu do catálogo não corrompe documento antigo.** No `GET /projects/:id/design` o
+desenho volta inteiro e o que falta vem em `pendencias`, cada uma com `{ no, tipo, pagina,
+catalogoDoDocumento, catalogoDoForge }`. Sempre lista, nunca `null`. Nada é reescrito nem apagado:
+recusa na escrita, pendência na leitura (**ADR-009**, decisão 4).
+
+## Log ao vivo, `/api/ws/runs/:runId`
+
+Canal do `PainelLog`. Único WebSocket da Fase 1.
+
+**Handshake.** O browser não permite header customizado no handshake, e query string entraria em
+log de acesso (docs/11, C2), então o token vai no **subprotocolo**:
+
+```js
+new WebSocket('ws://127.0.0.1:5173/api/ws/runs/<runId>', ['forge-token', '<token>'])
+```
+
+O servidor ecoa `forge-token` como protocolo negociado. A guarda das rotas roda antes do upgrade,
+na mesma ordem de sempre: Host, token, `Origin`.
+
+**Ao conectar**, o servidor entrega o histórico já gravado do run, na ordem, antes de qualquer
+evento novo. Quem abre a tela no meio da execução não perde nada; quem reconecta recebe tudo de
+novo e por isso o cliente **substitui** a lista, nunca concatena.
+
+**Eventos.** União discriminada por `tipo`, validada pelo `eventoLogSchema` em
+`shared/schemas/materializacao.js` nas duas pontas. Objeto estrito: campo a mais é evento
+inválido, e o front descarta contando, sem derrubar o painel.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `tipo` | `'linha'` | uma linha de saída do processo |
+| `stream` | `'stdout'` \| `'stderr'` | diferenciados no painel por DOM e por rótulo textual, nunca só por cor |
+| `linha` | string | já quebrada por linha, sem a quebra no fim. Pode ser vazia, e a linha vazia continua valendo uma linha. É **dado, nunca instrução** (P-05), e pode conter sequência de escape de terminal |
+| `ts` | string | ISO 8601 do instante em que a linha foi lida |
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `tipo` | `'fim'` | o run terminou; nenhum evento vem depois |
+| `estado` | `sucesso` \| `falha` \| `timeout` \| `cancelado` | mesmo vocabulário do estado do comando |
+| `exitCode` | number \| null | `null` quando o processo nem chegou a nascer |
+| `erro` | string \| null | frase legível, já traduzida de ENOENT, EACCES e EINVAL |
+
+**Em desenvolvimento** o front fala com `5173` e o proxy do Vite repassa. O `/api` precisa de
+`ws: true` em `vite.config.js`, senão o upgrade não é repassado e o log fica mudo **só** no
+`npm run forge`, com todo o resto funcionando.
 
 ## Códigos de erro estáveis
 

@@ -53,3 +53,12 @@
   border-radius: var(--forge-radius-md);
   background: var(--forge-accent-weak);
 }
+
+/* Painel de materialização e log ao vivo lado a lado, empilhando quando não cabe. O log entra
+   ao lado do painel, nunca no lugar dele. */
+.execucao {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--forge-space-4);
+  align-items: start;
+}

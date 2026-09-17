@@ -1,0 +1,48 @@
+{
+  "id": "campo",
+  "versao": 1,
+  "papel": "componente",
+  "nome": "Campo de formulário",
+  "descricao": "Rótulo, entrada e microtexto, no padrão de campo que o Kora usa em todo projeto.",
+  "microtexto": "Vira rótulo, input e microtexto ligados, com o tipo de entrada escolhido.",
+  "props": [
+    {
+      "id": "rotulo",
+      "tipo": "texto",
+      "rotulo": "Rótulo",
+      "padrao": "Nome",
+      "obrigatoria": true,
+      "microtexto": "O nome do campo, visível acima da entrada."
+    },
+    {
+      "id": "microtexto",
+      "tipo": "texto",
+      "rotulo": "Microtexto",
+      "padrao": "Diga aqui o que este campo afeta.",
+      "obrigatoria": true,
+      "microtexto": "A linha abaixo do campo que diz o que ele afeta. Obrigatória, regra 3 do design system."
+    },
+    {
+      "id": "tipo",
+      "tipo": "opcao",
+      "rotulo": "Tipo de entrada",
+      "padrao": "text",
+      "opcoes": [
+        "text",
+        "email",
+        "password",
+        "number",
+        "tel"
+      ],
+      "microtexto": "Muda o teclado no celular e a validação do browser."
+    },
+    {
+      "id": "obrigatorio",
+      "tipo": "booleano",
+      "rotulo": "Obrigatório",
+      "padrao": false,
+      "microtexto": "Anuncia para leitor de tela que o campo precisa ser preenchido."
+    }
+  ],
+  "aceita": []
+}

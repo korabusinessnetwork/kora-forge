@@ -24,8 +24,9 @@ async function projetoWeb(ctx, nome = 'Alfa') {
 const avaliar = (ctx, id) => post(ctx, `/api/projects/${id}/regras/avaliar`);
 const acharHit = (corpo, regraId) => corpo.data.hits.find((hit) => hit.regraId === regraId);
 
-const blueprintWeb = (extra = {}) => ({
-  preset: { id: 'criar-aplicacao-web', versao: 1 },
+// A versão vem do projeto, nunca cravada: bumpar um builtin não pode quebrar teste de regra.
+const blueprintWeb = (projeto, extra = {}) => ({
+  preset: { id: projeto.presetId, versao: projeto.presetVersao },
   etapaAtual: 'arquitetura', etapasConcluidas: [], assumidas: [], respostas: {}, ...extra,
 });
 
@@ -79,7 +80,7 @@ describe('POST /projects/:id/regras/avaliar', () => {
   it('hit de resolução automática nasce resolvido e não bloqueia', async () => {
     const ctx = novo();
     const projeto = await projetoWeb(ctx);
-    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb({ respostas: { arquitetura: { modelo: 'A', stack: ['react', 'supabase'], multiTenant: true, whiteLabel: true, auth: true, deploy: 'vercel' } } }));
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb(projeto, { respostas: { arquitetura: { modelo: 'A', stack: ['react', 'supabase'], multiTenant: true, whiteLabel: true, auth: true, deploy: 'vercel' } } }));
     const corpo = (await avaliar(ctx, projeto.id)).json();
     expect(acharHit(corpo, 'seg-rls-obrigatorio')).toMatchObject({ estado: 'resolvido', severidade: 'bloqueio', resolucao: 'automatica' });
     expect(acharHit(corpo, 'arq-auth-exige-rota-protegida')).toMatchObject({ estado: 'resolvido', severidade: 'aviso' });
@@ -105,13 +106,13 @@ describe('POST /projects/:id/regras/avaliar', () => {
     await avaliar(ctx, projeto.id);
     const arquitetura = (multiTenant) => ({ modelo: 'A', stack: ['react'], multiTenant, whiteLabel: true, auth: false, deploy: 'vercel' });
 
-    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb({ assumidas: ['design'], respostas: { arquitetura: arquitetura(true), design: {} } }));
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb(projeto, { assumidas: ['design'], respostas: { arquitetura: arquitetura(true), design: {} } }));
     const corrigido = (await avaliar(ctx, projeto.id)).json();
     expect(acharHit(corrigido, 'arq-multitenant-obrigatorio').estado).toBe('resolvido');
     expect(acharHit(corrigido, 'ux-tem-ui-exige-design-system').estado).toBe('resolvido');
     expect(corrigido.data.podeMaterializar).toBe(true);
 
-    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb({ assumidas: ['design'], respostas: { arquitetura: arquitetura(false), design: {} } }));
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb(projeto, { assumidas: ['design'], respostas: { arquitetura: arquitetura(false), design: {} } }));
     const voltou = (await avaliar(ctx, projeto.id)).json();
     expect(acharHit(voltou, 'arq-multitenant-obrigatorio').estado).toBe('aberto');
     expect(voltou.data.podeMaterializar).toBe(false);
@@ -121,7 +122,7 @@ describe('POST /projects/:id/regras/avaliar', () => {
     const ctx = novo();
     const projeto = await projetoWeb(ctx);
     expect(ctx.db.prepare('SELECT count(*) AS n FROM rule_hits WHERE project_id = ?').get(projeto.id).n).toBe(0);
-    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb());
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb(projeto));
     expect(ctx.db.prepare('SELECT count(*) AS n FROM rule_hits WHERE project_id = ?').get(projeto.id).n).toBeGreaterThan(0);
   });
 
@@ -147,7 +148,7 @@ describe('GET /projects/:id/regras', () => {
 describe('PATCH /projects/:id/regras/:hitId', () => {
   async function comHitDispensavel(ctx) {
     const projeto = await projetoWeb(ctx);
-    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb({ respostas: { seguranca: { dadoPessoal: false, dadoFinanceiro: false, compliance: [], tierGratuito: false, observacoes: '' } } }));
+    await post(ctx, `/api/projects/${projeto.id}/blueprint`, blueprintWeb(projeto, { respostas: { seguranca: { dadoPessoal: false, dadoFinanceiro: false, compliance: [], tierGratuito: false, observacoes: '' } } }));
     const corpo = (await avaliar(ctx, projeto.id)).json();
     return { projeto, hit: acharHit(corpo, 'custo-servico-pago') };
   }

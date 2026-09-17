@@ -1,4 +1,5 @@
 import LinhaPlano from '../LinhaPlano/LinhaPlano.jsx';
+import VisualizadorDiff from '../VisualizadorDiff/VisualizadorDiff.jsx';
 import Chave from '../../shared/Chave/Chave.jsx';
 import { formatarBytes, pastaDe } from '../../../utils/formatarBytes.js';
 import { mensagens } from '../../../mensagens.js';
@@ -33,9 +34,12 @@ export default function PainelPlano({ plano }) {
         <section className={estilos.conflitos} aria-labelledby="titulo-conflitos">
           <h3 id="titulo-conflitos" className={estilos.subtitulo}>{m.conflitos(conflitos.length)}</h3>
           <p className={estilos.aviso}>{m.conflitoExplicacao}</p>
-          <ul className={estilos.lista}>
-            {conflitos.map((arquivo) => <LinhaPlano key={arquivo.caminho} arquivo={arquivo} />)}
-          </ul>
+            <ul className={estilos.lista}>
+              {conflitos.flatMap((arquivo) => [
+                <LinhaPlano key={arquivo.caminho} arquivo={arquivo} />,
+                <li key={`${arquivo.caminho}-diff`}><VisualizadorDiff arquivo={arquivo} /></li>,
+              ])}
+            </ul>
         </section>
       ) : null}
 

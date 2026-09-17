@@ -1,0 +1,27 @@
+{
+  "id": "imagem",
+  "versao": 1,
+  "papel": "componente",
+  "nome": "Imagem",
+  "descricao": "Uma imagem com texto alternativo obrigatório.",
+  "microtexto": "Vira uma <img> com src e alt no projeto gerado.",
+  "props": [
+    {
+      "id": "origem",
+      "tipo": "texto",
+      "rotulo": "Caminho do arquivo",
+      "padrao": "/imagens/exemplo.svg",
+      "obrigatoria": true,
+      "microtexto": "O caminho da imagem dentro do projeto gerado."
+    },
+    {
+      "id": "alternativo",
+      "tipo": "texto",
+      "rotulo": "Texto alternativo",
+      "padrao": "Descreva o que a imagem mostra",
+      "obrigatoria": true,
+      "microtexto": "O que um leitor de tela vai anunciar. Obrigatório, e por isso não tem como esquecer."
+    }
+  ],
+  "aceita": []
+}

@@ -1,6 +1,19 @@
+import { listarTokens, TOKENS_PADRAO } from './schemas/design.js';
+
 // Mapa de valores do gerador: toda chave que qualquer template usa tem um valor string, sempre.
 // Resposta em branco vira um texto honesto e visível, nunca string vazia silenciosa.
 export const A_DEFINIR = '_a definir_';
+
+// Chave do `tokens.css` para cada token, derivada da variável que o arquivo gerado usa, sem segunda
+// tabela de nomes: `--cor-fundo` vira TOKEN_COR_FUNDO, e a mesma cor no bloco escuro,
+// TOKEN_ESCURO_COR_FUNDO (Fase 2, bloco 6).
+export function chaveDoToken({ variavel, escuro = false }) {
+  return `TOKEN_${escuro ? 'ESCURO_' : ''}${variavel.slice(2).replace(/-/g, '_').toUpperCase()}`;
+}
+
+function valoresDosTokens(tokens) {
+  return Object.fromEntries(listarTokens(tokens).map((entrada) => [chaveDoToken(entrada), entrada.valor]));
+}
 
 export const DESCRICAO_MODELO = Object.freeze({
   A: 'Modelo A, SPA com backend como serviço (Supabase direto do front, com RLS)',
@@ -35,7 +48,9 @@ export function pastaDeDados(modelo) {
   return modelo === 'B' ? 'server' : 'supabase';
 }
 
-export function montarValores(contexto, { data, projeto, preset }) {
+// `tokens` são os do design efetivo. Sem design, valem os do padrão Kora, que reproduzem byte a
+// byte o tokens.css de antes da Fase 2.
+export function montarValores(contexto, { data, projeto, preset, tokens = TOKENS_PADRAO }) {
   const { identidade, escopo, arquitetura, dados, seguranca, fundacao } = contexto;
   return {
     PROJETO: projeto.nome,
@@ -75,6 +90,8 @@ export function montarValores(contexto, { data, projeto, preset }) {
     PRESET_VERSAO: String(preset.versao),
     ETAPAS_ASSUMIDAS: linha(contexto.assumidas, 'Nenhuma. Todas as etapas foram respondidas'),
     TEM_UI: simNao(contexto.temUi),
+
+    ...valoresDosTokens(tokens),
   };
 }
 

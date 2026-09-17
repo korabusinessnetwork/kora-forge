@@ -1,0 +1,54 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+  padding: var(--forge-space-5);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--forge-text-lg);
+  line-height: var(--forge-leading-lg);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+  max-width: 640px;
+}
+
+.texto {
+  min-height: 72px;
+  padding: var(--forge-space-2) var(--forge-space-3);
+  background: var(--forge-bg);
+  color: var(--forge-text);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-sm);
+  font: inherit;
+  font-size: var(--forge-text-sm);
+  resize: vertical;
+}
+
+.texto:focus-visible {
+  border-color: var(--forge-accent);
+  outline: none;
+  box-shadow: var(--forge-focus-ring);
+}
+
+.sucesso {
+  margin: 0;
+  color: var(--forge-success);
+}
+
+.falha {
+  margin: 0;
+  color: var(--forge-danger);
+}
+
+.acoes {
+  display: flex;
+}

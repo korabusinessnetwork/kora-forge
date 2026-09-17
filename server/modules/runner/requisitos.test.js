@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { extrairVersao, versaoAtende, juntarRequisitos, checarRequisitos, REQUISITOS_BASE } from './requisitos.js';
 
@@ -42,6 +45,15 @@ describe('checarRequisitos', () => {
     expect(resultado.find((r) => r.bin === 'git').ok).toBe(true);
   });
 
+  // R-08: no Windows o npm é `.cmd` e não era encontrado, o que fazia a checagem acusar ferramenta
+  // ausente numa máquina que tem npm instalado.
+  it('encontra o npm que o preset exige', async () => {
+    const resultado = await checarRequisitos({ requisitos: [{ bin: 'npm', min: '9' }] }, process.cwd());
+    const npm = resultado.find((r) => r.bin === 'npm');
+    expect(npm.ok).toBe(true);
+    expect(npm.encontrada).toMatch(/^\d+\.\d+/);
+  });
+
   it('mínimo acima do instalado marca como ausente, mostrando a versão encontrada', async () => {
     const resultado = await checarRequisitos({ requisitos: [{ bin: 'node', min: '999' }] }, process.cwd());
     const node = resultado.find((r) => r.bin === 'node');
@@ -54,5 +66,41 @@ describe('checarRequisitos', () => {
     const resultado = await checarRequisitos({ requisitos: [{ bin: 'docker' }] }, process.cwd());
     const docker = resultado.find((r) => r.bin === 'docker');
     expect(docker).toMatchObject({ ok: false, encontrada: null });
+  });
+});
+
+// R-07: o `npm install` do projeto gerado quebra no resolvedor do npm 10.9.7 e passa limpo no
+// npm 11. A saída escolhida foi exigir npm 11 no preset, e não afrouxar a resolução de peers de
+// todo projeto gerado com `--legacy-peer-deps`. Quem tem npm 10 é avisado na largada, com nome e
+// versão, antes de qualquer byte ir para o disco (RN-06.5).
+describe('npm 11 exigido pelos presets builtin', () => {
+  const RAIZ = fileURLToPath(new URL('../../../presets/', import.meta.url));
+  const builtins = fs.readdirSync(RAIZ).filter((nome) => nome.endsWith('.json'));
+
+  it('há preset builtin para conferir', () => {
+    expect(builtins.length).toBeGreaterThan(0);
+  });
+
+  it('todo preset que roda npm exige npm 11', () => {
+    for (const nome of builtins) {
+      const preset = JSON.parse(fs.readFileSync(path.join(RAIZ, nome), 'utf8'));
+      const usaNpm = preset.comandos.some((comando) => comando.cmd === 'npm');
+      if (!usaNpm) continue;
+      const requisito = preset.requisitos.find((r) => r.bin === 'npm');
+      expect(requisito, `${nome} roda npm e não declara o requisito`).toBeTruthy();
+      expect(requisito.min, nome).toBe('11');
+    }
+  });
+
+  it('o requisito reprova npm 10 e aprova npm 11', () => {
+    expect(versaoAtende('10.9.7', '11')).toBe(false);
+    expect(versaoAtende('11.16.0', '11')).toBe(true);
+  });
+
+  it('npm entra na checagem junto com node e git, e passa nesta máquina', async () => {
+    const resultado = await checarRequisitos({ requisitos: [{ bin: 'npm', min: '11' }] }, process.cwd());
+    const npm = resultado.find((r) => r.bin === 'npm');
+    expect(npm.encontrada).toMatch(/^\d+\.\d+/);
+    expect(npm.ok).toBe(true);
   });
 });

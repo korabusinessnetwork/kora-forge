@@ -21,11 +21,11 @@ describe('POST /projects', () => {
     const ctx = novo();
     const { projeto, blueprint } = await criar(ctx, 'Café da Manhã', 'criar-aplicacao-web');
     expect(projetoComBlueprintSchema.safeParse({ projeto, blueprint }).success).toBe(true);
-    expect(projeto).toMatchObject({ nome: 'Café da Manhã', slug: 'cafe-da-manha', presetId: 'criar-aplicacao-web', presetNome: 'Criar Aplicação Web', presetVersao: 1, status: 'rascunho', etapaAtual: 'identidade', caminhoDisco: null });
-    expect(blueprint).toMatchObject({ versao: 1, ativo: true, payload: { preset: { id: 'criar-aplicacao-web', versao: 1 }, etapaAtual: 'identidade', etapasConcluidas: [], assumidas: [], respostas: {} } });
+    expect(projeto).toMatchObject({ nome: 'Café da Manhã', slug: 'cafe-da-manha', presetId: 'criar-aplicacao-web', presetNome: 'Criar Aplicação Web', presetVersao: 2, status: 'rascunho', etapaAtual: 'identidade', caminhoDisco: null });
+    expect(blueprint).toMatchObject({ versao: 1, ativo: true, payload: { preset: { id: 'criar-aplicacao-web', versao: projeto.presetVersao }, etapaAtual: 'identidade', etapasConcluidas: [], assumidas: [], respostas: {} } });
     const registrados = eventos(ctx, projeto.id);
     expect(registrados.map((e) => e.nome)).toEqual(['projeto.criado']);
-    expect(JSON.parse(registrados[0].payload_json)).toEqual({ nome: 'Café da Manhã', slug: 'cafe-da-manha', presetId: 'criar-aplicacao-web', presetVersao: 1 });
+    expect(JSON.parse(registrados[0].payload_json)).toEqual({ nome: 'Café da Manhã', slug: 'cafe-da-manha', presetId: 'criar-aplicacao-web', presetVersao: projeto.presetVersao });
   });
 
   it('nome vazio, só símbolo ou longo demais responde 400 em nome', async () => {
@@ -165,14 +165,14 @@ describe('blueprint', () => {
 
 describe('blueprint contra as etapas do preset', () => {
   // criar-site não tem as etapas arquitetura, dados nem apis.
-  const doSite = (extra = {}) => ({
-    preset: { id: 'criar-site', versao: 1 }, etapaAtual: 'escopo', etapasConcluidas: [], assumidas: [], respostas: {}, ...extra,
+  const doSite = (projeto, extra = {}) => ({
+    preset: { id: projeto.presetId, versao: projeto.presetVersao }, etapaAtual: 'escopo', etapasConcluidas: [], assumidas: [], respostas: {}, ...extra,
   });
 
   it('etapaAtual fora do preset responde 400 apontando o campo', async () => {
     const ctx = novo();
     const { projeto } = await criar(ctx, 'Alfa');
-    const r = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ etapaAtual: 'dados' }));
+    const r = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite(projeto, { etapaAtual: 'dados' }));
     expect(r.statusCode).toBe(400);
     expect(r.json().error.detalhe.issues[0].caminho).toBe('etapaAtual');
     expect(r.json().error.mensagem).toContain('dados');
@@ -181,10 +181,10 @@ describe('blueprint contra as etapas do preset', () => {
   it('etapa fora do preset em concluídas ou assumidas responde 400', async () => {
     const ctx = novo();
     const { projeto } = await criar(ctx, 'Alfa');
-    const concluidas = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ etapasConcluidas: ['arquitetura'] }));
+    const concluidas = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite(projeto, { etapasConcluidas: ['arquitetura'] }));
     expect(concluidas.statusCode).toBe(400);
     expect(concluidas.json().error.detalhe.issues[0].caminho).toBe('etapasConcluidas');
-    const assumidas = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ assumidas: ['apis'] }));
+    const assumidas = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite(projeto, { assumidas: ['apis'] }));
     expect(assumidas.statusCode).toBe(400);
     expect(assumidas.json().error.detalhe.issues[0].caminho).toBe('assumidas');
   });
@@ -192,14 +192,14 @@ describe('blueprint contra as etapas do preset', () => {
   it('etapa repetida e etapa concluída e assumida ao mesmo tempo respondem 400', async () => {
     const ctx = novo();
     const { projeto } = await criar(ctx, 'Alfa');
-    expect((await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ assumidas: ['design', 'design'] }))).statusCode).toBe(400);
-    expect((await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({ etapasConcluidas: ['design'], assumidas: ['design'] }))).statusCode).toBe(400);
+    expect((await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite(projeto, { assumidas: ['design', 'design'] }))).statusCode).toBe(400);
+    expect((await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite(projeto, { etapasConcluidas: ['design'], assumidas: ['design'] }))).statusCode).toBe(400);
   });
 
   it('etapas do preset passam, com respostas tipadas, e criam versão nova', async () => {
     const ctx = novo();
     const { projeto } = await criar(ctx, 'Alfa');
-    const r = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite({
+    const r = await post(ctx, `/api/projects/${projeto.id}/blueprint`, doSite(projeto, {
       etapasConcluidas: ['identidade'], assumidas: ['design'],
       respostas: { identidade: { nome: 'Alfa', essencia: 'e', problema: 'p', valor: 'v' }, design: {} },
     }));

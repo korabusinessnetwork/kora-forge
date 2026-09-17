@@ -1,0 +1,143 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-4);
+  padding: var(--forge-space-5);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--forge-text-lg);
+  line-height: var(--forge-leading-lg);
+}
+
+.descricao {
+  margin: 0;
+  color: var(--forge-text-muted);
+}
+
+.erro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--forge-space-3);
+  padding: var(--forge-space-4);
+  border: 1px solid var(--forge-danger);
+  border-radius: var(--forge-radius-md);
+}
+
+.sucesso {
+  margin: 0;
+  color: var(--forge-success);
+}
+
+.falha {
+  margin: 0;
+  color: var(--forge-danger);
+}
+
+.vazio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  padding: var(--forge-space-5);
+  border: 1px dashed var(--forge-border);
+  border-radius: var(--forge-radius-lg);
+  color: var(--forge-text-muted);
+}
+
+.vazio p {
+  margin: 0;
+}
+
+.vazioTitulo {
+  color: var(--forge-text);
+  font-weight: 600;
+}
+
+.trilho {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(220px, 1fr));
+  gap: var(--forge-space-3);
+  margin: 0;
+  padding: 0 0 var(--forge-space-2);
+  overflow-x: auto;
+  list-style: none;
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+  min-width: 0;
+  padding: var(--forge-space-3);
+  border: 1px solid var(--forge-border);
+  border-radius: var(--forge-radius-md);
+}
+
+.topoColuna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-1);
+}
+
+.nomeColuna {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--forge-space-2);
+  margin: 0;
+  font-size: var(--forge-text-sm);
+  line-height: var(--forge-leading-sm);
+}
+
+.contagem {
+  min-width: 24px;
+  padding: 0 var(--forge-space-1);
+  border-radius: var(--forge-radius-sm);
+  background: var(--forge-surface-2);
+  color: var(--forge-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.depois {
+  margin: 0;
+  color: var(--forge-text-muted);
+  font-size: var(--forge-text-xs);
+  line-height: var(--forge-leading-xs);
+}
+
+.colunaVazia {
+  margin: 0;
+  color: var(--forge-text-muted);
+  font-size: var(--forge-text-xs);
+  font-style: italic;
+}
+
+.descartadas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forge-space-2);
+}
+
+.descartadas summary {
+  cursor: pointer;
+  color: var(--forge-text-muted);
+}
+
+.listaDescartadas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--forge-space-3);
+  margin-top: var(--forge-space-2);
+}

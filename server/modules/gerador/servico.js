@@ -13,6 +13,9 @@ import { ErroForge } from '../../lib/erro.js';
 import { formatarIssues } from '../../lib/validar.js';
 import { resolverNoWorkspace, inspecionar } from '../../lib/caminhos.js';
 import { compararTexto } from '../../../shared/ordenar.js';
+import { designEfetivo } from '../../../shared/designEfetivo.js';
+import { criarServicoCatalogo } from '../catalogo/servico.js';
+import { exportarDesign, TEMPLATE_PAGINAS } from './exportarDesign.js';
 
 export const PASTA_TEMPLATES_BUILTIN = fileURLToPath(new URL('../../../templates/', import.meta.url));
 const TIMEOUT_PADRAO_MS = 600000;
@@ -56,13 +59,29 @@ export function carregarTemplatesBuiltin(pasta = PASTA_TEMPLATES_BUILTIN) {
       destino: relativo,
       conteudo: fs.readFileSync(path.join(pastaArquivos, relativo), 'utf8'),
     }));
-    return { ...resultado.data, arquivos };
+    return { ...resultado.data, arquivos, moldes: carregarMoldes(pasta, id) };
   });
+}
+
+// `moldes/` é opcional: molde é template que o gerador usa para montar arquivo derivado do design,
+// e nunca escreve direto (bloco 6). Pasta presente e vazia é engano, e subpasta não tem destino.
+function carregarMoldes(pasta, id) {
+  const pastaMoldes = path.join(pasta, id, 'moldes');
+  if (!fs.existsSync(pastaMoldes)) return {};
+  const entradas = fs.readdirSync(pastaMoldes, { withFileTypes: true }).sort((a, b) => compararTexto(a.name, b.name));
+  const intrusa = entradas.find((entrada) => !entrada.isFile());
+  if (intrusa) {
+    throw new ErroForge('FORGE_VALIDATION', `Template ${id}: moldes/ só aceita arquivos.`, { issues: [{ caminho: `${id}/moldes/${intrusa.name}`, mensagem: 'não é arquivo' }] });
+  }
+  if (entradas.length === 0) {
+    throw new ErroForge('FORGE_VALIDATION', `Template ${id}: a pasta moldes/ existe e está vazia.`, { issues: [{ caminho: `${id}/moldes`, mensagem: 'pasta vazia' }] });
+  }
+  return Object.fromEntries(entradas.map((entrada) => [entrada.name, fs.readFileSync(path.join(pastaMoldes, entrada.name), 'utf8')]));
 }
 
 const tamanhoEm = (texto) => Buffer.byteLength(texto, 'utf8');
 
-export function criarServicoGerador({ regras, templates = carregarTemplatesBuiltin() }) {
+export function criarServicoGerador({ regras, templates = carregarTemplatesBuiltin(), catalogo = criarServicoCatalogo() }) {
   const porId = new Map(templates.map((template) => [template.id, template]));
 
   // Templates do preset mais os que as regras pedem, menos os que elas removem. Hit dispensado
@@ -95,7 +114,9 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
     });
   }
 
-  function gerarPlano({ projeto, preset, blueprint, workspace }) {
+  function gerarPlano({ projeto, preset, blueprint, design: registroDesign = null, workspace }) {
+    // As rotas passam o documento salvo; quem decide se ele vale é a escolha da etapa Design.
+    const design = designEfetivo(blueprint.payload, registroDesign);
     if (projeto.status === 'arquivado') throw erroCampo('projeto', 'Projeto arquivado. Restaure antes de gerar o plano.');
     if (!workspace) throw erroCampo('workspace', 'Configure o workspace em Configurações antes de gerar o plano. É a pasta onde os projetos nascem.');
     if (!fs.existsSync(workspace)) throw erroCampo('workspace', 'A pasta do workspace não existe mais. Confira o caminho em Configurações.');
@@ -114,7 +135,7 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
       .map((regra) => ({ regraId: regra.id, efeitos: regra.efeitos }));
 
     const raiz = resolverNoWorkspace(workspace, projeto.slug);
-    const valores = montarValores(contexto, { data: blueprint.criadoEm.slice(0, 10), projeto, preset });
+    const valores = montarValores(contexto, { data: blueprint.criadoEm.slice(0, 10), projeto, preset, tokens: design?.payload.tokens });
 
     const pendencias = [];
     const usados = templatesPedidos({ preset, hits: hitsAtivos })
@@ -126,8 +147,23 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
         }
         return template;
       })
-      .filter(Boolean)
-      .sort((a, b) => (a.ordem - b.ordem) || compararTexto(a.id, b.id));
+      .filter(Boolean);
+
+    // Páginas desenhadas no Studio viram arquivos pelo template studio-paginas (bloco 6). Sem
+    // página, nada muda: o plano sai idêntico ao de quem nunca desenhou.
+    const exportado = design
+      ? exportarDesign({ documento: design.payload, catalogo: catalogo.itensParaGeracao(), moldes: porId.get(TEMPLATE_PAGINAS)?.moldes ?? {}, valores })
+      : null;
+    const templatePaginas = porId.get(TEMPLATE_PAGINAS);
+    if (exportado?.usaTemplate) {
+      if (templatePaginas) {
+        if (!usados.includes(templatePaginas)) usados.push(templatePaginas);
+      } else {
+        pendencias.push({ tipo: 'template', item: TEMPLATE_PAGINAS, motivo: 'Ainda não existe no catálogo do Forge. As páginas do Studio ficam de fora.' });
+      }
+    }
+    if (exportado) pendencias.push(...exportado.pendencias);
+    usados.sort((a, b) => (a.ordem - b.ordem) || compararTexto(a.id, b.id));
 
     const porDestino = new Map();
     for (const template of usados) {
@@ -142,6 +178,19 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
       }
     }
 
+    if (exportado?.usaTemplate && templatePaginas) {
+      for (const destino of [...exportado.remove, ...exportado.substitui]) porDestino.delete(destino);
+      for (const arquivo of exportado.arquivos) {
+        const jaTem = porDestino.get(arquivo.destino);
+        if (jaTem) {
+          throw new ErroForge('FORGE_CONFLICT', `Dois templates escrevem o mesmo arquivo: ${arquivo.destino}.`, {
+            issues: [{ caminho: arquivo.destino, mensagem: `${jaTem.template} e ${TEMPLATE_PAGINAS}` }],
+          });
+        }
+        porDestino.set(arquivo.destino, { template: TEMPLATE_PAGINAS, conteudo: arquivo.conteudo });
+      }
+    }
+
     const arquivos = [...porDestino.entries()]
       .sort(([a], [b]) => compararTexto(a, b))
       .map(([destino, { template, conteudo }]) => {
@@ -149,18 +198,33 @@ export function criarServicoGerador({ regras, templates = carregarTemplatesBuilt
         const stat = inspecionar(raiz, absoluto);
         let acao = 'criar';
         let tamanhoAtual = null;
+        let conteudoAtual = null;
         if (stat?.isFile()) {
           tamanhoAtual = stat.size;
-          acao = fs.readFileSync(absoluto, 'utf8') === conteudo ? 'pular' : 'sobrescrever';
+          conteudoAtual = fs.readFileSync(absoluto, 'utf8');
+          acao = conteudoAtual === conteudo ? 'pular' : 'sobrescrever';
+          // O arquivo só vai para a UI quando há algo para revisar. Criar e pular não expõem
+          // conteúdo do disco nem aumentam o payload do dry-run sem necessidade.
+          if (acao !== 'sobrescrever') conteudoAtual = null;
         }
-        return { caminho: destino, acao, tamanho: tamanhoEm(conteudo), tamanhoAtual, template, conteudo };
+        return { caminho: destino, acao, tamanho: tamanhoEm(conteudo), tamanhoAtual, conteudoAtual, template, conteudo };
       });
 
-    const hash = createHash('sha256').update(serializarEstavel({
+    // Insumo do hash. O documento de design entra aqui porque redesenhar tem que invalidar plano
+    // já aprovado, senão o servidor executaria algo diferente do que a pessoa viu (ADR-002).
+    //
+    // A chave só entra quando existe documento, e nunca como `design: null`. Projeto sem Studio
+    // precisa gerar o mesmo hash de antes da Fase 2, byte a byte: um `null` no insumo mudaria o
+    // hash de todo projeto que nunca abriu o Studio, e a Fase 1 regrediria em silêncio. Pelo mesmo
+    // motivo, `design` aqui já é o efetivo: com o padrão Kora escolhido, o documento salvo não
+    // entra, e o plano sai idêntico ao de quem nunca desenhou.
+    const insumo = {
       blueprint: blueprint.payload,
       preset: { id: preset.id, versao: preset.versao },
       templates: usados.map((template) => ({ id: template.id, versao: template.versao })),
-    })).digest('hex');
+    };
+    if (design) insumo.design = { versao: design.versao, payload: design.payload };
+    const hash = createHash('sha256').update(serializarEstavel(insumo)).digest('hex');
 
     return {
       hashBlueprint: `sha256:${hash}`,

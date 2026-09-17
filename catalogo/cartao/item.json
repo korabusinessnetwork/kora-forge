@@ -1,0 +1,15 @@
+{
+  "id": "cartao",
+  "versao": 1,
+  "papel": "componente",
+  "nome": "Cartão",
+  "descricao": "Uma superfície que agrupa conteúdo relacionado dentro de uma seção.",
+  "microtexto": "Vira um <article> com superfície, borda e raio dos tokens do projeto.",
+  "props": [],
+  "aceita": [
+    "titulo",
+    "texto",
+    "botao",
+    "imagem"
+  ]
+}

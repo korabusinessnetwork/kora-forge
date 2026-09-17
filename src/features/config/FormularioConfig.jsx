@@ -30,7 +30,7 @@ export default function FormularioConfig({ inicial }) {
   const [salvo, setSalvo] = useState(false);
 
   const mutacao = useMutation({
-    mutationFn: atualizarSettings,
+    mutationFn: (patch) => atualizarSettings(patch),
     onSuccess: (dados) => {
       clienteQuery.setQueryData(['settings'], dados);
       clienteQuery.invalidateQueries({ queryKey: ['health'] });

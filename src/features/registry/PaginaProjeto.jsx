@@ -106,6 +106,11 @@ export default function PaginaProjeto() {
         </p>
       ) : null}
 
+      <p className={estilos.progresso}>
+        <Link to={`/projetos/${projeto.id}/studio`}>{mensagens.studio.abrir}</Link>
+        <span className={estilos.estado}>{mensagens.studio.micro}</span>
+      </p>
+
       <section aria-labelledby="titulo-versoes" className={estilos.versoes}>
         <h2 id="titulo-versoes">{m.versoes}</h2>
         {versoes.data ? (

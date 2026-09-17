@@ -51,15 +51,21 @@ describe('inspecionar', () => {
     expect(inspecionar(base, path.join(base, 'a.md')).isFile()).toBe(true);
   });
 
-  it('aceita symlink que aponta para dentro e recusa o que aponta para fora', () => {
+  // O link aponta para **pasta**, e no Windows usa junction. Symlink de arquivo no Windows exige
+  // elevacao ou Modo de Desenvolvedor, e junction nao exige nada; o `lstat` reporta os dois como
+  // link, entao o controle testado (C4: seguir o link e recusar o que sai da raiz) e o mesmo.
+  // Testar isso no ambiente primario vale mais que testar com arquivo (restricao T-02).
+  const TIPO_DE_LINK = process.platform === 'win32' ? 'junction' : 'dir';
+
+  it('aceita link que aponta para dentro e recusa o que aponta para fora', () => {
     const base = pasta();
     const fora = pasta();
-    fs.writeFileSync(path.join(base, 'real.md'), 'dentro');
-    fs.writeFileSync(path.join(fora, 'segredo.md'), 'fora');
-    fs.symlinkSync(path.join(base, 'real.md'), path.join(base, 'dentro.link'));
-    fs.symlinkSync(path.join(fora, 'segredo.md'), path.join(base, 'fora.link'));
+    fs.mkdirSync(path.join(base, 'real'));
+    fs.mkdirSync(path.join(fora, 'segredo'));
+    fs.symlinkSync(path.join(base, 'real'), path.join(base, 'dentro.link'), TIPO_DE_LINK);
+    fs.symlinkSync(path.join(fora, 'segredo'), path.join(base, 'fora.link'), TIPO_DE_LINK);
 
-    expect(inspecionar(base, path.join(base, 'dentro.link')).isFile()).toBe(true);
+    expect(inspecionar(base, path.join(base, 'dentro.link')).isDirectory()).toBe(true);
     let erro;
     try { inspecionar(base, path.join(base, 'fora.link')); } catch (e) { erro = e; }
     expect(erro?.codigo).toBe('FORGE_PATH_FORBIDDEN');

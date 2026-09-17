@@ -17,18 +17,42 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 | 5, motor de regras | entregue | `specs/fase1-bloco5-motor-de-regras.md` |
 | 6, gerador | entregue | `specs/fase1-bloco6-gerador.md` |
 | 7, runner | entregue | `specs/fase1-bloco7-runner.md` |
-| 8, telas de fechamento | próximo | |
+| 8, telas de fechamento | entregue | `specs/fase1-bloco8-telas-de-fechamento.md` |
+| 9, gaveta de ideias | entregue | `specs/fase1-bloco9-gaveta-de-ideias.md` |
+| critério de aceite da fase | provado em 2026-09-08 | `specs/fase1-criterio-de-aceite.md`, relatório em `fase1-aceite.md` |
 
 ## Critério de aceite da fase inteira
 
-- [ ] Criar um projeto de verdade do começo ao fim, sem tocar no terminal
-- [ ] O projeto gerado tem `CLAUDE.md`, `memory/` (6 arquivos preenchidos com conteúdo real) e `docs/00` a `11`
-- [ ] Zero placeholder `{{...}}` sobrando em qualquer arquivo gerado
-- [ ] ADR-001 do projeto gerado registra a stack escolhida no wizard
-- [ ] `npm run dev` do projeto gerado sobe sem erro
-- [ ] Nenhuma escrita em disco aconteceu sem dry-run aprovado
-- [ ] Tudo funciona com o copiloto desligado, porque ele nem existe ainda
-- [ ] Do clique inicial ao dev server: menos de 10 minutos
+Provado duas vezes, por caminhos diferentes, e as duas provas ficam registradas.
+
+**Automatizada, 2026-09-08**, por `npm run verificar:fase1`. Relatório com a evidência item por
+item, e com o que **não** foi provado, em `fase1-aceite.md`. É a prova que se repete a qualquer
+momento, e a que vale como porta da Fase 2.
+
+**Manual, 2026-09-03**, no produto rodando (`npm run forge`), gerando o projeto **Gama Clínica**
+em `.../Área de Testes/gama-clinica`, pasta com espaço e acento de propósito (R-01).
+
+- [x] Criar um projeto de verdade do começo ao fim, sem tocar no terminal
+- [x] O projeto gerado tem `CLAUDE.md`, `memory/` (6 arquivos preenchidos com conteúdo real) e `docs/00` a `11`
+- [x] Zero placeholder `{{...}}` sobrando em qualquer arquivo gerado
+- [x] ADR-001 do projeto gerado registra a stack escolhida no wizard
+- [x] `npm run dev` do projeto gerado sobe sem erro
+- [x] Nenhuma escrita em disco aconteceu sem dry-run aprovado
+- [x] Tudo funciona com o copiloto desligado, porque ele nem existe ainda
+- [x] Do clique inicial ao dev server: menos de 10 minutos
+
+Evidência resumida da passada manual: 34 arquivos escritos, fila `git init` → `npm install` → `npm run build` →
+`npm run dev` toda em `sucesso`, `iniciadaEm 20:14:10.991` e `terminadaEm 20:14:31.937`, **21
+segundos** da aprovação ao dev server. O dev server do projeto gerado respondeu `HTTP 200` em
+`localhost:5174`. ADR-001 registrou Modelo B, `React 18 + Vite`, `Node 20 + Fastify`, `PostgreSQL`,
+multi-tenant e white-label em Sim, deploy Railway. Nenhum `{{` e nenhum `_a definir_` sobrou.
+
+**Ressalva honesta**: a validação foi conduzida contra o servidor real e o proxy do Vite, não com
+cliques num browser. As telas em si estão cobertas por teste de componente e de integração da
+`PaginaWizard`. Uma passada com o olho humano na tela continua valendo antes da Fase 2.
+
+Um defeito bloqueante apareceu **só** nessa passada e foi corrigido antes do aceite: R-08, o `npm`
+não nascia no Windows. Está em `memory/bugs.md`.
 
 ## Escopo, em ordem de construção
 
@@ -77,10 +101,21 @@ Sem Studio, sem API Hub, sem cofre, sem copiloto. Cada um tem sua fase.
 ### 8. Telas de fechamento
 - Painel do plano, agrupado por pasta, com conflitos no topo
 - Painel de log ao vivo
-- Tela final com caminho, resumo e atalho para abrir no editor
+- Tela final com caminho, resumo e atalho para abrir a pasta do projeto
+
+O atalho abre a **pasta** no gerenciador de arquivos do sistema, não um editor: o Forge não sabe
+qual editor o dono usa, e perguntar contrariaria o princípio nº 1. Decisão registrada na seção 4
+da spec do bloco.
 
 ### 9. Gaveta de ideias
 - Atalho global, campo com título e próximo passo, volta para onde estava
+
+A gaveta também lista as ideias abertas e deixa descartar. Capturar sem nunca mostrar seria um
+buraco, e a RN-10.2 já dizia que a ideia vai para a lista. Página própria de ideias e transformar
+ideia em projeto ficam para depois da Fase 1.
+
+**Com o bloco 9 entregue, todos os blocos de construção da Fase 1 estão prontos, e o critério de
+aceite da fase já foi provado. A Fase 1 está fechada.**
 
 ## Fora do escopo da Fase 1
 

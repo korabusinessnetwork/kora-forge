@@ -1,0 +1,13 @@
+{
+  "id": "rodape",
+  "versao": 1,
+  "papel": "regiao",
+  "nome": "Rodapé",
+  "descricao": "A faixa do fim da página, com aviso legal, contato ou navegação secundária.",
+  "microtexto": "Vira o <footer> da página no projeto gerado.",
+  "props": [],
+  "aceita": [
+    "texto",
+    "botao"
+  ]
+}

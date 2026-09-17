@@ -26,7 +26,7 @@ export default function PaginaNovoProjeto() {
   const [nome, setNome] = useState('');
 
   const criar = useMutation({
-    mutationFn: criarProjeto,
+    mutationFn: (dados) => criarProjeto(dados),
     onSuccess: ({ projeto }) => {
       clienteQuery.invalidateQueries({ queryKey: ['projetos'] });
       navegar(`/projetos/${projeto.id}`);

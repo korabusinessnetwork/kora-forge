@@ -58,6 +58,12 @@ geral com resultado diferente. Este arquivo é o registro leve. O pesado vive em
 
 ## Decisões leves
 
+### 2026-09-17, segredos vivem em vault.bin separado
+O cofre da Fase 3 persiste os segredos somente em `~/.kora-forge/vault.bin`, cifrado e separado do
+SQLite; `api_connections` conserva apenas alias, provedor e status. Motivo: evitar que backup,
+consulta ou exportação comum do banco carregue credenciais por acidente. A tabela `vault_entries`
+do schema inicial será removida antes de o cofre ser disponibilizado.
+
 ### 2026-09-02, nome do produto
 KORA FORGE, com slug `kora-forge`. Motivo: segue o padrão de nomeação das ventures da
 Kora e "forja" descreve a função (matéria-prima entra, peça pronta sai). Nome é
@@ -199,3 +205,285 @@ e os `npm_config_` de proxy e registry. Motivo: sem elas o `npm install` trava e
 atrás de proxy, e instalar dependência é o motivo de o comando existir. Descoberto no smoke test do
 bloco 7, onde o comando ficou preso por mais de dois minutos. Proxy é configuração, não credencial;
 o ambiente continua nunca sendo logado, porque uma URL de proxy pode embutir usuário e senha.
+
+### 2026-09-03, no Windows o `npm` é chamado pelo CLI, nunca por shell
+`resolverComando()` traduz `npm` e `npx` para `node <npm-cli.js>` só no Windows. Motivo: o que
+existe no PATH lá é um shim `.cmd`, e o Node recusa `.cmd` sem shell desde a correção do
+CVE-2024-27980. A alternativa óbvia seria ligar o shell, e é exatamente o que a regra S-04 proíbe,
+porque devolveria a interpretação dos argumentos ao `cmd.exe`. A tradução acontece **depois** de
+`validarComando`, então a whitelist não muda (C7). Detalhes e repro em R-08 de `bugs.md`.
+
+### 2026-09-03, teste de processo passou a rodar comando de verdade
+A suíte inteira testava o runner com `node script.js`, que funciona em qualquer sistema, e por isso
+ficou verde enquanto nenhum `npm` do produto nascia no Windows. Agora existe um teste que executa
+`npm`, `npx`, `node` e `git --version` de verdade, na plataforma que está rodando. Motivo: o teste
+tem que exercitar a mesma resolução de executável que o produto exercita, senão ele mede outra
+coisa. É o mesmo aprendizado que já vinha do bloco 7: os defeitos sérios apareceram rodando o
+produto, não a suíte.
+
+### 2026-09-03, o token do log ao vivo vai no subprotocolo do WebSocket
+`new WebSocket(url, ['forge-token', token])`. Motivo: o browser não permite header customizado no
+handshake, e query string entraria em log de acesso (C2). O servidor lê o valor depois do marcador
+`forge-token` e devolve o marcador como protocolo negociado. Continua valendo a mesma guarda das
+rotas, na mesma ordem: Host, token, `Origin`.
+
+### 2026-09-03, o proxy do Vite precisa de `ws: true`
+Sem isso o upgrade não é repassado e o log ao vivo fica mudo **só** em `npm run forge`, com todo o
+resto funcionando e nenhum teste falhando. Passou a existir `vite.config.test.js` guardando a
+configuração, porque o defeito é invisível para a suíte de componente.
+
+### 2026-09-03, sequência de escape de terminal é limpa na tela, não no banco
+O `PainelLog` remove cor e movimento de cursor ao renderizar; `command_runs` continua guardando a
+linha crua. Motivo: no terminal aquilo vira cor, na página vira `[32m[1mVITE` no meio da frase, e
+o log gravado tem que continuar fiel ao que o processo escreveu. Descoberto lendo o `npm run dev`
+do projeto gerado, no produto rodando.
+
+### 2026-09-03, `VisualizadorDiff` fica para a Fase 2
+Na Fase 1 o conflito é declarado no `PainelPlano` como ação de sobrescrever, com os dois tamanhos.
+Motivo: o critério de aceite da fase não pede diff linha a linha, e o caso comum de materialização
+é pasta nova, sem conflito nenhum. Registrado em `docs/06_COMPONENTES`.
+
+### 2026-09-05, R-07 fechado exigindo npm 11 no preset, não afrouxando peers
+Os três builtins declaram `{ "bin": "npm", "min": "11" }` e foram para a versão 2. Motivo: o
+`npm install` do projeto gerado passa limpo em npm 11.16.0, então o defeito é do resolvedor do npm
+10.9.7, e `--legacy-peer-deps` consertaria uma versão de ferramenta afrouxando a resolução de peers
+em todo projeto que o Forge gerar, para sempre. Requisito é checado antes de qualquer escrita, então
+a máquina com npm 10 recebe aviso na largada. Fallback automático no runner foi descartado por
+conflitar com o ADR-002: o comando que roda tem que ser o que o plano mostrou. Decisão do dono.
+
+### 2026-09-05, identidade visual confirmada, sai de [ASSUMIDO]
+Tema escuro por padrão com alternância para claro, densidade alta, estética de ferramenta de
+trabalho; Linear, Raycast e Vercel Dashboard como tom, sem cópia visual. Confirmado pelo dono antes
+da Fase 2, porque o Studio cristaliza essas escolhas em tokens exportáveis e mudar depois custaria
+retrabalho na UI da Fase 1, que já foi construída sobre elas.
+
+
+### 2026-09-05, documento de design é árvore aninhada sem coordenada (ADR-009)
+Página é pilha de regiões em ordem de fluxo, região contém componentes em ordem de fluxo, e a
+ordem dos irmãos é a ordem do array. Motivo: campo de ordenação separado é segunda fonte de verdade
+esperando dessincronizar, e coordenada faria a exportação virar tradução de pixel para layout, que
+é exatamente o problema que o ADR-005 recusou. O "DOM absoluto" do ADR-005 é técnica de renderizar
+a superfície do canvas, não formato de gravação. Custo aceito: sem elemento solto, para sempre.
+
+### 2026-09-05, o vocabulário canônico dos tokens é o do arquivo gerado
+O documento grava `tokens.cor.fundo` e `tokens.espaco[1]`, os mesmos nomes que o `tokens.css` já
+escreve e que os cinco templates já consomem. `--projeto-*` do `docs/02` fica como alias de preview
+dentro do Forge. Motivo: sem um canônico, o Studio editaria uma coisa e o projeto nasceria com
+outra. A tradução é `listarTokens()`, tabela explícita, com teste de correspondência exata nas duas
+pontas contra o template. `--anel-foco` fica de fora numa allow-list: é composto de outros dois
+tokens, e editá-lo direto deixaria o CSS gerado internamente incoerente.
+
+### 2026-09-05, a chave `design` só entra no hash do plano quando existe documento
+Nunca como `design: null`. Motivo: `serializarEstavel` inclui a chave, então um `null` no insumo
+mudaria o hash de todo projeto que nunca abriu o Studio, e a Fase 1 regrediria em silêncio. O valor
+do hash sem design foi medido no commit anterior ao bloco, conferido depois dele e congelado em
+teste: `sha256:175a2bf0…`. Guarda de não-regressão, não decoração.
+
+### 2026-09-05, `design_documents` não ganhou coluna nova
+A versão ativa é a de maior número, e `paginas_json` guarda `{ catalogo, paginas }`, não só o array
+de páginas. Motivo: gravar a versão do catálogo sem abrir migration numa tabela que já existia
+desde o schema inicial, e um estado a menos (`ativo`) é um estado a menos para dessincronizar.
+
+### 2026-09-05, campo desconhecido passou a dizer qual campo é
+`formatarIssues` quebra `unrecognized_keys` em uma issue por campo, com caminho completo
+(`paginas.0.regioes.0.x`) e mensagem em português. Motivo: o Zod devolve o caminho do objeto e o
+nome do campo só dentro de uma mensagem em inglês, e erro que não diz qual campo é obriga a
+adivinhar. Vale para toda rota da API local, não só para as de design.
+
+### 2026-09-05, o alias de preview é regra mecânica, não segunda tabela
+`--cor-fundo` vira `--projeto-cor-fundo`: prefixar `--projeto` no nome que o arquivo gerado usa,
+sempre, sem exceção. `listarTokens()` devolve `alias` junto de `variavel`. Motivo: uma segunda
+tabela de nomes seria uma segunda fonte de verdade esperando dessincronizar, e o `docs/02` já
+tinha nomes (`--projeto-bg`) que não existiam em lugar nenhum do código, justamente por isso.
+
+### 2026-09-05, a moldura do preview fica na página, não no componente do preview
+`PreviewProjeto` renderiza só o palco isolado; o cartão em volta é da `PaginaStudio`. Motivo: com a
+moldura dentro, o componente precisaria de `--forge-*` e a guarda P-06 quebraria por construção.
+Assim a regra "nenhum token da ferramenta dentro do preview" é verdadeira por desenho, e o teste
+`src/components/studio/namespaces.test.js` só confirma, varrendo nos dois sentidos.
+
+### 2026-09-05, os campos do painel são derivados do schema, nunca escritos à mão
+`src/features/studio/campos.js` monta os descritores a partir de `listarTokens()`, e um teste
+compara as duas listas. Motivo: token novo no schema tem que aparecer no painel sozinho; a
+alternativa é um token que ninguém consegue editar e ninguém percebe que existe.
+
+### 2026-09-05, dois tokens que geram a mesma variável precisam de rótulo e microtexto distintos
+`cor.fundo` e `corEscuro.fundo` viram os dois `--cor-fundo`, em blocos diferentes do arquivo. O
+rótulo do escuro é "Fundo no escuro" e o microtexto diz que cai no bloco de tema escuro. Motivo:
+com o mesmo nome, o leitor de tela anuncia dois controles idênticos e a tela mostra dois campos
+que ninguém sabe distinguir. Um teste varre a página inteira e recusa nome acessível repetido,
+porque a colisão volta a cada token novo.
+
+### 2026-09-05, o Studio não salva sozinho
+O preview é ao vivo, o disco não. Enquanto há mudança, a página diz isso e oferece descartar.
+Motivo: desfazer só chega no bloco 4, e salvar sozinho sem ter como desfazer é a combinação que
+perde trabalho. Salvar igual não versiona, e o serviço do bloco 1 já garante isso.
+
+### 2026-09-05, o catálogo mora em disco, não no banco
+O plano da Fase 2 dizia "sincronizado no banco no forge:init", pelo paralelo com presets e regras.
+O paralelo certo é `templates/`, que não tem tabela. Motivo: preset está no banco porque existe
+preset custom e o projeto fixa id mais versão; regra está no banco porque `rule_hits` a referencia.
+O catálogo v1 é builtin, ninguém escreve nele e nada o referencia por chave estrangeira, então
+cópia no SQLite seria uma segunda versão para ficar velha, mais uma migration, sem ganho.
+
+### 2026-09-05, cada item do catálogo traz o fragmento que gera o código dele
+`catalogo/<id>/item.json` mais `catalogo/<id>/fragmento.jsx`, e o boot confere a coerência nos dois
+sentidos: toda `{{CHAVE}}` do fragmento é prop declarada ou `{{FILHOS}}`, e toda prop declarada
+aparece no fragmento. Motivo: era o risco nomeado na abertura da fase, catálogo e template saindo
+de sincronia, com item que desenha e não gera. Com a conferência no boot, a incoerência nunca
+chega à tela.
+
+### 2026-09-05, recusa na escrita, pendência na leitura
+Documento com tipo, prop ou aninhamento fora do catálogo é recusado no POST, com caminho no nó.
+O mesmo caso na leitura devolve o desenho inteiro mais `pendencias` nomeando o que falta, sem
+reescrever nem apagar nada. Motivo: são situações diferentes. Escrever algo que o gerador não sabe
+escrever é erro de agora; abrir um documento salvo quando o item ainda existia é história, e
+apagar a história de alguém para caber no catálogo de hoje seria perder trabalho em silêncio
+(ADR-009, decisão 4, mesma lição do R-04).
+
+### 2026-09-05, valor de prop é dado e é escapado antes de virar JSX
+`escaparValorJsx()` em `shared/jsx.js` neutraliza `<`, `>`, `{`, `}` e aspas. Motivo: o motor de
+template só troca chave por valor e não avalia nada, o que protege o Forge, mas não protegeria o
+arquivo gerado: um título com `</h1><script>` fecharia a tag e injetaria código no projeto do
+usuário. Neutralizar em vez de recusar, porque "R$ 10 > R$ 5" é texto legítimo e recusar caractere
+comum transformaria a proteção em obstáculo diário.
+
+### 2026-09-05, o fragmento não é servido ao front
+`GET /catalog` devolve nome, microtexto, props e `aceita`, e para por aí. Motivo: a paleta do
+canvas precisa disso; o código de geração é assunto do servidor, e mandá-lo ao browser seria
+superfície a mais sem uso nenhum.
+
+### 2026-09-05, o canvas desenha com um componente React por item, não interpretando o fragmento
+Cada item do catálogo tem duas encarnações: o `fragmento.jsx` que o gerador escreve e um
+renderizador em `src/components/studio/itens/`. Motivo: interpretar o fragmento no browser seria
+`new Function` com outro nome, contra a regra de segurança; uma caixa genérica com o nome do item
+não seria preview de nada. O risco das duas encarnações saírem de sincronia é real e por isso a
+guarda é mecânica: `itens/registro.test.jsx` lê o catálogo do disco e cobra ids idênticos, toda
+prop declarada lida, nenhuma prop a mais, e `children` se e somente se o item aceita filhos.
+
+### 2026-09-05, "zoom, pan e snap" do ADR-005 não sobreviveu ao ADR-009
+O backlog pedia canvas com zoom, pan e snap em DOM absoluto. A decisão 2 do ADR-009 já tinha
+fechado que o documento não guarda coordenada, e as duas coisas não convivem. Prevaleceu o
+ADR-009: página é pilha em fluxo, o snap é a vaga na árvore que o `aceita` do pai autoriza, o pan
+é rolagem e o zoom são degraus nomeados (50, 75, 100, 125), aplicados por `data-zoom` em CSS.
+Régua não existe porque não existe posição livre para medir. Nota registrada no próprio ADR-005.
+
+### 2026-09-05, sem arrastar e soltar no Studio
+Mover é reordenar array, e isso já é feito por Alt com as setas e por botão nomeado, com o
+movimento inválido chegando desabilitado. Motivo: arrastar seria um segundo caminho para a mesma
+primitiva, com alvo de soltar, autoscroll e acessibilidade próprios para manter, e o backlog nunca
+pediu. Se entrar um dia, entra por cima da mesma função, não no lugar dela.
+
+### 2026-09-05, o painel de camadas é o controle acessível; o canvas é conveniência de mouse
+A árvore ARIA com roving tabindex faz tudo: andar, selecionar, mover, remover. O envoltório de
+cada nó no canvas não é focável. Motivo: dois alvos de foco para a mesma coisa dariam duas ordens
+de tabulação concorrentes sem acrescentar capacidade nenhuma.
+
+### 2026-09-05, o palco do preview virou o chão compartilhado da zona do projeto
+`PalcoProjeto` saiu de dentro do `PreviewProjeto` e passou a `itens/`, usado também pelo canvas.
+Motivo: com o canvas desenhando o projeto, existiriam dois lugares aplicando tokens em tempo de
+execução, e o segundo poderia divergir do primeiro em silêncio. A guarda de namespace (P-06) foi
+ampliada junto: a zona do projeto agora é `PreviewProjeto/` mais `itens/`, varrida nos dois
+sentidos.
+
+### 2026-09-05, desfazer coalesce por campo, não por tempo
+Digitar vinte letras no mesmo campo é um desfazer só. A junção é por marca (`prop:<id>:<prop>`,
+`token:<caminho>`, `pagina:<id>:<campo>`), não por janela de tempo. Motivo: timer tornaria o
+histórico dependente de relógio e portanto não determinístico, e o mesmo roteiro daria histórias
+diferentes em máquinas diferentes. Tokens passam pela mesma pilha do desenho, porque o documento
+é um só.
+
+### 2026-09-10, as duas linhas de trabalho paralelas foram reconciliadas em main
+O projeto correu por um tempo em duas branches que não sabiam uma da outra: `main`, que foi pela
+Fase 2 do Studio (documento de design, painel de tokens, catálogo de regiões, canvas), e
+`fix/r08-runner-npm-windows`, que rodou o loop `spec → build → review` e fez em paralelo o bloco 8,
+o bloco 9, os R-07 a R-13 e uma versão menor dos tokens. Vinte e duas commits contra nove, 29
+arquivos em conflito, dois deles `add/add` no mesmo módulo criado do zero dos dois lados.
+
+A reconciliação seguiu três regras, nesta ordem de prioridade:
+
+1. **Design e Studio ficam com a `main`**, que estava três blocos à frente na mesma capacidade.
+   Caiu junto a etapa Design do wizard e os componentes `components/design/*` da outra linha: eram
+   a mesma coisa, menor. Tokens passam a ser editados no Studio, pela página do projeto.
+2. **Runner fica com a linha do loop**, que tinha `binarios.js`, `arvore.js` para matar árvore de
+   processos (R-12) e mapeamento de erro com código estável. As exceções foram `runner/rotas.js` e
+   `gerador/rotas.js`, que só diferiam pela chamada ao serviço de design.
+3. **Documentação e memória viram união.** Nada de registro foi apagado.
+
+**A lição que vale para a próxima**: o perigo não estavam nos 29 conflitos, que o git aponta. Estava
+nos arquivos que **auto-mergearam sem conflito e ficaram semanticamente quebrados**, porque cada
+lado mexeu num pedaço diferente do mesmo arquivo. `src/mensagens.js` terminou com as chaves `log` e
+`telaFinal` duplicadas, e em JavaScript a última vence, então metade da interface perdeu o texto em
+silêncio. `shared/valores.js` passou a importar uma função que o schema vencedor não exporta. Nos
+dois casos o git não avisou nada: quem avisou foi a suíte de testes. **Merge grande só é seguro com
+suíte verde antes e depois, e "sem conflito" não é sinônimo de "correto".**
+
+### 2026-09-10, a sequência de escape do terminal é limpa na captura, nunca na renderização
+As duas linhas resolveram o mesmo problema em lugares opostos: o loop limpava em `limparAnsi`, no
+runner, e a `main` limpava em `limparEscapes`, dentro do `PainelLog`. Ficou a da captura, por
+decisão do dono, com a cobertura da outra incorporada: a expressão passou a pegar também OSC e
+caractere de controle solto.
+
+Motivo de ser um lugar só, e não os dois: duas implementações da mesma regra é exatamente como as
+branches divergiram. O banco passa a guardar o log já limpo, e painel e banco recebem o mesmo
+texto. O custo aceito é perder a informação de cor para sempre. Se algum dia o painel renderizar
+cor, a mudança é preservar no runner e interpretar no painel, nunca voltar a limpar nos dois.
+
+### 2026-09-10, o Forge não integra motor de design externo (ADR-011, aceito)
+Avaliado o Open Design (`nexu-io/open-design`, Apache-2.0) como motor opcional de geração visual, a
+decisão foi **não integrar**. A avaliação recomendava um adapter opcional atrás de interface; o dono
+decidiu contra, e o assunto está fechado.
+
+O que sustentou o "não", em ordem de peso: o Open Design **não é um renderizador**, ele orquestra um
+coding agent, então a geração não é determinística e nunca poderia estar no caminho crítico
+(Princípio nº 2); integrar significaria um **segundo daemon privilegiado** na máquina, com proxy
+para provedores de LLM e chave de API dentro, fora de S-01 a S-08; e a superfície é 0.x sem garantia
+nenhuma, tendo revertido CLI e API inteiras dentro de uma minor (0.19.2 introduziu, 0.20.0
+reverteu), com documentação que não cobre Windows, o ambiente primário (T-02).
+
+O argumento que mais pesou contra o "opcional": **opcional não é grátis**. Adapter atrás de
+configuração ainda é código para manter, testar, documentar, explicar e auditar, e cobra atenção
+justamente na fase em que ela é escassa.
+
+Custo aceito: o Forge não exporta HTML, PDF nem MP4, e não vai ganhar isso de graça. Se a
+necessidade aparecer de verdade, é trabalho próprio ou nova avaliação.
+
+O que faria reabrir, e os três juntos, não isolados: Open Design declarar estabilidade e chegar a
+1.0; necessidade real e recorrente de exportar apresentação ou vídeo; e existir caminho de geração
+determinístico, sem LLM no meio.
+
+O handoff `DESIGN.md` que o desenho previa **não foi adotado**: existia para alimentar o motor. A
+ideia de o projeto gerado sair com um contrato de design legível pelo Claude Code continua boa, mas
+se voltar, volta pelo próprio mérito e com spec própria.
+
+### 2026-09-14, a terceira linha paralela, Eficiência, entrou na main
+Faltava mesclar `claude/low-cost-efficiency-skill-sbzo1k`, que saiu dos blocos 2 e 3 da Fase 1 e
+nunca voltou: painel Eficiência, motor de custo em `shared/eficiencia/`, módulo
+`server/modules/eficiencia/` e a skill de projeto `low-cost-efficiency`. Quatro conflitos, todos
+adição paralela, resolvidos por união; as únicas correções manuais foram `server/app.js`, onde a
+união criaria um segundo `app.decorate('servicos', …)` apagando os serviços da Fase 2 e um
+`rotasProjetos` registrado duas vezes, e o parágrafo de estado do README.
+
+As três entradas de decisão da branch foram preservadas na íntegra, seguindo a regra 3 da
+reconciliação de 2026-09-10 (documentação e memória viram união, nada é apagado). A lição daquela
+reconciliação valeu de novo, e ao contrário: desta vez o que o git auto-mergeou sem conflito
+(`mensagens.js`, `LayoutApp`, `Selo`, `schema.sql`) estava correto, e o perigo estava dentro de um
+conflito marcado, onde "aceitar os dois lados" teria quebrado a aplicação em silêncio. Verificado
+com 1079 testes e build verdes.
+O catálogo de modelos e preços vive em `shared/eficiencia/catalogo-modelos.json` (versão, data,
+fonte) e os perfis de recomendação por intenção em `shared/eficiencia/perfis.json`. Motivo: o
+Forge roda offline (T-01) e a recomendação precisa reproduzir (princípio nº 2); preço buscado na
+hora muda a resposta sem ninguém decidir. Atualização é edição de JSON com `versao` nova, teste
+verde e entrada aqui.
+
+### 2026-09-03, eficiência mede sucessos por dólar, não preço por token
+O painel Eficiência ranqueia modelos por sucessos por dólar relativo ao melhor (100), com aviso
+de amostra pequena abaixo de 5 chamadas. Motivo: modelo barato que falha na validação custa a
+chamada, a escalada e o fallback; custo por tarefa concluída é o número que decide. O custo de
+cada chamada é calculado no servidor pelo catálogo, nunca aceito do cliente.
+
+### 2026-09-03, o copiloto nunca usa o Fable 5.1
+Nenhum perfil recomenda nem escala para `claude-fable-5-1`; o teste do motor bloqueia. Motivo:
+cinco vezes o preço do Sonnet 5 para enriquecer texto curto, dentro de um teto de 5 USD por mês.
+Padrão Kora é Sonnet 5; Haiku 4.5 em nomeação; Opus 5 em esforço baixo só na revisão de
+blueprint de aplicação web e API, onde o erro vai para o disco.

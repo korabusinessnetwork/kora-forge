@@ -109,18 +109,6 @@ CREATE TABLE api_connections (
   atualizado_em TEXT NOT NULL
 );
 
--- Segredo isolado. Acessível apenas pelo módulo Cofre. Nunca serializado para o front.
-CREATE TABLE vault_entries (
-  id            TEXT PRIMARY KEY,
-  connection_id TEXT NOT NULL REFERENCES api_connections(id) ON DELETE CASCADE,
-  chave         TEXT NOT NULL,         -- nome da variável, ex.: SUPABASE_ANON_KEY
-  nonce         BLOB NOT NULL,
-  ciphertext    BLOB NOT NULL,
-  tag           BLOB NOT NULL,
-  criado_em     TEXT NOT NULL,
-  UNIQUE (connection_id, chave)
-);
-
 CREATE TABLE project_connections (
   project_id    TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   connection_id TEXT NOT NULL REFERENCES api_connections(id) ON DELETE CASCADE,
@@ -160,8 +148,14 @@ CREATE TABLE copilot_calls (
   tokens_saida   INTEGER NOT NULL DEFAULT 0,
   custo_estimado REAL NOT NULL DEFAULT 0,
   estado         TEXT NOT NULL CHECK (estado IN ('sucesso','invalido','erro','timeout')),
-  criado_em      TEXT NOT NULL
+  criado_em      TEXT NOT NULL,
+  intencao       TEXT,                 -- site | aplicacao | local | api | automacao, quando conhecida
+  tokens_cache_leitura INTEGER NOT NULL DEFAULT 0,
+  tokens_cache_escrita INTEGER NOT NULL DEFAULT 0,
+  lote           INTEGER NOT NULL DEFAULT 0,  -- 1 quando foi pelo Batch API (50% de desconto)
+  duracao_ms     INTEGER
 );
+CREATE INDEX idx_copilot_calls_periodo ON copilot_calls(criado_em, modelo);
 
 -- Append-only. Nunca UPDATE, nunca DELETE.
 CREATE TABLE events (
@@ -182,3 +176,19 @@ CREATE TABLE ideas (
                 CHECK (estado IN ('aberta','virou_projeto','descartada')),
   criado_em     TEXT NOT NULL
 );
+
+-- Auto-Reforja (ADR-014): melhorias do próprio Forge. Descartar, nunca apagar.
+CREATE TABLE reforge_items (
+  id            TEXT PRIMARY KEY,
+  titulo        TEXT NOT NULL,
+  descricao     TEXT,
+  origem        TEXT NOT NULL CHECK (origem IN ('manual','diagnostico','modelo')),  -- manual | diagnostico | modelo
+  sinal         TEXT,                  -- id do sinal do diagnóstico que originou o item
+  estado        TEXT NOT NULL DEFAULT 'proposta'
+                CHECK (estado IN ('proposta','especificada','em_construcao','em_revisao','concluida','descartada')),
+  prioridade    TEXT NOT NULL DEFAULT 'media' CHECK (prioridade IN ('alta','media','baixa')),
+  spec_caminho  TEXT,                  -- specs/reforja-<slug>.md, relativo à raiz do Forge
+  criado_em     TEXT NOT NULL,
+  atualizado_em TEXT NOT NULL
+);
+CREATE INDEX idx_reforge_items_estado ON reforge_items(estado, prioridade);

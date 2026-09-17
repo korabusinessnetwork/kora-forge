@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
 import { COMANDOS_PERMITIDOS } from '../../shared/comandos.js';
+import { resolverExecutavel } from './binarios.js';
+import { matarArvore, opcoesDeGrupo } from './arvore.js';
 import { ErroForge } from './erro.js';
 
 // Execução de processo do sistema. A parte mais perigosa do produto (ADR-002, controle C3):
@@ -38,6 +40,27 @@ export function validarComando({ cmd, args }) {
   }
 }
 
+// Ferramenta de terminal escreve cor e posicionamento em sequência ANSI. O Forge mostra o log num
+// painel HTML e grava em SQLite, e em nenhum dos dois isso vira cor: é lixo no meio do texto, com o
+// agravante de partir número ao meio, como em `http://localhost:<esc>5175<esc>/`. A linha é limpa
+// aqui, no único ponto onde pedaço de stream vira linha, para painel e banco receberem o mesmo.
+// Se um dia o painel renderizar cor, a decisão é preservar aqui e interpretar lá.
+//
+// A linha de cima sozinha não cobre tudo o que aparece. São três famílias, e as três precisam
+// sair: CSI, que é cor e movimento de cursor; OSC, que é título de janela e hyperlink, e vai do
+// escape até o BEL; e caractere de controle solto, principalmente o retorno de carro que barra
+// de progresso usa para reescrever a própria linha. O quebrador de linhas abaixo já corta em
+// CR LF, então o CR que sobra é sempre de progresso e nunca de fim de linha.
+//
+// O escape aparece aqui como sequência em texto, e não como o byte solto: byte de controle no
+// meio do código é invisível em diff, em revisão e no terminal, e já enganou uma leitura desta
+// linha durante a reconciliação das duas branches.
+const SEQUENCIA_ANSI = /\u001b\[[0-9;?]*[ -/]*[@-~]|\u001b\][^\u0007]*\u0007|\u001b[@-Z\\-_]|[\u0000-\u0008\u000b-\u001f\u007f]/g;
+
+export function limparAnsi(texto) {
+  return String(texto).replace(SEQUENCIA_ANSI, '');
+}
+
 // Quebra o fluxo em linhas sem perder o resto entre pedaços.
 function criarQuebradorDeLinhas(stream, aoReceber) {
   let resto = '';
@@ -45,19 +68,41 @@ function criarQuebradorDeLinhas(stream, aoReceber) {
     const texto = resto + pedaco.toString('utf8');
     const linhas = texto.split(/\r?\n/);
     resto = linhas.pop() ?? '';
-    for (const linha of linhas) aoReceber(stream, linha);
+    for (const linha of linhas) aoReceber(stream, limparAnsi(linha));
   };
+}
+
+// Falha ao iniciar o processo vira mensagem que diz o que fazer, com código estável. Ferramenta
+// que não existe e ferramenta que só roda por shell são a mesma resposta para quem usa: instale ou
+// ajuste o PATH. O Forge não liga shell para contornar (ADR-002).
+function descreverFalhaAoIniciar(cmd, erro) {
+  if (erro?.code === 'ENOENT') {
+    return { codigo: 'FORGE_TOOL_MISSING', mensagem: `A ferramenta "${cmd}" não foi encontrada. Instale ou verifique o PATH.` };
+  }
+  if (erro?.code === 'EINVAL') {
+    return { codigo: 'FORGE_TOOL_MISSING', mensagem: `A ferramenta "${cmd}" existe mas só roda através de shell, e o Forge nunca usa shell.` };
+  }
+  return { codigo: 'FORGE_RUN_FAILED', mensagem: erro?.message ?? 'O processo não pôde ser iniciado.' };
 }
 
 export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaDuracao = false }) {
   validarComando({ cmd, args });
 
-  const processo = spawn(cmd, args, {
+  // A validação acima vale sobre o comando declarado no preset. A resolução abaixo é interna: sai
+  // de `process.execPath` e do `PATH`, nunca de entrada do usuário. Por isso ela pode produzir um
+  // caminho absoluto com espaço e barra invertida, que a allowlist de argumento recusaria, e é
+  // justamente essa ordem que mantém a allowlist estrita sem quebrar o Windows.
+  const { arquivo, prefixo } = resolverExecutavel(cmd);
+
+  const processo = spawn(arquivo, [...prefixo, ...args], {
     cwd,
     shell: false,
     env: ambienteMinimo(),
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
+    // Em POSIX o filho lidera o próprio grupo, para o grupo inteiro poder ser morto sem levar o
+    // Forge junto (R-12). No Windows não muda nada.
+    ...opcoesDeGrupo(),
   });
 
   processo.stdout.on('data', criarQuebradorDeLinhas('stdout', onLinha));
@@ -73,7 +118,10 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
       resolver(resultado);
     };
 
-    processo.on('error', (erro) => responder({ estado: 'falha', exitCode: null, erro: erro.message }));
+    processo.on('error', (erro) => {
+      const { codigo, mensagem } = descreverFalhaAoIniciar(cmd, erro);
+      responder({ estado: 'falha', exitCode: null, erro: mensagem, codigo });
+    });
     processo.on('close', (codigo, sinal) => {
       if (processo.forgeTimeout) return responder({ estado: 'timeout', exitCode: codigo, erro: `Tempo esgotado depois de ${timeoutMs} ms.` });
       if (processo.forgeParado) return responder({ estado: 'cancelado', exitCode: codigo, erro: null });
@@ -84,7 +132,8 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
     if (!longaDuracao && Number.isFinite(timeoutMs)) {
       temporizador = setTimeout(() => {
         processo.forgeTimeout = true;
-        processo.kill('SIGKILL');
+        // Pela árvore também: um comando que estourou o tempo pode ter deixado filho trabalhando.
+        matarArvore(processo, { sinal: 'SIGKILL' });
       }, timeoutMs);
       temporizador.unref?.();
     }
@@ -93,12 +142,19 @@ export function executar({ cmd, args, cwd, timeoutMs, onLinha = () => {}, longaD
   return { processo, terminou };
 }
 
-export function parar(processo) {
+// Parar significa parar: morre o processo e tudo que ele criou (R-12). No Windows o `taskkill /T`
+// já é à força e resolve numa tacada. Em POSIX vale o gentil primeiro, e o bruto depois, os dois
+// sobre o grupo inteiro.
+export function parar(processo, opcoes = {}) {
+  const { plataforma = process.platform } = opcoes;
   if (!processo || processo.exitCode !== null || processo.signalCode !== null) return false;
   processo.forgeParado = true;
-  processo.kill('SIGTERM');
+
+  matarArvore(processo, { ...opcoes, sinal: 'SIGTERM' });
+  if (plataforma === 'win32') return true;
+
   // Se não morrer sozinho, mata de vez. O usuário pediu para parar, e parar significa parar.
-  const forcar = setTimeout(() => processo.kill('SIGKILL'), 3000);
+  const forcar = setTimeout(() => matarArvore(processo, { ...opcoes, sinal: 'SIGKILL' }), 3000);
   forcar.unref?.();
   return true;
 }

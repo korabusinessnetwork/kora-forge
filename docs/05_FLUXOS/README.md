@@ -25,16 +25,24 @@ Registry
 
 Bloqueio pendente no motor de regras impede chegar na etapa 9.
 
-### Estado da implementação (Fase 1, bloco 4)
+### Estado da implementação (Fase 1, blocos 4 e 8)
 
 O wizard já conduz as etapas que o preset liga, com trilha, navegação, pular e retomada exata.
-As etapas 4 (Design) e 6 (APIs) existem no preset e mostram uma tela de espera que só marca a
-etapa como assumida, porque Studio e API Hub chegam nas fases 2 e 3. A etapa 9 mostra o resumo e
-diz que o plano e a execução chegam nos blocos 6 e 7.
+As etapas 4 (Design) e 6 (APIs) existem no preset. Design já conduz ao Studio; APIs conduz ao API
+Hub, onde a pessoa cria/destranca o cofre e cadastra conexões. A etapa 9 mostra o plano,
+executa e fecha.
 
 Regra de versionamento: cada avanço, volta ou salto pela trilha grava uma versão nova do
 blueprint **só quando o payload muda**. Navegar sem editar não versiona. Como `etapaAtual` faz
 parte do blueprint, mudar de etapa versiona, e é isso que garante a retomada exata.
+
+Com o bloco 8 a etapa 9 fecha o fluxo inteiro. Enquanto a fila roda, o plano continua na tela, o
+`PainelMaterializacao` mostra a fila e o `PainelLog` mostra a saída do comando **ao lado** dele,
+nunca no lugar. O log segue sozinho o comando que está rodando; clicar num comando que já rodou
+troca o run em foco e a escolha manual não é atropelada pelo avanço da fila. Terminada a
+materialização, o plano sai da tela e entra a `TelaFinal`: caminho no disco, o que foi criado,
+atalho `vscode://file/...` para abrir no editor e volta para o projeto. Materialização abortada
+tem a sua própria versão dessa tela, que diz onde parou em vez de comemorar.
 
 ## F-02, Materialização (detalhe)
 
@@ -47,6 +55,7 @@ parte do blueprint, mudar de etapa versiona, e é isso que garante a retomada ex
 6. escrever arquivos      ordem fixa: pastas → fundação → config → código  [implementado, bloco 7]
 7. rodar comandos         um a um, na ordem, log em stream, botão parar  [implementado, bloco 7]
 8. registrar              status materializado, evento projeto.materializado, log salvo  [implementado, bloco 7]
+9. fechar                 tela final: caminho, resumo e atalho para o editor  [implementado, bloco 8]
 ```
 
 Falha em um comando **obrigatório** para o fluxo e oferece: repetir, pular ou abortar. Comando
@@ -70,29 +79,43 @@ contra o que existe no disco, nunca uma sobrescrita cega.
 ## F-04, Conectar uma API
 
 ```
-API Hub → escolher modelo (Supabase, Stripe, Anthropic, WhatsApp, ...)
+API Hub → informar provedor e tipo da API (pago ou gratuito)
         → dar um alias  ("supabase-pessoal")
         → destrancar o cofre, se estiver trancado
         → colar a chave  (campo mascarado, valor vai direto para o cofre)
-        → teste de conexão
-             sucesso → status ativa
-             falha   → status invalida, com o motivo, sem expor a chave no erro
+        → opcionalmente informa a URL de teste, cabeçalho e prefixo usados pelo provedor
+        → aperta "Testar conexão" quando quiser; o Forge envia a chave só nessa chamada e mostra
+          apenas sucesso, recusa ou indisponibilidade
 ```
 
-A chave nunca volta para o front. Projeto que usa a conexão recebe `.env.example` com o
+A chave nunca volta para o front, log ou evento; ela também nunca entra na URL de teste. Projeto que usa a conexão receberá `.env.example` com o
 **nome** da variável e uma instrução de onde pegar o valor.
 
 ## F-05, Studio
 
 ```
-Etapa Design → Studio abre com os tokens default do preset
-             → editar tokens (cor, tipografia, raio, espaçamento), preview ao vivo
-             → criar páginas, arrastar regiões e componentes do design system
-             → salvar  → vira design_document versionado no blueprint
-             → gerador transforma em tokens.css, rotas e esqueleto de JSX
+Etapa Design → pergunta: de onde vem o design?
+             ├─ "Usar o padrão Kora" (primeira, marcada)  → Avançar ou Pular: etapa assumida
+             └─ "Usar o meu desenho do Studio"            → Avançar: etapa concluída
+             → link "Abrir o Studio" (volta para a etapa pelo "Voltar ao wizard")
+
+Studio → abre com os tokens do documento salvo, ou os do padrão Kora
+       → editar tokens (cor, tipografia, raio, espaçamento), preview ao vivo
+       → criar páginas e inserir regiões e componentes do catálogo, movendo por botão ou teclado
+       → salvar  → vira design_document versionado (n+1 ativo)
+       → gerador transforma em tokens.css, rotas e esqueleto de JSX
 ```
 
-Sair sem salvar mantém o default e marca a etapa como assumida.
+O que sai no disco com o desenho do Studio escolhido: `src/styles/tokens.css` com os valores do
+documento; se houver página, uma `src/paginas/Pagina<Id>.jsx` por página, `src/paginas/pagina.module.css`
+e `src/App.jsx` com uma rota por página, na ordem do desenho, sem `src/App.module.css`. Item que
+saiu do catálogo e valor inseguro aparecem como pendência no plano, antes de aprovar.
+
+A escolha é o estado da etapa, sem campo novo no blueprint. Com o padrão Kora escolhido, o
+documento salvo fica guardado mas não entra no plano nem no hash (`shared/designEfetivo.js`), e o
+projeto sai idêntico ao de quem nunca abriu o Studio. Com o desenho do Studio escolhido e nada
+salvo, o projeto também sai com o padrão, e a etapa avisa. Sair do Studio sem salvar não muda nada
+no projeto.
 
 ## F-06, Copiloto (quando ligado)
 

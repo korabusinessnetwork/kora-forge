@@ -1,0 +1,137 @@
+# Fase 2, Studio
+
+## Objetivo da fase
+
+Sair de "o projeto nasce com a cara padrão" e chegar a: **desenhar as páginas do projeto
+dentro do Forge e ver essa escolha sair no disco**, em `tokens.css`, nas rotas e no esqueleto
+de cada página. Nada além disso.
+
+O Studio não é ferramenta de desenho livre. É um editor acoplado ao design system do projeto,
+e o output dele é consumido pelo gerador (**ADR-005**). Se o design system não tem, o Studio
+não desenha.
+
+## Estado
+
+| Bloco | Estado | Spec |
+|---|---|---|
+| 1, documento de design e contrato | **entregue** | [`fase2-bloco1-documento-de-design.md`](../../specs/fase2-bloco1-documento-de-design.md) |
+| 2, painel de tokens com preview | **entregue** | [`fase2-bloco2-painel-de-tokens.md`](../../specs/fase2-bloco2-painel-de-tokens.md) |
+| 3, catálogo de regiões e componentes | **entregue** | [`fase2-bloco3-catalogo.md`](../../specs/fase2-bloco3-catalogo.md) |
+| 4, canvas | **entregue** | [`fase2-bloco4-canvas.md`](../../specs/fase2-bloco4-canvas.md) |
+| 5, etapa Design no wizard | **entregue** | [`fase2-bloco5-etapa-design.md`](../../specs/fase2-bloco5-etapa-design.md) |
+| 6, exportação para o gerador | próximo | |
+| 7, diff de design em projeto materializado | **entregue** | [`fase2-bloco7-diff-design.md`](../../specs/fase2-bloco7-diff-design.md) |
+
+## Critério de aceite da fase inteira
+
+- [ ] Criar um projeto, desenhar no Studio e materializar, sem tocar no terminal
+- [x] O `tokens.css` do projeto gerado tem os valores escolhidos no Studio, não os do template. `npm run verificar:fase2`, item 2, com o arquivo conferido no disco de um projeto materializado
+- [x] Cada página desenhada vira rota e arquivo de esqueleto no projeto gerado. `npm run verificar:fase2`, item 3, com `vite build` do projeto gerado passando
+- [x] Zero elemento no canvas sem componente equivalente no catálogo: a paleta é `ondePodeEntrar()`, a mesma função que a inserção usa
+- [x] O preview do Studio não vaza nenhum estilo para a UI do Forge, e nem o contrário (P-06)
+- [x] Redesenhar um projeto já materializado gera plano de diff, e nada é escrito sem aprovação. `VisualizadorDiff` mostra o texto atual e proposto em cada conflito do dry-run; a aplicação segue recebendo somente o hash.
+- [x] Pular a etapa Design continua funcionando: o projeto sai com o padrão Kora, como hoje. Hash e arquivos provados em `server/modules/design/design.test.js`, "padrão Kora escolhido na etapa Design", e revalidado com o bloco 6 no item 7 de `npm run verificar:fase2`
+- [ ] Tudo funciona com o copiloto desligado
+- [ ] Do clique inicial ao dev server, com design: menos de 15 minutos
+
+## Escopo, em ordem de construção
+
+### 1. Documento de design e contrato
+
+Sem UI. A camada que tudo o mais assume.
+
+- **ADR-009, serialização do documento de design.** O backlog exige ADR próprio para isto, e ele
+  é pré-requisito de todos os outros blocos. Precisa decidir: formato de página, região e
+  componente; como a hierarquia é representada; como versão de catálogo entra no documento; e o
+  que acontece quando um componente sai do catálogo depois de ter sido usado.
+- `shared/schemas/design.js`: tokens e páginas em Zod, nas duas pontas.
+- Serviço e rotas `GET`/`POST /projects/:id/design`, versionadas como o blueprint: salvar cria
+  versão n+1 ativa e desativa a anterior.
+- A tabela `design_documents` já existe em `schema.sql` e não é alterada, só usada.
+- Documento de design entra no hash do plano, senão redesenhar não invalidaria o plano aprovado.
+
+### 2. Painel de tokens com preview ao vivo
+
+- `PainelTokens` edita os tokens do projeto, com preview que atualiza enquanto se digita.
+- **Resolvido no bloco 1 (ADR-009)**: o vocabulário canônico é o do arquivo gerado
+  (`--cor-fundo`, `--espaco-1`, `--fonte-ui`), `--projeto-*` é alias de preview, e a tradução é a
+  tabela `listarTokens()` de `shared/schemas/design.js`, com teste de correspondência exata nas
+  duas pontas contra o `tokens.css` do template.
+- Preview roda em container isolado. Nenhum token de projeto vaza para a UI da ferramenta, e a
+  regra vira teste de arquitetura, como o de `fetch` e `WebSocket` da Fase 1.
+- Toda pergunta com default, e "usar o padrão Kora" primeiro, como manda o princípio nº 1.
+
+### 3. Catálogo de regiões e componentes
+
+- Catálogo declarativo, uma pasta por item, no mesmo padrão de `presets/`, `regras/` e
+  `templates/`: carregado do repositório e validado por Zod no boot.
+- **Corrigido ao construir**: este item dizia "sincronizado no banco no `forge:init`". O paralelo
+  certo é `templates/`, que não tem tabela. Preset está no banco porque existe preset custom e o
+  projeto fixa id mais versão; regra está no banco porque `rule_hits` a referencia. O catálogo v1
+  é builtin e nada o referencia por chave estrangeira, então cópia no SQLite seria só uma segunda
+  versão para ficar velha. Justificativa completa na spec do bloco 3.
+- Cada item declara: o que é, quais propriedades aceita, e **qual template gera o código dele**.
+  Sem essa amarração, o Studio permite desenhar o que o gerador não sabe escrever.
+- Catálogo é versionado. Componente que sai do catálogo não pode quebrar documento antigo.
+
+### 4. Canvas
+
+- `CanvasStudio` em DOM, sem canvas 2D (**ADR-005**). "Zoom, pan e snap" foi lido contra a decisão
+  2 do **ADR-009**, que diz que o documento não guarda coordenada: o encaixe é a vaga na árvore que
+  o `aceita` do pai autoriza, o pan é rolagem, e o zoom são degraus nomeados. Não existe DOM
+  absoluto nem régua, porque não existe posição livre para medir.
+- `LayoutStudio`: camadas à esquerda, canvas ao centro, tokens e propriedades à direita.
+- Navegação por teclado de ponta a ponta, foco sempre visível (regra 9 do design system). O
+  `PainelCamadas` é o controle acessível; o canvas é conveniência de mouse.
+- Desfazer e refazer. Editor sem desfazer é editor que dá medo de usar.
+- Nenhum elemento livre: só o que existe no catálogo do bloco 3.
+- Sem arrastar e soltar: o backlog nunca pediu, e mover por teclado e por botão é a mesma
+  primitiva, com um caminho só para manter.
+- Item que saiu do catálogo é pendência declarada, nunca corrupção (**ADR-009**, decisão 4): o
+  desenho abre inteiro, o item aparece marcado, e o salvar fica bloqueado até ele sair.
+
+### 5. Etapa Design no wizard
+
+- Substitui o `EtapaFutura` da etapa `design`, que hoje só marca como assumida.
+- Pular continua sendo primeira classe: assumir o padrão Kora tem que continuar levando ao mesmo
+  resultado de hoje, e isso vira teste de regressão.
+- A etapa diz o que acontece depois, como todas as outras.
+
+### 6. Exportação para o gerador (entregue)
+
+- O documento de design vira entrada do gerador, ao lado do blueprint.
+- `tokens.css` passa a sair com os valores do Studio; sem Studio, sai o default de hoje.
+- Cada página vira rota e um arquivo de esqueleto, montado a partir do template de cada
+  componente do catálogo. Nada de string montada solta: template versionado, como sempre.
+- Determinismo continua valendo: mesmo documento, mesmo resultado, na mesma ordem.
+- Entregue: `specs/fase2-bloco6-exportacao.md`, com a auditoria na seção 7.
+
+### 7. Diff de design em projeto já materializado (entregue)
+
+- Redesenhar um projeto que já nasceu gera plano de diff, e nada é escrito sem aprovação.
+- É aqui que entra o `VisualizadorDiff`, adiado da Fase 1 justamente por não ter caso de uso
+  antes deste bloco: até agora todo conflito era pasta nova, sem conflito nenhum.
+- Entregue: `specs/fase2-bloco7-diff-design.md`.
+
+## Ordem e paralelismo
+
+O bloco 1 é pré-requisito de todos. Os blocos 2 e 3 podem ser paralelos, porque não compartilham
+arquivo. O 4 depende do 3. O 5 depende do 2 e do 4. O 6 depende do 1, do 3 e do 5. O 7 depende do 6.
+
+Cada bloco é uma spec no loop `spec → build → review`, com auditoria critério a critério anexada
+como seção 7 da própria spec, e validação com o produto rodando antes de declarar feito.
+
+## Fora do escopo da Fase 2
+
+Canvas 2D estilo Figma, elemento livre sem componente, animação, protótipo navegável, importação
+de Figma, tema claro do Forge (Fase 5), responsividade além dos breakpoints declarados nos tokens.
+
+## Riscos da fase
+
+| Risco | Sinal de alerta | Resposta |
+|---|---|---|
+| O Studio virar Figma | vontade de "só um retângulo solto" | é não-objetivo explícito em `memory/identity.md` e no ADR-005. Registrar em Ideias e voltar |
+| Catálogo e templates saírem de sincronia | componente que desenha e não gera | a amarração componente → template é obrigatória no schema do catálogo, e vira teste |
+| Vazamento entre `--forge-*` e `--projeto-*` | preview mudando a cor da ferramenta | container isolado mais teste de arquitetura que varre os dois namespaces |
+| Documento de design velho quebrar com catálogo novo | erro ao abrir projeto antigo | catálogo versionado e recusa com mensagem clara, nunca erro silencioso (mesma lição de R-04) |
+| A fase inteira crescer sem fim | bloco 4 encostando em bloco 6 | escopo fechado aqui. Item novo vai para Ideias, não para a fase em andamento |

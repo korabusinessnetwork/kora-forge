@@ -1,0 +1,31 @@
+{
+  "id": "titulo",
+  "versao": 1,
+  "papel": "componente",
+  "nome": "Título",
+  "descricao": "Um título de página ou de seção, no nível hierárquico escolhido.",
+  "microtexto": "Vira uma tag de título (h1 a h3) com o texto que você escrever.",
+  "props": [
+    {
+      "id": "texto",
+      "tipo": "texto",
+      "rotulo": "Texto",
+      "padrao": "Título da seção",
+      "obrigatoria": true,
+      "microtexto": "O texto que aparece na tela."
+    },
+    {
+      "id": "nivel",
+      "tipo": "opcao",
+      "rotulo": "Nível",
+      "padrao": "2",
+      "opcoes": [
+        "1",
+        "2",
+        "3"
+      ],
+      "microtexto": "A hierarquia do título. Use 1 uma vez por página."
+    }
+  ],
+  "aceita": []
+}
